@@ -25,6 +25,7 @@ import com.ag777.util.lang.reflection.ReflectionHelper;
 
 /**
  * @Description 爬虫工具类
+ * 需要jar包 jsoup-1.10.2.jar
  * @author ag777
  * Time: created at 2017/6/5. last modify at 2017/6/27.
  * Mark: 

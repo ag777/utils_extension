@@ -34,7 +34,7 @@ public class UtilsExtension{
 		PropertyUtils pu = new PropertyUtils();
 		try {
 			
-			pu.load(Utils.class.getResourceAsStream("/config/config.properties"));
+			pu.load(UtilsExtension.class.getResourceAsStream("/config/config.properties"));
 			if(infoMap == null) {
 				 infoMap = new HashMap<String, Object>();
 			}
@@ -45,4 +45,5 @@ public class UtilsExtension{
 		} 
 		return null;
 	}
+	
 }
