@@ -30,7 +30,7 @@ import org.apache.poi.ss.util.RegionUtil;
 import com.ag777.util.lang.IOUtils;
 
 /**
- * excel写入工具(样式请在外部定义)
+ * @Description excel写入工具(样式请在外部定义)
  * @author wanggz
  * Time: last modify at 2017/08/28.
  */

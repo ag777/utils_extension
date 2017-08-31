@@ -23,7 +23,7 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import com.ag777.util.lang.IOUtils;
 
 /**
- * excel文件读取辅助类
+ * @Description excel文件读取辅助类
  * 需要jar包 poi-xxx.jar,commons-codec-xx.jar,xmlbeans-2.6.0.jar,commons-collections4-4.1.jar
  * @author ag777
  * Time: last modify at 2017/08/28.

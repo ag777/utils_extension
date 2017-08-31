@@ -11,10 +11,11 @@ import java.util.Map;
 import com.csvreader.CsvWriter;
 
 /**
- * csv文件读写工具(暂时只提供写的方法)
+ * @Description csv文件读写工具(暂时只提供写的方法)
  * 需要jar包 javacsv.jar
  * @author ag777
- *
+ *	Time: last modify at 2017/8/31.
+ *	Mark:
  */
 public class CsvUtils {
 
