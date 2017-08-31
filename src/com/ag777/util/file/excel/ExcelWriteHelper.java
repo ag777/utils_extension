@@ -77,7 +77,6 @@ public class ExcelWriteHelper {
 				try {
 					os.flush();
 					os.close();
-					dispose();
 				} catch (IOException e) {
 				}
 			}
