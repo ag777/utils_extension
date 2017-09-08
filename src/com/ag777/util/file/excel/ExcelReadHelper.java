@@ -26,7 +26,7 @@ import com.ag777.util.lang.IOUtils;
  * @Description excel文件读取辅助类
  * 需要jar包 poi-xxx.jar,commons-codec-xx.jar,xmlbeans-2.6.0.jar,commons-collections4-4.1.jar
  * @author ag777
- * Time: last modify at 2017/08/28.
+ * Time: last modify at 2017/09/06.
  */
 public class ExcelReadHelper {
 	private Workbook workBook;
@@ -139,7 +139,7 @@ public class ExcelReadHelper {
 	}
 	
 	/**
-	 * 读取工作簿,用的是抽象类的方法,不区分版本
+	 * 读取工作簿,用的是抽象类的方法,不区分版本(已去除空数据行)
 	 * @param workBook
 	 * @param sheetTitleList
 	 * @param isIgnoreFirstRow
@@ -199,6 +199,7 @@ public class ExcelReadHelper {
 				Row row = sheet.getRow(rowNum);
 				if (row != null) {	
 					Map<String, String> item = new HashMap<String, String>();	//每行中的内容
+					boolean flag = false;	//排除空行
 					int maxColNum = row.getLastCellNum();
 					for(int index=0; index<titles.length; index++) {
 						String title = titles[index];
@@ -209,11 +210,17 @@ public class ExcelReadHelper {
 							String value = getValue(xssfCell);
 							if(value != null) {
 								value = value.trim();
+								if(!value.isEmpty()) {	//一行当中只要有一个单元格数据不为空则视为有效行(非空行)
+									flag = true;
+								}
 							}
 							item.put(title, value);
+							
 						}
 					}//每个标题(titles)或者说列(col)遍历完成
-					rows.add(item);
+					if(flag) {	//排除空行
+						rows.add(item);
+					}
 				}
 				
 			}	//行(row)遍历完成
