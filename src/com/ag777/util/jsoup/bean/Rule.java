@@ -1,5 +1,6 @@
 package com.ag777.util.jsoup.bean;
 
+import java.util.regex.Pattern;
 
 /**
  * Created by ag777 on 2017/2/14.
@@ -15,6 +16,8 @@ public class Rule implements RuleInterf{
     public String regex;
     
     public String replacement;
+    
+    public Pattern pattern;	//预处理
 
     public Rule(String selector, String fun, String param, String regex, String replacement) {
         this.selector = selector;
@@ -65,6 +68,16 @@ public class Rule implements RuleInterf{
 
 	public void setReplacement(String replacement) {
 		this.replacement = replacement;
+	}
+
+	@Override
+	public void setPattern(Pattern pattern) {
+		this.pattern = pattern;
+	}
+
+	@Override
+	public Pattern getPattern() {
+		return pattern;
 	}
 	
 }

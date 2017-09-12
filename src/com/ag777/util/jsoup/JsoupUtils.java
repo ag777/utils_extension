@@ -9,25 +9,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.safety.Cleaner;
 import org.jsoup.safety.Whitelist;
 import org.jsoup.select.Elements;
-
-import com.ag777.util.jsoup.bean.JSiteInterf;
 import com.ag777.util.jsoup.bean.Rule;
 import com.ag777.util.jsoup.bean.RuleInterf;
 import com.ag777.util.lang.Console;
-import com.ag777.util.lang.reflection.ReflectionHelper;
+import com.ag777.util.lang.MapHelper;
 
 /**
  * @Description 爬虫工具类
  * 需要jar包 jsoup-1.10.2.jar
  * @author ag777
- * Time: created at 2017/6/5. last modify at 2017/6/27.
+ * Time: created at 2017/6/5. last modify at 2017/9/12.
  * Mark: 
  */
 public class JsoupUtils {
@@ -142,31 +139,7 @@ public class JsoupUtils {
 			throw e;
 		}
 	}
-	
-	/**
-	 * 通过站点信息获取列表信息
-	 * 流程:
-	 * 	1.拉取JSiteInterf所有类型为RuleInterf(及其子类)的成员变量
-	 * 2.爬取网页
-	 * 3.调用findByRule方法拉取结果
-	 * @param JSiteInterf
-	 * @return
-	 */
-	public static List<Map<String,Object>> findBySite(JSiteInterf JSiteInterf) throws Exception {
-		return findBySite(JSiteInterf, DEFAULT_TIME_OUT);
-	}
-	/**
-	 * 通过站点信息获取列表信息
-	 * @param JSiteInterf
-	 * @param timeOut
-	 * @return
-	 * @throws Exception
-	 */
-	public static List<Map<String,Object>> findBySite(JSiteInterf JSiteInterf,  int timeOut) throws Exception {
-		Map<String, RuleInterf> params = new ReflectionHelper<>(JSiteInterf.class)
-				.getFieldMap(JSiteInterf, RuleInterf.class);
-		return connect(JSiteInterf.getUrl(), timeOut).findByRule(JSiteInterf.getCssQuery(), params);
-	}
+
 	
 	/*===============接口方法======================*/
 	
@@ -293,111 +266,272 @@ public class JsoupUtils {
 		return list;
 	}
 
-
-	
-
 	/**
-	 * 先找到对应节点再通过finderMap找到结果集
-	 * 流程:
-	 * 	1.通过cssQuery找到html中的对应节点
-	 * 	2.遍历params,寻找finder对应的结果并回填到map里
-	 * @param cssQuery
-	 * @param params
+	 * 通过rulemap查找结果列表
+	 * @param ruleMap
+	 * @param cssQuery	缩小查找范围
 	 * @return
+	 * @throws java.util.regex.PatternSyntaxException
 	 */
-	public List<Map<String,Object>> findByRule(String cssQuery, Map<String, RuleInterf> params) {
-		
-		List<Map<String,Object>> result = new ArrayList<>();
-		Elements es = select(cssQuery);
-		for (Element item:
-				es) {
-			Map<String,Object> map = new HashMap<>();
-			Iterator<String> iter = params.keySet().iterator();
-			while(iter.hasNext()){
-			    String key = iter.next();
-				RuleInterf RuleInterf = params.get(key);
-				if(RuleInterf != null) {
-					Elements es2 = item.select(RuleInterf.getSelector());
-
-					String target = findByRule(es2, RuleInterf);
-					map.put(key, target);
+	public List<Map<String, Object>> findListByRuleMap(Map<String, RuleInterf> ruleMap, String cssQuery) throws java.util.regex.PatternSyntaxException {
+		List<Map<String, Object>> result = new ArrayList<>();
+		Elements elements = doc.select(cssQuery);
+		if(elements != null && !elements.isEmpty()) {
+			for (Element element : elements) {
+				Map<String, Object> item = new HashMap<String, Object>();
+				Iterator<String> itor = ruleMap.keySet().iterator();
+				while(itor.hasNext()) {
+					String key = itor.next();
+					RuleInterf ruleInterf = ruleMap.get(key);
+					item.put(key, findByRule(ruleInterf, element));
 				}
-
+				result.add(item);
 			}
-			result.add(map);
 		}
-
 		return result;
 	}
-
+	
 	/**
-	 * 从节点集中找到对应结果，一旦找到一个匹配的就直接返回
-	 * @param items
-	 * @param RuleInterf
+	 * 通过rulemap查找结果
+	 * @param ruleMap
+	 * @param cssQuery	缩小查找范围
 	 * @return
+	 * @throws java.util.regex.PatternSyntaxException
 	 */
-	public String findByRule(Elements items, RuleInterf RuleInterf) {
-		for (Element item:
-			items) {
-			try {
-				String result = findByRule(item, RuleInterf);
-				if(result == null) {
-					continue;
-				} else {
-					return result;
-				}
-			} catch(Exception ex) {
-				continue;
+	public Map<String, Object> findByRuleMap(Map<String, RuleInterf> ruleMap, String cssQuery) throws java.util.regex.PatternSyntaxException {
+		Elements elements = doc.select(cssQuery);
+		if(elements != null && !elements.isEmpty()) {
+			Map<String, Object> result = new HashMap<String, Object>();
+			Iterator<String> itor = ruleMap.keySet().iterator();
+			while(itor.hasNext()) {
+				String key = itor.next();
+				RuleInterf ruleInterf = ruleMap.get(key);
+				result.put(key, findByRule(ruleInterf, elements.get(0)));
 			}
+			return result;
 		}
+		
 		return null;
 	}
-
+	
+	/**
+	 * 通过rulemap查找结果列表
+	 * @param ruleMap
+	 * @param elements
+	 * @return
+	 * @throws java.util.regex.PatternSyntaxException
+	 */
+	public List<Map<String, Object>> findListByRuleMap(Map<String, RuleInterf> ruleMap, Elements elements) throws java.util.regex.PatternSyntaxException {
+		List<Map<String, Object>> result = new ArrayList<>();
+		if(elements != null) {
+			for (Element element : elements) {
+				result.add(findByRuleMap(ruleMap, element));
+			}
+		}
+		return result;
+	}
+	
+	/**
+	 * 通过rulemap查找结果
+	 * @param ruleMap key以及对应的map
+	 * @param element
+	 * @return
+	 * @throws java.util.regex.PatternSyntaxException
+	 */
+	public Map<String, Object> findByRuleMap(Map<String, RuleInterf> ruleMap, Element element) throws java.util.regex.PatternSyntaxException {
+		Map<String, Object> result = new HashMap<String, Object>();
+		Iterator<String> itor = ruleMap.keySet().iterator();
+		while(itor.hasNext()) {
+			String key = itor.next();
+			RuleInterf ruleInterf = ruleMap.get(key);
+			result.put(key, findByRule(ruleInterf, element));
+		}
+		return result;
+	}
+	
+	/**
+	 * 通过jsonMap(特定规则的map)来获取结果
+	 * @param jsonMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map<String,Object> findByJsonMap(Map<String, Object> jsonMap) throws Exception {
+		return findByJsonMap(jsonMap, doc, "data");
+	}
+	
+	/**
+	 * 通过jsonMap(特定规则的map)来获取结果
+	 * @param jsonMap 
+	 * @param topElement 根遍历节点，默认为doc
+	 * @param defaultKey 根节点默认的key(根节点直接对应列表)
+	 * @return
+	 * @throws Exception
+	 */
+	public Map<String,Object> findByJsonMap(Map<String, Object> jsonMap, Element topElement, String defaultKey) throws Exception {
+		try {
+			Map<String,Object> result = new HashMap<>();
+			if(jsonMap.containsKey("item")) {
+				List<Map<String,Object>> list = new ArrayList<>();
+				Map<String,Object> selectorMap = (Map<String, Object>) jsonMap.get("item");
+				String selector = (String) selectorMap.get("selector");
+				jsonMap.remove("item");
+				Elements elements = topElement.select(selector);
+				
+				for (Element element : elements) {
+					Iterator<String> itor = jsonMap.keySet().iterator();
+					Map<String, Object> item = new HashMap<>();
+					while(itor.hasNext()) {
+						String key = itor.next();
+						Map<String, Object> params = (Map<String, Object>) jsonMap.get(key);
+						item.put(key, findByJsonMap(element, params));
+					}
+					list.add(item);
+				}
+				result.put(defaultKey, list);
+			} else if(!jsonMap.containsKey("selector")){
+			
+				Iterator<String> itor = jsonMap.keySet().iterator();
+				while(itor.hasNext()) {
+					String key = itor.next();
+					Map<String, Object> map = (Map<String, Object>) jsonMap.get(key);
+					result.putAll(findByJsonMap(map, topElement, key));
+				}
+			} else {
+				result.put(defaultKey, findByJsonMap(topElement, jsonMap));
+			}
+			return result;
+		} catch(Exception ex) {
+			Console.err(ex);
+			throw new Exception("json不正确");
+		}
+	}
+	
 	/**
 	 * 通过规则得到节点中匹配的值
 	 * 流程:
 		 * 1.通过select找到对应节点
 		 * 2.提取对应属性中的值
 		 * 3.正则提取结果字符串中的相应部分
-	 * @param item
-	 * @param RuleInterf
+	 * @param ruleInterf
+	 * @param cssQuery 缩小查找范围
 	 * @return
+	 * @throws java.util.regex.PatternSyntaxException
 	 */
-	public String findByRule(Element item, RuleInterf RuleInterf) {
+	public List<String> findListByRule(RuleInterf ruleInterf, String cssQuery) throws java.util.regex.PatternSyntaxException{
+		List<String> result = new ArrayList<>();
+		Elements elements = doc.select(cssQuery);
+		if(elements != null && !elements.isEmpty()) {
+			for (Element element : elements) {
+				String item = findByRule(ruleInterf, element);
+				if(item != null) {
+					result.add(item);
+				}
+			}
+		}
+		return result;
+	}
+	
+	/**
+	 * 通过规则得到节点中匹配的值
+	 * 流程:
+		 * 1.通过select找到对应节点
+		 * 2.提取对应属性中的值
+		 * 3.正则提取结果字符串中的相应部分
+	 * @param ruleInterf
+	 * @param element	 查找范围,传null则为默认的doc
+	 * @return
+	 * @throws java.util.regex.PatternSyntaxException 正则表达式错误
+	 */
+	public String findByRule(RuleInterf ruleInterf, Element element) throws java.util.regex.PatternSyntaxException{
+		if(element == null) {
+			element = doc;
+		}
 		
 		String result = null;
-		Elements target = item.select(RuleInterf.getSelector());
+		Elements target = element.select(ruleInterf.getSelector());
 		if(target != null) {	//通过【selector】找到节点
 
 			//通过【fun】来提取对应属性
-			if ("attr".equals(RuleInterf.getFun())) {
-				result = item.attr(RuleInterf.getParam());
-			} else if ("html".equals(RuleInterf.getFun())) {
-				result = item.html();
-			} else if ("text".equals(RuleInterf.getFun())) {
-				result = item.text();
+			if ("attr".equals(ruleInterf.getFun())) {
+				result = element.attr(ruleInterf.getParam());
+			} else if ("html".equals(ruleInterf.getFun())) {
+				result = element.html();
+			} else if ("text".equals(ruleInterf.getFun())) {
+				result = element.text();
 			} else {
-				result = item.toString();
+				result = element.toString();
 			}
 
-			result = get(result, RuleInterf.getRegex(), RuleInterf.getReplacement());
+			if(ruleInterf.getRegex() != null && ruleInterf.getPattern() == null) {
+				ruleInterf.setPattern(Pattern.compile(ruleInterf.getRegex()));
+			}
+			result = get(result, ruleInterf.getPattern(), ruleInterf.getReplacement());
 
 		}
 
 		return result;
 	}
+	
+	
+	/**
+	 * 根据规则及对应节点获取结果
+	 * @param element
+	 * @param params
+	 * @return
+	 */
+	private String findByJsonMap(Element element, Map<String, Object> params) {
+		String result = null;
+		MapHelper<String, Object> mh = MapHelper.parse(params);
+		Elements target = element.select(mh.getString("selector"));
+		if(target != null) {	//通过【selector】找到节点
+
+			//通过【fun】来提取对应属性
+			String fun = mh.getString("fun");
+			if ("attr".equals(fun)) {
+				result = target.attr(mh.getString("param"));
+			} else if ("html".equals(fun)) {
+				result = target.html();
+			} else if ("text".equals(fun)) {
+				result = target.text();
+			} else {
+				result = target.toString();
+			}
+			//预存pattern,实际上直接用正则也能获取到结果
+			String reg = mh.getString("regex");
+			if(reg != null && !params.containsKey("pattern")) {
+				params.put("pattern", Pattern.compile(reg));
+			}
+			result = get(result, (Pattern) params.get("pattern"), mh.getString("replacement"));
+
+		}
+		return result;
+	}
 
 
 	/**
-	 * 正则-通过字符串提取相应的结果
+	 * 通过正则表达式提取相应的结果
 	 * @param target
 	 * @param regex
 	 * @param replacement
 	 * @return
 	 */
 	private String get(String target, String regex, String replacement) {
-		if(target != null && regex != null) {
-			Pattern pattern = Pattern.compile(regex);
+		if(regex != null) {
+			return get(target, Pattern.compile(regex), replacement);
+		} else {
+			return target;
+		}
+	}
+
+	/**
+	 * 通过正则表达式对应的Pattern提取相应的结果
+	 * @param target
+	 * @param pattern
+	 * @param replacement
+	 * @return
+	 */
+	private String get(String target, Pattern pattern, String replacement) {
+		if(target != null && pattern != null) {
 			Matcher matcher = pattern.matcher(target);
 
 			if (!matcher.find()) {
@@ -420,8 +554,6 @@ public class JsoupUtils {
 		}
 		return null;
 	}
-
-
 
 	public static void main(String[] args) {
 //		List<Element> html = connect("https://tieba.baidu.com/f?kw=%C1%E3%D6%AE%D3%C0%BA%E3").findByReg("<span[^>]+?>([\\s\\S]*?)</span>");
@@ -446,12 +578,13 @@ public class JsoupUtils {
 //		}
 
 		Map<String, RuleInterf> params = new HashMap<>();
-//		params.put("标题", new Rule("a>h1.title, h2>a.title", "html", null, null, null));
+		params.put("标题", new Rule("a>h1.title, h2>a.title", "html", null, null, null));
 		params.put("封面", new Rule("div._layout-thumbnail>img", null, null, "\"(https?://[^\"]*?\\.(?:jpg|jpeg|png|bmp))\"", null));
-//		params.put("日期", new Rule("a.work img._thumbnail", "attr", "data-src", ".*img/(\\d{4})/(\\d{2})/(\\d{2})/(\\d{2})/(\\d{2})/(\\d{2})", "$1-$2-$3 $4:$5:$6"));
+////		params.put("日期", new Rule("a.work img._thumbnail", "attr", "data-src", ".*img/(\\d{4})/(\\d{2})/(\\d{2})/(\\d{2})/(\\d{2})/(\\d{2})", "$1-$2-$3 $4:$5:$6"));
 		try {
+			//需要登录后的cookie
 			List<Map<String, Object>> result = connect("https://www.pixiv.net/search.php?s_mode=s_tag_full&word=東方&p={page:1}")
-					.findByRule("ul._image-items>li.image-item, section.ranking-item", params);
+					.findListByRuleMap(params, "ul._image-items>li.image-item, section.ranking-item");
 			Console.log(result);
 		} catch (Exception e) {
 			e.printStackTrace();

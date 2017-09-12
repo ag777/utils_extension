@@ -1,5 +1,7 @@
 package com.ag777.util.jsoup.bean;
 
+import java.util.regex.Pattern;
+
 /**
  * @author ag777
  * @Description 网页信息辅助类,提取整理自某开源爬虫库
@@ -19,4 +21,7 @@ public interface RuleInterf {
 	//替换用的正则表达式(结果格式)
 	String getReplacement();
 
+	//正则预编译
+	void setPattern(Pattern pattern);
+	Pattern getPattern();
 }
