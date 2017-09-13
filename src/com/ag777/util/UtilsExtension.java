@@ -34,10 +34,11 @@ public class UtilsExtension{
 		PropertyUtils pu = new PropertyUtils();
 		try {
 			
-			pu.load(UtilsExtension.class.getResourceAsStream("/config/config.properties"));
+			pu.load(UtilsExtension.class.getResourceAsStream("/config/config_extension.properties"));
 			if(infoMap == null) {
 				 infoMap = new HashMap<String, Object>();
 			}
+			infoMap.put("extension_version", pu.get("versionName"));
 			infoMap.put("extension_last_release_date", pu.get("last_release_date"));
 			return infoMap;
 		} catch (Exception e) {
