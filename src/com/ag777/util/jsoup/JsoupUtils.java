@@ -15,8 +15,9 @@ import org.jsoup.nodes.Element;
 import org.jsoup.safety.Cleaner;
 import org.jsoup.safety.Whitelist;
 import org.jsoup.select.Elements;
-import com.ag777.util.jsoup.bean.Rule;
-import com.ag777.util.jsoup.bean.RuleInterf;
+
+import com.ag777.util.jsoup.interf.RuleInterf;
+import com.ag777.util.jsoup.model.Rule;
 import com.ag777.util.lang.Console;
 import com.ag777.util.lang.MapHelper;
 
@@ -24,7 +25,7 @@ import com.ag777.util.lang.MapHelper;
  * @Description 爬虫工具类
  * 需要jar包 jsoup-1.10.2.jar
  * @author ag777
- * Time: created at 2017/6/5. last modify at 2017/9/12.
+ * Time: created at 2017/6/5. last modify at 2017/9/15.
  * Mark: 
  */
 public class JsoupUtils {
@@ -38,7 +39,7 @@ public class JsoupUtils {
 	public static void defaultTimeOut(int defaultTimeOut) {
 		DEFAULT_TIME_OUT = defaultTimeOut;
 	}
-
+	
 	private Document doc;
 	private String html;
 
@@ -78,9 +79,14 @@ public class JsoupUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	public static JsoupUtils connect(String url) throws Exception{
-		return connect(url, DEFAULT_TIME_OUT);
+	public static JsoupUtils connect(String url) throws IOException{
+		return connect(url, DEFAULT_TIME_OUT, null);
 	}
+	
+	public static JsoupUtils connect(String url, String userAgent) throws IOException {
+		return connect(url, DEFAULT_TIME_OUT, userAgent);
+	}
+	
 	/**
 	 * 连接目标url
 	 * @param url
@@ -88,12 +94,15 @@ public class JsoupUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	public static JsoupUtils connect(String url, int timeOut) throws Exception{
+	public static JsoupUtils connect(String url, int timeOut, String userAgent) throws IOException{
 		try {
+			if(userAgent == null) {
+				userAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36";
+			}
 			Whitelist whitelist = Whitelist.basicWithImages();
 			Cleaner cleaner = new Cleaner(whitelist);
 			Document doc = Jsoup.connect(url)
-					.userAgent("Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36")
+					.userAgent(userAgent)
 					.timeout(timeOut).get();
 
 //			doc = cleaner.clean(doc);
@@ -374,7 +383,7 @@ public class JsoupUtils {
 				List<Map<String,Object>> list = new ArrayList<>();
 				Map<String,Object> selectorMap = (Map<String, Object>) jsonMap.get("item");
 				String selector = (String) selectorMap.get("selector");
-				jsonMap.remove("item");
+//				jsonMap.remove("item");
 				Elements elements = topElement.select(selector);
 				
 				for (Element element : elements) {
@@ -382,6 +391,9 @@ public class JsoupUtils {
 					Map<String, Object> item = new HashMap<>();
 					while(itor.hasNext()) {
 						String key = itor.next();
+						if("item".equals(key)) {
+							continue;
+						}
 						Map<String, Object> params = (Map<String, Object>) jsonMap.get(key);
 						item.put(key, findByJsonMap(element, params));
 					}
@@ -393,6 +405,9 @@ public class JsoupUtils {
 				Iterator<String> itor = jsonMap.keySet().iterator();
 				while(itor.hasNext()) {
 					String key = itor.next();
+					if("item".equals(key)) {
+						continue;
+					}
 					Map<String, Object> map = (Map<String, Object>) jsonMap.get(key);
 					result.putAll(findByJsonMap(map, topElement, key));
 				}
