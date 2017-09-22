@@ -15,11 +15,10 @@ import org.jsoup.nodes.Element;
 import org.jsoup.safety.Cleaner;
 import org.jsoup.safety.Whitelist;
 import org.jsoup.select.Elements;
-
 import com.ag777.util.jsoup.interf.RuleInterf;
 import com.ag777.util.jsoup.model.Rule;
 import com.ag777.util.lang.Console;
-import com.ag777.util.lang.MapHelper;
+import com.ag777.util.lang.collection.MapUtils;
 
 /**
  * @Description 爬虫工具类
@@ -496,14 +495,13 @@ public class JsoupUtils {
 	 */
 	private String findByJsonMap(Element element, Map<String, Object> params) {
 		String result = null;
-		MapHelper<String, Object> mh = MapHelper.parse(params);
-		Elements target = element.select(mh.getString("selector"));
+		Elements target = element.select(MapUtils.getString(params, "selector"));
 		if(target != null) {	//通过【selector】找到节点
 
 			//通过【fun】来提取对应属性
-			String fun = mh.getString("fun");
+			String fun = MapUtils.getString(params, "fun");
 			if ("attr".equals(fun)) {
-				result = target.attr(mh.getString("param"));
+				result = target.attr(MapUtils.getString(params, "param"));
 			} else if ("html".equals(fun)) {
 				result = target.html();
 			} else if ("text".equals(fun)) {
@@ -512,30 +510,14 @@ public class JsoupUtils {
 				result = target.toString();
 			}
 			//预存pattern,实际上直接用正则也能获取到结果
-			String reg = mh.getString("regex");
+			String reg = MapUtils.getString(params, "regex");
 			if(reg != null && !params.containsKey("pattern")) {
 				params.put("pattern", Pattern.compile(reg));
 			}
-			result = get(result, (Pattern) params.get("pattern"), mh.getString("replacement"));
+			result = get(result, (Pattern) params.get("pattern"), MapUtils.getString(params, "replacement"));
 
 		}
 		return result;
-	}
-
-
-	/**
-	 * 通过正则表达式提取相应的结果
-	 * @param target
-	 * @param regex
-	 * @param replacement
-	 * @return
-	 */
-	private String get(String target, String regex, String replacement) {
-		if(regex != null) {
-			return get(target, Pattern.compile(regex), replacement);
-		} else {
-			return target;
-		}
 	}
 
 	/**

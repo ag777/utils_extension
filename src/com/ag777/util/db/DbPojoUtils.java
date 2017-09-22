@@ -23,8 +23,6 @@ import com.ag777.util.lang.reflection.ReflectionHelper;
  */
 public class DbPojoUtils {
 	
-	
-	
 	/**
 	 * 遍历包，获取包下的所有带table注释的类，并配套对应的sqlbuilder
 	 * @param packageName
