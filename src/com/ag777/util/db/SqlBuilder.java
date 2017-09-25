@@ -3,8 +3,11 @@ package com.ag777.util.db;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.ag777.util.db.model.ColumnPojo;
+import com.ag777.util.lang.StringUtils;
+import com.ag777.util.lang.collection.MapUtils;
 import com.ag777.util.lang.model.Pair;
 
 public class SqlBuilder {
@@ -16,12 +19,24 @@ public class SqlBuilder {
 	
 
 	public SqlBuilder(String tableName, List<Pair<ColumnPojo, String>> columnPairList) {
-		super();
 		this.tableName = tableName;
 		this.columnPairList = columnPairList;
 	}
+	
+	public SqlBuilder(String tableName, List<ColumnPojo> column, boolean isCamel) {
+		List<Pair<ColumnPojo, String>> columnPairList = new ArrayList<>();
+		for (ColumnPojo columnPojo : column) {
+			Pair<ColumnPojo, String> pair = new Pair<>();
+			String name = columnPojo.getName();
+			if(isCamel) {
+				name = StringUtils.underline2Camel(name, true);
+			}
+			pair.first = columnPojo;
+			pair.second = name;
+		}
+	}
 
-	public Sql getInsert() {
+	public Sql getInsertSql() {
 		if(insert == null) {
 			synchronized (SqlBuilder.class) {
 				if(insert == null) {
@@ -32,7 +47,7 @@ public class SqlBuilder {
 		return insert;
 	}
 	
-	public Sql getUpdate() {
+	public Sql getUpdateSql() {
 		if(update == null) {
 			synchronized (SqlBuilder.class) {
 				if(update == null) {
@@ -43,7 +58,7 @@ public class SqlBuilder {
 		return update;
 	}
 	
-	public Sql getCreate() {
+	public Sql getCreateSql() {
 		if(create == null) {
 			synchronized (SqlBuilder.class) {
 				if(create == null) {
@@ -55,6 +70,40 @@ public class SqlBuilder {
 		return create;
 	}
 	
+	public void doCreate(DbHelper helper) {
+		String sql = getCreateSql().sql;
+		helper.update(sql);
+	}
+	
+	public int doInsert(Map<String, Object> paramsMap, DbHelper helper) {
+		
+		String sql = getInsertSql().sql;
+		List<String> keyList = getInsertSql().paramList;
+		Object[] params = new Object[keyList.size()];
+		for(int i=0; i<keyList.size(); i++) {
+			String key = keyList.get(i);
+			params[i] = MapUtils.get(paramsMap, key);
+		}
+		return helper.update(sql, params);
+	}
+	
+	public int[] doBatchInsert(List<Map<String, Object>> paramsMapList, DbHelper helper) {
+		String sql = getInsertSql().sql;
+		List<String> keyList = getInsertSql().paramList;
+		List<Object[]> paramsList = new ArrayList<>();
+		for (Map<String, Object> item : paramsMapList) {
+			Object[] params = new Object[keyList.size()];
+			for(int i=0; i<keyList.size(); i++) {
+				String key = keyList.get(i);
+				params[i] = MapUtils.get(item, key);
+			}
+			paramsList.add(params);
+		}
+		
+		return helper.batchUpdate(sql, paramsList);
+	}
+	
+	/*============内部方法=============*/
 	/**
 	 * 构造插入语句
 	 * @param tableName
