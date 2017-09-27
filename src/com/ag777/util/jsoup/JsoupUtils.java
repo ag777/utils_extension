@@ -21,11 +21,16 @@ import com.ag777.util.lang.Console;
 import com.ag777.util.lang.collection.MapUtils;
 
 /**
- * @Description 爬虫工具类
- * 需要jar包 jsoup-1.10.2.jar
+ * 有关 <code>Jsoup</code> 爬虫工具类
+ * <p>
+ * 	需要jar包:
+ * <ul>
+ * <li>jsoup-1.10.2.jar</li>
+ * </ul>
+ * </p>
+ * 
  * @author ag777
- * Time: created at 2017/6/5. last modify at 2017/9/15.
- * Mark: 
+ * @version create on 2017年06月05日,last modify at 2017年09月15日
  */
 public class JsoupUtils {
 

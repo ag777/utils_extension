@@ -9,9 +9,19 @@ import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.usermodel.Workbook;
 
 /**
- * 表格基础样式构造工具类
+ * excel表格基础样式构造工具类
+ * <p>
+ * 	需要jar包:
+ * <ul>
+ * <li>poi-xxx.jar</li>
+ * <li>commons-codec-xx.jar</li>
+ * <li>xmlbeans-2.6.0.jar</li>
+ * <li>commons-collections4-4.1.jar</li>
+ * </ul>
+ * </p>
+ * 
  * @author ag777
- * Time: last modify at 2017/09/06.
+ * @version last modify at 2017年09月06日
  */
 public class ExcelStyleUtils {
 	

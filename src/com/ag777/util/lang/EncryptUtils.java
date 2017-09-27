@@ -6,11 +6,17 @@ import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.binary.Base64;
 
 /**
- * @Description 加解密工具
- * 需要jar包 commons-codec-1.10.jar
+ * 加解密工具
+ * <p>
+ * aes加解密方法和c++开发人员联调通过
+ * 	需要jar包:
+ * <ul>
+ * <li>commons-codec-1.10.jar</li>
+ * </ul>
+ * </p>
+ * 
  * @author ag777
- * Time: last modify at 2017/8/31.
- * Mark: aes加解密方法和c++开发人员联调通过
+ * @version last modify at 2017年08月31日
  */
 public class EncryptUtils {
 

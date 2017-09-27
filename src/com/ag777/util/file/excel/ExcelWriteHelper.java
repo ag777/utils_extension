@@ -30,9 +30,22 @@ import org.apache.poi.ss.util.RegionUtil;
 import com.ag777.util.lang.IOUtils;
 
 /**
- * @Description excel写入工具(样式请在外部定义)
- * @author wanggz
- * Time: last modify at 2017/08/28.
+ * excel写入工具(样式请在外部定义)
+ * <p>
+ * 可直接借用ExcelStyleTemplate作为模板
+ * </p>
+ * <p>
+ * 	需要jar包:
+ * <ul>
+ * <li>poi-xxx.jar</li>
+ * <li>commons-codec-xx.jar</li>
+ * <li>xmlbeans-2.6.0.jar</li>
+ * <li>commons-collections4-4.1.jar</li>
+ * </ul>
+ * </p>
+ * 
+ * @author ag777
+ * @version last modify at 2017年08月28日
  */
 public class ExcelWriteHelper {
 	
@@ -62,25 +75,23 @@ public class ExcelWriteHelper {
 	}
 	
 	/*-----输出------*/
+	public static void write(OutputStream os, Workbook workBook) throws IOException {
+		try {
+			workBook.write(os);
+		} catch (IOException e) {
+			throw e;
+		} finally {
+			IOUtils.close(os);
+		}
+	}
+	
 	/**
 	 * 将excel文件写出到输出流中,并关闭输出流
 	 * @param os
 	 * @throws Exception 
 	 */
-	public void write(OutputStream os) throws Exception {
-		try {
-			workBook.write(os);
-		} catch (Exception e) {
-			throw e;
-		} finally {
-			if(os != null) {
-				try {
-					os.flush();
-					os.close();
-				} catch (IOException e) {
-				}
-			}
-		}
+	public void write(OutputStream os) throws IOException {
+		write(os, workBook);
 	}
 	
 	/**

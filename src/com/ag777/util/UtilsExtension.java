@@ -7,6 +7,15 @@ import com.ag777.util.Utils;
 import com.ag777.util.file.PropertyUtils;
 import com.ag777.util.jsoup.JsoupUtils;
 
+/**
+ * 工具配置类
+ * <p>
+ * 		用于配置工具及获取版本信息
+ * </p>
+ * 
+ * @author ag777
+ * @version last modify at 2017年08月28日
+ */
 public class UtilsExtension{
 	
 	public static int jsoupTimeOut() {
