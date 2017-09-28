@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.PushbackInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -53,30 +54,46 @@ public class ExcelReadUtils {
 		return WorkbookFactory.create(inputStream);
 	}
 	
-	/**
-	 * 读取excel文件
-	 * @param filePath 				excel文件路径
-	 * @param titles			转为map时对应的key
-	 * @param isIgnoreFirstRow	是否忽略第一行(有时候第一行是标题栏)
-	 * @return 路径为空或者为null时返回null
-	 * @throws IOException
-	 * @throws InvalidFormatException 
-	 * @throws EncryptedDocumentException 
-	 */
-	public static List<List<Map<String, String>>> readExcel(String filePath, List<List<String>> titles, boolean isIgnoreFirstRow) throws IOException, EncryptedDocumentException, InvalidFormatException {
+	
+	public static List<List<Map<String, String>>> read(String filePath, boolean isIgnoreFirstRow) throws EncryptedDocumentException, InvalidFormatException, IOException {
 		if (filePath == null || "".equals(filePath)) {
 			return null;
 		} else {
-			return read(filePath, titles, isIgnoreFirstRow);
+			List<List<Map<String, String>>> sheetList = CollectionAndMapUtils.newArrayList();
+			Workbook workBook = WorkbookFactory.create(new File(filePath));
+			Iterator<Sheet> itorSheet = workBook.sheetIterator();
+			while(itorSheet.hasNext()) {
+				List<Map<String, String>> rowList = CollectionAndMapUtils.newArrayList();
+				Sheet sheet = itorSheet.next();
+				Iterator<Row> itorRow = sheet.rowIterator();
+				while(itorRow.hasNext()) {
+					Map<String, String> rowMap = CollectionAndMapUtils.newLinkedHashMap();
+					Row row = itorRow.next();
+					if(isIgnoreFirstRow && row.getRowNum() == 0) {
+						continue;
+					}
+					Iterator<Cell> itorCell = row.cellIterator();
+					while(itorCell.hasNext()) {
+						Cell cell = itorCell.next();
+						char key = (char)('a' + cell.getColumnIndex());
+						String value = getValue(cell);
+						rowMap.put(String.valueOf(key), value);
+					}
+					rowList.add(rowMap);
+				}
+				sheetList.add(rowList);
+			}
+			
+			return sheetList;
 		}
 	}
 	
 	/**
-	 * 读取excel内容
-	 * @param filePath
-	 * @param sheetTitles
-	 * @param isIgnoreFirstRow
-	 * @return
+	 * 读取excel文件
+	 * @param filePath 				excel文件路径
+	 * @param sheetTitles			转为map时对应的key
+	 * @param isIgnoreFirstRow	是否忽略第一行(有时候第一行是标题栏)
+	 * @return 路径为空或者为null时返回null
 	 * @throws IOException
 	 * @throws InvalidFormatException 
 	 * @throws EncryptedDocumentException 

@@ -10,6 +10,18 @@ import com.ag777.util.file.FileUtils;
 import com.ag777.util.lang.SystemUtils;
 import com.ag777.util.lang.collection.CollectionAndMapUtils;
 
+/**
+ * 有关 <code>Jsoup</code> 爬虫工具类
+ * <p>
+ * 	需要jar包:
+ * <ul>
+ * <li>jsoup-1.10.2.jar</li>
+ * </ul>
+ * </p>
+ * 
+ * @author ag777
+ * @version create on 2017年09月26日,last modify at 2017年09月26日
+ */
 public class XmlUtils {
 	
 	public static Document load(String filePath) throws IOException {
