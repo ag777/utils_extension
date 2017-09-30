@@ -13,7 +13,7 @@ import com.ag777.util.db.model.interf.Id;
 import com.ag777.util.db.model.interf.Table;
 import com.ag777.util.lang.model.Pair;
 import com.ag777.util.lang.reflection.PackageUtils;
-import com.ag777.util.lang.reflection.ReflectionHelper;
+import com.ag777.util.lang.reflection.ReflectionUtils;
 
 
 /**
@@ -51,7 +51,7 @@ public class DbPojoUtils {
 		if(clazz.isAnnotationPresent(Table.class)) {
 			Table table = clazz.getAnnotation(Table.class);
 			
-			List<Field> fieldList = ReflectionHelper.getFieldListByAnnotation(clazz, Column.class);
+			List<Field> fieldList = ReflectionUtils.getFieldListByAnnotation(clazz, Column.class);
 			List<Pair<ColumnPojo, String>> colPairList = new ArrayList<>();
 			for (Field field : fieldList) {
 				Pair<ColumnPojo, String> pair = new Pair<>();
