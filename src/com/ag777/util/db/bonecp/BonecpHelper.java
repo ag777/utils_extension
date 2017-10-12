@@ -33,6 +33,10 @@ public class BonecpHelper {
 		this.connectionPool = connectionPool;
 	}
 	
+	public BoneCP getPool() {
+		return connectionPool;
+	}
+	
 	public Optional<Connection> getConnection() {
 		try {
 			Connection conn = connectionPool.getConnection();
