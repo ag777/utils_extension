@@ -3,12 +3,17 @@ package com.ag777.util.db.bonecp;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import com.ag777.util.db.DbHelper;
+import com.ag777.util.lang.Console;
 import com.ag777.util.lang.IOUtils;
+import com.ag777.util.lang.StringUtils;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.jolbox.bonecp.BoneCP;
 import com.jolbox.bonecp.BoneCPConfig;
+import com.jolbox.bonecp.Statistics;
 
 /**
  * bonecp简单封装
@@ -23,7 +28,7 @@ import com.jolbox.bonecp.BoneCPConfig;
  * </p>
  * 
  * @author ag777
- * @version create on 2017年10月11日,last modify at 2017年10月11日
+ * @version create on 2017年10月11日,last modify at 2017年10月13日
  */
 public class BonecpHelper {
 
@@ -33,8 +38,8 @@ public class BonecpHelper {
 		this.connectionPool = connectionPool;
 	}
 	
-	public BoneCP getPool() {
-		return connectionPool;
+	public BoneCPConfig getConfig() {
+		return connectionPool.getConfig();
 	}
 	
 	public Optional<Connection> getConnection() {
@@ -47,6 +52,34 @@ public class BonecpHelper {
 			e.printStackTrace();
 		}
 		return Optional.empty();
+	}
+	
+	public Optional<Connection> getAsyncConnection() {
+		try {
+			ListenableFuture<Connection> conn = connectionPool.getAsyncConnection();
+			return Optional.of(conn.get());
+		} catch (InterruptedException | ExecutionException e) {
+			e.printStackTrace();
+		}
+		return Optional.empty();
+	}
+	
+	/**
+	 * 输出[已使用::xx;剩余:xx;总共:xx]的信息
+	 */
+	public void showStatus() {
+		int used = connectionPool.getTotalLeased();
+		int free = connectionPool.getTotalFree();
+		int total = connectionPool.getTotalCreatedConnections();
+		Console.log(StringUtils.concat("已经使用:", used,";剩余:", free, ";总共:",total));
+	}
+	
+	/**
+	 * 返回自带的分析类
+	 * @return
+	 */
+	public Statistics showStatistics() {
+		return connectionPool.getStatistics();
 	}
 	
 	public static BonecpHelper init(String ip, int port, String dbName, String user, String password) {
@@ -75,6 +108,8 @@ public class BonecpHelper {
 			config.setAcquireIncrement(5);
 			// 连接释放处理
 			config.setReleaseHelperThreads(3);
+//			config.setCloseConnectionWatch(true);
+//			config.setCloseConnectionWatchTimeoutInMs(1000);
 			// 设置分区 分区数为3
 			config.setPartitionCount(3);
 			BoneCP connectionPool = new BoneCP(config); // setup the connection pool
