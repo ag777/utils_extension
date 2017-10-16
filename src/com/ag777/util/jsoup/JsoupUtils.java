@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jsoup.Jsoup;
@@ -30,7 +31,7 @@ import com.ag777.util.lang.collection.MapUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2017年06月05日,last modify at 2017年09月15日
+ * @version create on 2017年06月05日,last modify at 2017年10月16日
  */
 public class JsoupUtils {
 
@@ -200,6 +201,14 @@ public class JsoupUtils {
 		return doc.select(cssQuery);
 	}
 
+	public Optional<Element> selectOne(String cssQuery) {
+		Elements elements = select(cssQuery);
+		if(elements.size() > 0) {
+			return Optional.of(elements.get(0));
+		}
+		return Optional.ofNullable(null);
+	}
+	
 	/**
 	 * 寻找页面内所有图片
 	 * @return
