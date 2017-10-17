@@ -1,10 +1,12 @@
 package com.ag777.util.lang.string;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 
 import com.ag777.util.gson.GsonUtils;
 import com.ag777.util.http.HttpUtils;
+import com.ag777.util.lang.StringUtils;
 import com.ag777.util.lang.collection.MapUtils;
 import com.ag777.util.lang.string.model.ApiTranslatePojo;
 
@@ -15,7 +17,7 @@ import com.ag777.util.lang.string.model.ApiTranslatePojo;
  * </p>
  * 
  * @author ag777
- * @version create on 2017年10月16日,last modify at 2017年10月16日
+ * @version create on 2017年10月16日,last modify at 2017年10月17日
  */
 public class TranslateUtils {
 
@@ -42,8 +44,9 @@ public class TranslateUtils {
 	 * 英译汉
 	 * @param source
 	 * @return
+	 * @throws IOException 
 	 */
-	public static Optional<String> enToZh(String source) {
+	public static Optional<String> enToZh(String source) throws IOException {
 		return translate(Language.ENGLISH, Language.CHINESE, source);
 	}
 	
@@ -51,30 +54,38 @@ public class TranslateUtils {
 	 * 汉译英
 	 * @param source
 	 * @return
+	 * @throws IOException 
 	 */
-	public static Optional<String> zhToEn(String source) {
+	public static Optional<String> zhToEn(String source) throws IOException {
 		return translate(Language.CHINESE, Language.ENGLISH, source);
 	}
 	
-	public static Optional<String> translate(Language from, Language to, String source)
+	public static Optional<String> translate(Language from, Language to, String source) throws IOException
     {
        return translate(from.toString(), to.toString(), source);
     }
 	
-	public static Optional<String> translate(String from, String to, String source) {
-		 try {
-	            String json=HttpUtils.doGet(BASEURL, getParams(from.toString(), to.toString(), source));
+	public static Optional<String> translate(String from, String to, String source) throws IOException {
+		if(source == null) {
+			return Optional.empty();
+		}
+		if(StringUtils.isBlank(source)) {
+			return Optional.of("");
+		}
+		
+        Optional<String> json=HttpUtils.doGet(BASEURL, getParams(from.toString(), to.toString(), source));
+        if(json.isPresent()) {
+        	ApiTranslatePojo translateMode=GsonUtils.get().fromJson(json.get(), ApiTranslatePojo.class);
+            
+            if(translateMode!=null&&translateMode.getData()!=null&&translateMode.getData().size()==1)
+            {
+                return Optional.ofNullable(translateMode.getData().get(0).getDst());
+            }
+        } else {
+        	throw new IOException("连接失败");
+        }
 	            
-	            ApiTranslatePojo translateMode=GsonUtils.get().fromJson(json, ApiTranslatePojo.class);
-	            
-	            if(translateMode!=null&&translateMode.getData()!=null&&translateMode.getData().size()==1)
-	            {
-	                return Optional.ofNullable(translateMode.getData().get(0).getDst());
-	            }
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	        }
-	        return Optional.empty();
+	    return Optional.empty();
 	}
 	
 	private static Map<String, Object> getParams(String from, String to, String source) {
@@ -83,4 +94,5 @@ public class TranslateUtils {
 				"to", to,
 				"query", source);
 	}
+
 }

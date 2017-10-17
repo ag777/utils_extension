@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -31,7 +33,7 @@ import com.ag777.util.lang.collection.MapUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2017年06月05日,last modify at 2017年10月16日
+ * @version create on 2017年06月05日,last modify at 2017年10月17日
  */
 public class JsoupUtils {
 
@@ -85,75 +87,46 @@ public class JsoupUtils {
 	 * @throws Exception
 	 */
 	public static JsoupUtils connect(String url) throws IOException{
-		return connect(url, DEFAULT_TIME_OUT, null);
-	}
-	
-	public static JsoupUtils connect(String url, String userAgent) throws IOException {
-		return connect(url, DEFAULT_TIME_OUT, userAgent);
-	}
-	
-	/**
-	 * 连接目标url
-	 * @param url
-	 * @param timeOut
-	 * @return
-	 * @throws Exception
-	 */
-	public static JsoupUtils connect(String url, int timeOut, String userAgent) throws IOException{
 		try {
-			if(userAgent == null) {
-				userAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36";
+			Document doc = Jsoup.connect(url).timeout(DEFAULT_TIME_OUT).get();
+			return new JsoupUtils(doc);
+		} catch(IOException ex) {
+			throw ex;
+		}
+	}
+
+
+	/**
+	 * 根据配置来做连接
+	 * @param url
+	 * @param config
+	 * @return
+	 * @throws IOException
+	 */
+	public static JsoupUtils connect(String url, JsoupBuilder config) throws IOException {
+		Integer retryTimes = config.retryTimes();
+		if(retryTimes == null) {
+			retryTimes = 1;
+		}
+		Whitelist whitelist = Whitelist.basicWithImages();
+		Cleaner cleaner = new Cleaner(whitelist);
+		IOException ex = null;
+		for(int i=0;i<retryTimes;i++) {
+			try {
+				Connection conn = Jsoup.connect(url).timeout(config.timeOut() == null?DEFAULT_TIME_OUT:config.timeOut());
+				if(config.proxy() != null) {
+					conn.proxy(config.proxy().ip, config.proxy().port);
+				}
+				if(config.userAgent() != null) {
+					conn.userAgent(config.userAgent());
+				}
+				return new JsoupUtils(conn.get());
+			} catch(IOException e) {
+				ex = e;
 			}
-			Whitelist whitelist = Whitelist.basicWithImages();
-			Cleaner cleaner = new Cleaner(whitelist);
-			Document doc = Jsoup.connect(url)
-					.userAgent(userAgent)
-					.timeout(timeOut).get();
-
-//			doc = cleaner.clean(doc);
-			return new JsoupUtils(doc);
-
-		} catch (IOException e) {
-			throw e;
 		}
+		throw ex;
 	}
-
-	/**
-	 * 连接url(通过代理)
-	 * @param url
-	 * @param proxyIp		代理ip
-	 * @param proxyPort	代理端口号
-	 * @return
-	 * @throws Exception
-	 */
-	public static JsoupUtils connect(String url, String proxyIp, int proxyPort) throws Exception{
-		return connect(url, proxyIp, proxyPort, DEFAULT_TIME_OUT);
-	}
-	/**
-	 * 连接url(通过代理)
-	 * @param url
-	 * @param proxyIp		代理ip
-	 * @param proxyPort	代理端口号
-	 * @param timeOut
-	 * @return
-	 * @throws Exception
-	 */
-	public static JsoupUtils connect(String url, String proxyIp, int proxyPort, int timeOut) throws Exception{
-		try {
-			Whitelist whitelist = Whitelist.basicWithImages();
-			Cleaner cleaner = new Cleaner(whitelist);
-			Document doc = Jsoup.connect(url)
-					.userAgent("Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36")
-					.proxy(proxyIp, proxyPort).timeout(timeOut).get();
-
-//			doc = cleaner.clean(doc);
-			return new JsoupUtils(doc);
-
-		} catch (IOException e) {
-			throw e;
-		}
-	}
-
 	
 	/*===============接口方法======================*/
 	
