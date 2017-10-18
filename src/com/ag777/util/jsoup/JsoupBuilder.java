@@ -1,12 +1,15 @@
 package com.ag777.util.jsoup;
 
 import java.io.IOException;
+import java.util.Map;
+
+import com.ag777.util.lang.collection.MapUtils;
 
 /**
  * JsoupUtils配套的配置类
  * 
  * @author ag777
- * @version create on 2017年10月17日,last modify at 2017年10月17日
+ * @version create on 2017年10月17日,last modify at 2017年10月18日
  */
 public class JsoupBuilder {
 
@@ -14,6 +17,7 @@ public class JsoupBuilder {
 	private Integer retryTimes;
 	private Proxy proxy;
 	private String userAgent;
+	private Map<String, String> cookieMap;
 	
 	private JsoupBuilder() {}
 	
@@ -47,6 +51,26 @@ public class JsoupBuilder {
 		return this;
 	}
 
+	public JsoupBuilder cookie(String key, String value) {
+		if(cookieMap == null) {
+			synchronized (JsoupBuilder.class) {
+				if(cookieMap == null) {
+					cookieMap = MapUtils.newHashTable();
+				}
+			}
+		}
+		cookieMap.put(key, value);
+		return this;
+	}
+	
+	public JsoupBuilder cookies(Map<String, String> cookies) {
+		cookies.forEach((key, value)->{
+			cookie(key, value);
+		});
+		return this;
+	}
+	
+	//--get
 	public Integer timeOut() {
 		return timeOut;
 	}
@@ -61,6 +85,10 @@ public class JsoupBuilder {
 
 	public String userAgent() {
 		return userAgent;
+	}
+	
+	public Map<String, String> cookies() {
+		return cookieMap;
 	}
 	
 	public class Proxy {
