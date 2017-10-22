@@ -28,7 +28,7 @@ import com.jolbox.bonecp.Statistics;
  * </p>
  * 
  * @author ag777
- * @version create on 2017年10月11日,last modify at 2017年10月13日
+ * @version create on 2017年10月11日,last modify at 2017年10月21日
  */
 public class BonecpHelper {
 
@@ -83,6 +83,23 @@ public class BonecpHelper {
 	}
 	
 	public static BonecpHelper init(String ip, int port, String dbName, String user, String password) {
+		return init(ip, port, dbName, user, password, 30, 10, 3, 5);
+	}
+	
+	/**
+	 * 
+	 * @param ip
+	 * @param port
+	 * @param dbName
+	 * @param user
+	 * @param password
+	 * @param minSize	每个分区中的最小连接数
+	 * @param maxSize 每个分区中的最大连接数
+	 * @param partitionCount	分区数
+	 * @param requireOnce	连接池中的连接耗尽的时候 BoneCP一次同时获取的连接数
+	 * @return
+	 */
+	public static BonecpHelper init(String ip, int port, String dbName, String user, String password,int minSize, int maxSize,int partitionCount,int requireOnce) {
 		try {
 			// load the database driver (make sure this is in your classpath!)
 			Class.forName("com.mysql.jdbc.Driver");
@@ -101,17 +118,17 @@ public class BonecpHelper {
 			// 设置连接空闲时间
 			config.setIdleMaxAge(240, TimeUnit.SECONDS);
 			// 设置每个分区中的最大连接数 30
-			config.setMaxConnectionsPerPartition(30);
+			config.setMaxConnectionsPerPartition(maxSize);
 			// 设置每个分区中的最小连接数 10
-			config.setMinConnectionsPerPartition(10);
+			config.setMinConnectionsPerPartition(minSize);
 			// 当连接池中的连接耗尽的时候 BoneCP一次同时获取的连接数
-			config.setAcquireIncrement(5);
+			config.setAcquireIncrement(requireOnce);
 			// 连接释放处理
 			config.setReleaseHelperThreads(3);
 //			config.setCloseConnectionWatch(true);
 //			config.setCloseConnectionWatchTimeoutInMs(1000);
 			// 设置分区 分区数为3
-			config.setPartitionCount(3);
+			config.setPartitionCount(partitionCount);
 			BoneCP connectionPool = new BoneCP(config); // setup the connection pool
 			return new BonecpHelper(connectionPool);
 		} catch (Exception ex) {
