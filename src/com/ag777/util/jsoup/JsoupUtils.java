@@ -33,7 +33,7 @@ import com.ag777.util.lang.collection.MapUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2017年06月05日,last modify at 2017年10月18日
+ * @version create on 2017年06月05日,last modify at 2017年10月29日
  */
 public class JsoupUtils {
 
@@ -122,6 +122,12 @@ public class JsoupUtils {
 				}
 				if(config.cookies() != null) {
 					conn.cookies(config.cookies());
+				}
+				if(config.headers() != null) {
+					conn.headers(config.headers());
+				}
+				if(config.ignoreContentType()) {
+					conn.ignoreContentType(true);
 				}
 				return new JsoupUtils(conn.get());
 			} catch(IOException e) {
