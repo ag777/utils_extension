@@ -15,7 +15,7 @@ import java.util.Properties;
  * </p>
  * 
  * @author rookiefly
- * @version create on 2017年10月13日,last modify at 2017年10月13日
+ * @version create on 2017年10月13日,last modify at 2017年11月01日
  */
 public class ZHConverter {
 
@@ -28,8 +28,8 @@ public class ZHConverter {
     private static final String[] propertyFiles = new String[2];
 
     static {
-        propertyFiles[TRADITIONAL] = "resources/zh2Hant.properties";
-        propertyFiles[SIMPLIFIED] = "resources/zh2Hans.properties";
+        propertyFiles[TRADITIONAL] = "resource/zh2Hant.properties";
+        propertyFiles[SIMPLIFIED] = "resource/zh2Hans.properties";
     }
 
     /**
@@ -57,7 +57,6 @@ public class ZHConverter {
     private ZHConverter(String propertyFile) {
 
         InputStream is = getClass().getClassLoader().getResourceAsStream(propertyFile);
-System.out.println(is == null);
         if (is != null) {
             BufferedReader reader = null;
             try {
