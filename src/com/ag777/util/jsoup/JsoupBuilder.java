@@ -1,6 +1,7 @@
 package com.ag777.util.jsoup;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Map;
 
 import com.ag777.util.lang.collection.MapUtils;
@@ -9,7 +10,7 @@ import com.ag777.util.lang.collection.MapUtils;
  * JsoupUtils配套的配置类
  * 
  * @author ag777
- * @version create on 2017年10月17日,last modify at 2017年10月29日
+ * @version create on 2017年10月17日,last modify at 2017年11月21日
  */
 public class JsoupBuilder {
 
@@ -54,6 +55,11 @@ public class JsoupBuilder {
 		this.userAgent = userAgent;
 		return this;
 	}
+	
+	public JsoupBuilder clearCookie() {
+		cookieMap = null;
+		return this;
+	}
 
 	public JsoupBuilder cookie(String key, String value) {
 		if(cookieMap == null) {
@@ -71,6 +77,16 @@ public class JsoupBuilder {
 		cookies.forEach((key, value)->{
 			cookie(key, value);
 		});
+		return this;
+	}
+	
+	public JsoupBuilder cookies(String cookiesStr) {
+		Map<String, Object> cookieMap = MapUtils.ofMap(cookiesStr, ";", "=");
+		Iterator<String> itor = cookieMap.keySet().iterator();
+		while(itor.hasNext()) {
+			String key = itor.next();
+			cookie(key, cookieMap.get(key).toString());
+		}
 		return this;
 	}
 	
