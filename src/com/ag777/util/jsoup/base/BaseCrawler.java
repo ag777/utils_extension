@@ -1,8 +1,6 @@
 package com.ag777.util.jsoup.base;
 
 import java.io.IOException;
-import java.util.Map;
-import org.apache.commons.collections4.MapUtils;
 import com.ag777.util.jsoup.JsoupBuilder;
 import com.ag777.util.jsoup.JsoupUtils;
 import com.ag777.util.lang.StringUtils;

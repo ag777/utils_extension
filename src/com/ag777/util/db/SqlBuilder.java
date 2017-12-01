@@ -11,6 +11,8 @@ import com.ag777.util.lang.collection.MapUtils;
 import com.ag777.util.lang.model.Pair;
 
 public class SqlBuilder {
+	private final static Long sqlLiteColumnSize = 2000000000l;
+	
 	private String tableName;
 	private List<Pair<ColumnPojo, String>> columnPairList;	//first为数据库中的字段信息，second为javabean中的变量名
 	private Sql insert;
@@ -33,7 +35,10 @@ public class SqlBuilder {
 			}
 			pair.first = columnPojo;
 			pair.second = name;
+			columnPairList.add(pair);
 		}
+		this.tableName = tableName;
+		this.columnPairList = columnPairList;
 	}
 
 	public Sql getInsertSql() {
@@ -176,28 +181,49 @@ public class SqlBuilder {
 			Long size = columnPojo.getSize();
 			int sqlType = columnPojo.getSqlType();
 			
-			String sqlTypeStr = DbHelper.toString(sqlType);
-			sb.append(columnPojo.getName());
-			sb.append(" ").append(sqlTypeStr);
-			if(size<=0) {
-				if(DbHelper.isSqlTypeVarchar(sqlType)) {
-					size = 255l;
-				}
-			}
 			
-			if(size>0) {
-				sb.append("(").append(size).append(")");
+			sb.append(columnPojo.getName());
+			
+			if(!size.equals(sqlLiteColumnSize)) {
+				String sqlTypeStr = DbHelper.toString(sqlType);
+				sb.append(" ").append(sqlTypeStr);
+				if(size<=0) {
+					if(DbHelper.isSqlTypeVarchar(sqlType)) {
+						size = 255l;
+					}
+				}
+				
+				if(size>0) {
+					sb.append("(").append(size).append(")");
+				}
+			} else {	//sqllite数据库导出的数据
+				
+				switch(sqlType) {
+					case Types.VARCHAR:
+						sb.append(" text");
+						break;
+					case Types.INTEGER:
+						sb.append(" bigint");
+						break;
+					default:
+						String sqlTypeStr = DbHelper.toString(sqlType);
+						sb.append(" ").append(sqlTypeStr);
+						break;
+				}
+				
 			}
+
 			if(columnPojo.isNotNull() || columnPojo.isPK()) {
 				sb.append(" NOT NULL ");
 			}
 			
+			if(columnPojo.isAutoIncrement()) {
+				sb.append(" AUTO_INCREMENT ");
+			}
 			if(columnPojo.isPK()) {
-				if(Types.INTEGER == sqlType) {	//数值类型的主键自动增长
-					sb.append(" AUTO_INCREMENT ");
-				}
 				pkList.add(columnPojo.getName());
 			}
+			
 			sb.append(',');
 		}
 		if(!pkList.isEmpty()) {

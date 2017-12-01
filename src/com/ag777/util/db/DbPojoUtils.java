@@ -61,8 +61,8 @@ public class DbPojoUtils {
 				pair.first.setSqlType(DbHelper.toSqlType(field.getType()));	//将字段类型转为数据类型
 				pair.first.setSize(column.size());
 				if(field.isAnnotationPresent(Id.class)) {
-					pair.first.setNotNull(true);
-					pair.first.setPK(true);
+					pair.first.isNotNull(true);
+					pair.first.isPK(true);
 				}
 				
 				pair.second = field.getName();
