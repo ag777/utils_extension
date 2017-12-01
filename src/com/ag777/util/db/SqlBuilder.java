@@ -187,15 +187,18 @@ public class SqlBuilder {
 			if(!size.equals(sqlLiteColumnSize)) {
 				String sqlTypeStr = DbHelper.toString(sqlType);
 				sb.append(" ").append(sqlTypeStr);
-				if(size<=0) {
-					if(DbHelper.isSqlTypeVarchar(sqlType)) {
-						size = 255l;
+				if(Types.LONGVARCHAR != sqlType && !DbHelper.isSqlTypeDate(sqlType)) {	//text和日期类型类型不加大小限制
+					if(size<=0) {
+						if(DbHelper.isSqlTypeVarchar(sqlType)) {
+							size = 255l;
+						}
+					}
+					
+					if(size>0) {
+						sb.append("(").append(size).append(")");
 					}
 				}
 				
-				if(size>0) {
-					sb.append("(").append(size).append(")");
-				}
 			} else {	//sqllite数据库导出的数据
 				
 				switch(sqlType) {
