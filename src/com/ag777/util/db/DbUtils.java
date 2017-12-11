@@ -1,6 +1,5 @@
 package com.ag777.util.db;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -30,7 +29,7 @@ public class DbUtils {
 		 * 2.在目标数据库中创建这些表(原来存在的表直接删掉)
 		 * 3.取出原表数据,插入新表
 		 */
-		ArrayList<String> tableList = source.tableList();
+		List<String> tableList = source.tableNameList();
 		tableList.remove("meta");	//排除系统表
 		
 		for (String tableName : tableList) {	//创建表

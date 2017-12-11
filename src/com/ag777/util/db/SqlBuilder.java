@@ -6,15 +6,19 @@ import java.util.List;
 import java.util.Map;
 
 import com.ag777.util.db.model.ColumnPojo;
+import com.ag777.util.db.model.DBIPojo;
 import com.ag777.util.lang.StringUtils;
+import com.ag777.util.lang.collection.ListUtils;
 import com.ag777.util.lang.collection.MapUtils;
 import com.ag777.util.lang.model.Pair;
 
 public class SqlBuilder {
 	private final static Long sqlLiteColumnSize = 2000000000l;
+	private static String TAIL_CREATE = " ENGINE=InnoDB DEFAULT CHARSET=utf8";
 	
 	private String tableName;
 	private List<Pair<ColumnPojo, String>> columnPairList;	//first为数据库中的字段信息，second为javabean中的变量名
+	private List<DBIPojo> dbiList;	//索引列表
 	private Sql insert;
 	private Sql update;
 	private Sql create;
@@ -23,6 +27,7 @@ public class SqlBuilder {
 	public SqlBuilder(String tableName, List<Pair<ColumnPojo, String>> columnPairList) {
 		this.tableName = tableName;
 		this.columnPairList = columnPairList;
+		dbiList = ListUtils.newArrayList();
 	}
 	
 	public SqlBuilder(String tableName, List<ColumnPojo> column, boolean isCamel) {
@@ -39,6 +44,12 @@ public class SqlBuilder {
 		}
 		this.tableName = tableName;
 		this.columnPairList = columnPairList;
+		dbiList = ListUtils.newArrayList();
+	}
+
+	public SqlBuilder setDbiList(List<DBIPojo> dbiList) {
+		this.dbiList = dbiList;
+		return this;
 	}
 
 	public Sql getInsertSql() {
@@ -178,24 +189,29 @@ public class SqlBuilder {
 		.append(" ( ");
 		for (Pair<ColumnPojo, String> pair : columnPairList) {
 			ColumnPojo columnPojo = pair.first;
-			Long size = columnPojo.getSize();
+			Integer size = columnPojo.getSize();
 			int sqlType = columnPojo.getSqlType();
 			
 			
 			sb.append(columnPojo.getName());
 			
-			if(!size.equals(sqlLiteColumnSize)) {
-				String sqlTypeStr = DbHelper.toString(sqlType);
+			if(size != null && !size.equals(sqlLiteColumnSize)) {
+				String sqlTypeStr = DbHelper.toString(sqlType, size);
 				sb.append(" ").append(sqlTypeStr);
 				if(Types.LONGVARCHAR != sqlType && !DbHelper.isSqlTypeDate(sqlType)) {	//text和日期类型类型不加大小限制
 					if(size<=0) {
 						if(DbHelper.isSqlTypeVarchar(sqlType)) {
-							size = 255l;
+							size = 255;
 						}
 					}
 					
 					if(size>0) {
-						sb.append("(").append(size).append(")");
+						Integer decimalDigits = columnPojo.getDecimalDigits();	//小数精度
+						sb.append("(").append(size);
+						if(decimalDigits != null && 0 != decimalDigits) {
+							sb.append(",").append(decimalDigits);
+						}
+						sb.append(")");
 					}
 				}
 				
@@ -209,7 +225,7 @@ public class SqlBuilder {
 						sb.append(" bigint");
 						break;
 					default:
-						String sqlTypeStr = DbHelper.toString(sqlType);
+						String sqlTypeStr = DbHelper.toString(sqlType, 0);
 						sb.append(" ").append(sqlTypeStr);
 						break;
 				}
@@ -235,11 +251,34 @@ public class SqlBuilder {
 				sb.append(pkName).append(",");
 			}
 			sb.setLength(sb.length()-1);
-			sb.append(")");
-		} else {
-			sb.setLength(sb.length()-1);
+			sb.append(")").append(",");
+		} 
+		
+		if(!ListUtils.isEmpty(dbiList)) {
+			for (DBIPojo dbi : dbiList) {
+				String name = dbi.getName();
+				if("PRIMARY".equals(name)) {
+					continue;
+				} else {
+					sb.append(" key ")
+						.append(dbi.getName())
+						.append(" (")
+						.append(ListUtils.toString(dbi.getColumnNameList(), ","));
+					if(dbi.getTypeName() != null) {
+						sb.append(") USING ")
+							.append(dbi.getTypeName());
+					}
+					sb.append(',');
+				}
+				
+			}
 		}
-		sb.append(");");
+		
+		sb.setLength(sb.length()-1);	//删除最后一个逗号
+		
+		sb.append(")");
+		sb.append(TAIL_CREATE);
+		sb.append(';');
 		create =  new Sql(sb.toString(), null);
 	}
 	
