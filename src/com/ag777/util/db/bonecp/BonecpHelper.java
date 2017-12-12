@@ -28,7 +28,7 @@ import com.jolbox.bonecp.Statistics;
  * </p>
  * 
  * @author ag777
- * @version create on 2017年10月11日,last modify at 2017年10月21日
+ * @version create on 2017年10月11日,last modify at 2017年12月12日
  */
 public class BonecpHelper {
 
@@ -110,7 +110,7 @@ public class BonecpHelper {
 
 		try {
 			BoneCPConfig config = new BoneCPConfig();
-			config.setJdbcUrl(DbHelper.getDbUrlString(ip, port, dbName)); // jdbc url specific to your database, eg jdbc:mysql://127.0.0.1/yourdb
+			config.setJdbcUrl(DbHelper.getDbUrlString(ip, port, dbName, DbHelper.DRIVER_CLASS_NAME_MYSQL)); // jdbc url specific to your database, eg jdbc:mysql://127.0.0.1/yourdb
 			config.setUsername(user);
 			config.setPassword(password);
 			// 设置每60秒检查数据库中的空闲连接数

@@ -1,12 +1,12 @@
 package com.ag777.util.db;
 
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import com.ag777.util.db.model.ColumnPojo;
 import com.ag777.util.db.model.DBIPojo;
+import com.ag777.util.db.model.TypePojo;
 import com.ag777.util.lang.StringUtils;
 import com.ag777.util.lang.collection.ListUtils;
 import com.ag777.util.lang.collection.MapUtils;
@@ -189,56 +189,46 @@ public class SqlBuilder {
 		.append(" ( ");
 		for (Pair<ColumnPojo, String> pair : columnPairList) {
 			ColumnPojo columnPojo = pair.first;
-			Integer size = columnPojo.getSize();
-			int sqlType = columnPojo.getSqlType();
+			TypePojo type = columnPojo.getTypePojo();
+			sb.append(columnPojo.getName())
+				.append(' ').append(type.getType()).append(' ');
 			
-			
-			sb.append(columnPojo.getName());
-			
-			if(size != null && !size.equals(sqlLiteColumnSize)) {
-				String sqlTypeStr = DbHelper.toString(sqlType, size);
-				sb.append(" ").append(sqlTypeStr);
-				if(Types.LONGVARCHAR != sqlType && !DbHelper.isSqlTypeDate(sqlType)) {	//text和日期类型类型不加大小限制
-					if(size<=0) {
-						if(DbHelper.isSqlTypeVarchar(sqlType)) {
-							size = 255;
-						}
-					}
-					
-					if(size>0) {
-						Integer decimalDigits = columnPojo.getDecimalDigits();	//小数精度
-						sb.append("(").append(size);
-						if(decimalDigits != null && 0 != decimalDigits) {
-							sb.append(",").append(decimalDigits);
-						}
-						sb.append(")");
-					}
+			/*填充默认值*/
+			if(columnPojo.getDef() != null) {
+				if(DbHelper.isSqlTypeDate(columnPojo.getSqlType()) && "CURRENT_TIMESTAMP".equals(columnPojo.getDef())) {
+					sb.append(" DEFAULT ")
+						.append(columnPojo.getDef())
+						.append(' ');
+				} else {
+					sb.append(" DEFAULT '")
+						.append(columnPojo.getDef())
+						.append("' ");
 				}
-				
-			} else {	//sqllite数据库导出的数据
-				
-				switch(sqlType) {
-					case Types.VARCHAR:
-						sb.append(" text");
-						break;
-					case Types.INTEGER:
-						sb.append(" bigint");
-						break;
-					default:
-						String sqlTypeStr = DbHelper.toString(sqlType, 0);
-						sb.append(" ").append(sqlTypeStr);
-						break;
-				}
-				
+			} else if(!columnPojo.isNotNull() && !columnPojo.isPK()) {
+				sb.append(" DEFAULT NULL ");
 			}
-
+			
+			/*填充[NOT NULL]*/
 			if(columnPojo.isNotNull() || columnPojo.isPK()) {
 				sb.append(" NOT NULL ");
 			}
 			
-			if(columnPojo.isAutoIncrement()) {
+			/*填充自动其他信息,如自动增长*/
+			if(type.getExtra() != null) {
+				sb.append(type.getExtra().toUpperCase());
+			} else if(columnPojo.isAutoIncrement()) {
 				sb.append(" AUTO_INCREMENT ");
 			}
+			
+			
+			/*填充描述*/
+			if(columnPojo.getRemarks() != null) {
+				sb.append(" COMMENT '")
+					.append(columnPojo.getRemarks())
+					.append("' ");
+			}
+			
+			/*添加至主键列表*/
 			if(columnPojo.isPK()) {
 				pkList.add(columnPojo.getName());
 			}
