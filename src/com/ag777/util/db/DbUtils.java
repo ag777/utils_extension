@@ -11,14 +11,29 @@ import com.ag777.util.lang.collection.ListUtils;
  * 数据库操作工具类
  * 
  * @author ag777
- * @version create on 2017年12月01日,last modify at 2017年12月12日
+ * @version create on 2017年12月01日,last modify at 2017年12月13日
  */
 public class DbUtils {
 
 	private DbUtils() {}
 	
+	private static boolean log = false;
+	
+	public static void logOn() {
+		log = true;
+	}
+	
+	public static void logOff() {
+		log = false;
+	}
+	
 	/**
 	 * 复制数据库
+	 * <p>
+	 * 	数据源支持mysql数据库和sqlite数据库
+	 * 	目标数据库仅支持mysql数据库
+	 * </p>
+	 * 
 	 * @param source
 	 * @param target
 	 * @return
@@ -35,21 +50,26 @@ public class DbUtils {
 		tableList.remove("meta");	//排除系统表
 		
 		for (String tableName : tableList) {	//创建表
+			log("创建表:"+tableName);
 			List<ColumnPojo> colList = source.columnList(tableName);
 			List<DBIPojo>dbiList = source.dbiList(tableName);
+			if(source.isSqlite()) {
+				colList = DbUtils.columnList_sqlite2Mysql(colList, dbiList);
+			}
+			
 			SqlBuilder sb = new SqlBuilder(tableName, colList, false);
 			sb.setDbiList(dbiList);
 			target.update("DROP TABLE IF EXISTS "+tableName);
 			log(sb.getCreateSql().sql);
 			sb.doCreate(target);
 		}
-		log("创建表结束");
+		System.out.println("创建表结束");
 		
 		for (String tableName : tableList) {	//插入数据
 			List<ColumnPojo> colList = source.columnList(tableName);
 			SqlBuilder sb = new SqlBuilder(tableName, colList, false);
 			if(!copyData(tableName, sb, source, target)) {
-				log(tableName+"异常");
+				System.out.println(tableName+"异常");
 				return false;
 			}
 		}
@@ -67,7 +87,7 @@ public class DbUtils {
 	 * @throws Exception
 	 */
 	private static boolean copyData(String tableName, SqlBuilder sb, DbHelper source, DbHelper target) throws Exception {
-		log("开始复制表:"+tableName);
+		System.out.println("开始复制表:"+tableName);
 		
 		List<Map<String, Object>> list = source.queryList("select * from "+tableName);
 				
@@ -104,16 +124,21 @@ public class DbUtils {
 			}
 			String typeName = item.getTypeName();
 			if(typeName != null) {
+				typeName = typeName.replaceAll("(?<=\\s).*$", "");	//chrome数据库出现了INTEGER NON类型，并不属于基础类型，后来发现sqlite的类型可以乱输..emm...
 				switch(typeName) {
+					case "INTEGER":
+						typeName = "BIGINT";
+						break;
 					case "LONGVARCHAR":
-						if(dbiFieldList.contains(item.getName())) {	//BLOB/TEXT column 'term' used in key specification without a key length
-							typeName = "VARCHAR(2048)";
-						} else {
-							typeName = "text";
-						}
+						//BLOB/TEXT column 'term' used in key specification without a key length
+						typeName = "text";
 						break;
 					case "VARCHAR":
-						typeName = "VARCHAR(64)";
+						if(item.isPK() != null && item.isPK()) {	//主键//Specified key was too long; max key length is 767 bytes
+							typeName = "VARCHAR(255)";
+						} else {
+							typeName = "VARCHAR(1024)";
+						}
 						break;
 					case "BLOB":
 						item.setDef(null);
@@ -133,6 +158,8 @@ public class DbUtils {
 	}
 	
 	private static void log(String msg) {
-		Console.log(msg);
+		if(log) {
+			Console.log(msg);
+		}
 	}
 }

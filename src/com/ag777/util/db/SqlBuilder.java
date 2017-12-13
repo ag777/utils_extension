@@ -7,13 +7,13 @@ import java.util.Map;
 import com.ag777.util.db.model.ColumnPojo;
 import com.ag777.util.db.model.DBIPojo;
 import com.ag777.util.db.model.TypePojo;
+import com.ag777.util.lang.RegexUtils;
 import com.ag777.util.lang.StringUtils;
 import com.ag777.util.lang.collection.ListUtils;
 import com.ag777.util.lang.collection.MapUtils;
 import com.ag777.util.lang.model.Pair;
 
 public class SqlBuilder {
-	private final static Long sqlLiteColumnSize = 2000000000l;
 	private static String TAIL_CREATE = " ENGINE=InnoDB DEFAULT CHARSET=utf8";
 	
 	private String tableName;
@@ -23,7 +23,6 @@ public class SqlBuilder {
 	private Sql update;
 	private Sql create;
 	
-
 	public SqlBuilder(String tableName, List<Pair<ColumnPojo, String>> columnPairList) {
 		this.tableName = tableName;
 		this.columnPairList = columnPairList;
@@ -185,8 +184,10 @@ public class SqlBuilder {
 		StringBuilder sb = new StringBuilder();
 		List<String> pkList = new ArrayList<>();	//主键列表
 		sb.append("CREATE TABLE ")
-		.append(tableName)
-		.append(" ( ");
+			.append(tableName)
+			.append(" ( ");
+		Map<String, String> nameTypeMap = MapUtils.newHashMap();	//字段名:对应数据库类型
+		
 		for (Pair<ColumnPojo, String> pair : columnPairList) {
 			ColumnPojo columnPojo = pair.first;
 			TypePojo type = columnPojo.getTypePojo();
@@ -234,7 +235,10 @@ public class SqlBuilder {
 			}
 			
 			sb.append(',');
+			
+			nameTypeMap.put(columnPojo.getName(), type.getType().toUpperCase());
 		}
+		
 		if(!pkList.isEmpty()) {
 			sb.append("PRIMARY KEY (");
 			for (String pkName : pkList) {
@@ -250,6 +254,20 @@ public class SqlBuilder {
 				if("PRIMARY".equals(name)) {
 					continue;
 				} else {
+					List<String> columnNameList = dbi.getColumnNameList();
+					for(int i=0; i<columnNameList.size(); i++) {
+						String columnName = columnNameList.get(i);
+						String type = nameTypeMap.get(columnName);
+						if("TEXT".equals(type)) {
+							columnNameList.set(i, columnName+"(255)");
+						} else if(type.startsWith("VARCHAR")) {
+							Integer size = RegexUtils.findInteger(type, "\\((\\d+)\\)", "$1");
+							if(size > 255) {
+								columnNameList.set(i, columnName+"(255)");
+							}
+						}
+					}
+					
 					sb.append(" key ")
 						.append(dbi.getName())
 						.append(" (")
