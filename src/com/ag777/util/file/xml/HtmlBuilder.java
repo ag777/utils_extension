@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import com.ag777.util.lang.collection.ListUtils;
 import com.ag777.util.lang.collection.MapUtils;
+import com.ag777.util.lang.model.Pair;
 
 /**
  * html构造工具类
@@ -15,8 +16,8 @@ import com.ag777.util.lang.collection.MapUtils;
  * 	</ul> 
  * </p>
  * 
- * @author wanggz
- * @version create on 2017年10月16日,last modify at 2017年10月17日
+ * @author ag777
+ * @version create on 2017年12月14日,last modify at 2017年12月15日
  */
 public class HtmlBuilder {
 	
@@ -118,6 +119,31 @@ public class HtmlBuilder {
 			}
 			table.child(tr);
 		}
+		return table;
+	}
+	
+	public static XmlBuilder table(List<Map<String, Object>> dataList, Pair<String, String>[] keyTitlePair) {
+		XmlBuilder table = table();
+		if(!ListUtils.isEmpty(keyTitlePair)) {
+			XmlBuilder tr = tr();
+			for (Pair<String, String> pair : keyTitlePair) {
+				if(pair.second == null) {
+					pair.second = pair.first;
+				}
+				tr.child(td(pair.second));
+			}
+			table.child(tr);
+		}
+		if(!ListUtils.isEmpty(dataList)) {
+			for (Map<String, Object> map : dataList) {
+				XmlBuilder tr = tr();
+				for (Pair<String, String> pair : keyTitlePair) {
+					tr.child(td(MapUtils.getString(map, pair.first, "")));
+				}
+				table.child(tr);
+			}
+		}
+		
 		return table;
 	}
 	
