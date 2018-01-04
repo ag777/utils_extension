@@ -17,7 +17,7 @@ import com.ag777.util.lang.string.model.ApiTranslatePojo;
  * </p>
  * 
  * @author ag777
- * @version create on 2017年10月16日,last modify at 2017年10月17日
+ * @version create on 2017年10月16日,last modify at 2018年01月04日
  */
 public class TranslateUtils {
 
@@ -46,7 +46,7 @@ public class TranslateUtils {
 	 * @return
 	 * @throws IOException 
 	 */
-	public static Optional<String> enToZh(String source) throws IOException {
+	public static Optional<String> en2Zh(String source) throws IOException {
 		return translate(Language.ENGLISH, Language.CHINESE, source);
 	}
 	
@@ -56,7 +56,7 @@ public class TranslateUtils {
 	 * @return
 	 * @throws IOException 
 	 */
-	public static Optional<String> zhToEn(String source) throws IOException {
+	public static Optional<String> zh2En(String source) throws IOException {
 		return translate(Language.CHINESE, Language.ENGLISH, source);
 	}
 	
