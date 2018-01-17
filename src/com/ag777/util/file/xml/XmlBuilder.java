@@ -22,7 +22,7 @@ import com.ag777.util.lang.collection.MapUtils;
  * </ul>
  * </p>
  * @author wanggz
- * @version last modify at 2017年12月14日
+ * @version last modify at 2018年01月17日
  */
 public class XmlBuilder {
 
@@ -199,8 +199,6 @@ public class XmlBuilder {
 	private Document buildElements() {
 		//DocumentHelper提供了创建Document对象的方法  
         Document document = DocumentHelper.createDocument();
-        
-        document.addDocType("html", null, null); 	
 
         //添加节点信息  
         Element rootElement = document.addElement(tag); 
