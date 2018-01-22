@@ -21,7 +21,7 @@ import com.ag777.util.lang.collection.MapUtils;
  * <li>dom4j-1.6.1.jar</li>
  * </ul>
  * </p>
- * @author wanggz
+ * @author ag777
  * @version last modify at 2018年01月17日
  */
 public class XmlBuilder {
