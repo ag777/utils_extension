@@ -27,6 +27,9 @@ commons-collections4-4.1.jar
 [com.ag777.util.file.csv.CsvUtils]
 javacsv.jar
 
+[com.ag777.util.remote.ssh.SSHHelper]
+jsch-0.1.54.jar
+
 [com.ag777.util.db.bonecp.BonecpHelper]
 bonecp-0.8.0.RELEASE.jar
 guava-15.0.jar
