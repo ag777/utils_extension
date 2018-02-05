@@ -2,12 +2,14 @@ package com.ag777.util.remote.ssh;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Optional;
 import java.util.Vector;
+import com.ag777.util.file.FileUtils;
 import com.ag777.util.lang.Console;
 import com.ag777.util.lang.IOUtils;
 import com.ag777.util.lang.StringUtils;
@@ -32,7 +34,7 @@ import com.jcraft.jsch.SftpException;
  * </p>
  * 
  * @author ag777
- * @version last modify at 2018年02月02日
+ * @version last modify at 2018年02月05日
  */
 public class SSHHelper {
 
@@ -68,6 +70,106 @@ public class SSHHelper {
         //设置登陆超时时间
         session.connect(TIMEOUT_CONNECT); 
         return new SSHHelper(session);
+	}
+	
+	 /** 
+     * 递归删除执行. 
+     * @param pathString 文件路径 
+     * @param sftp sftp连接 
+     * @throws SftpException 
+     */  
+    private static void deleteFile(final String filePath, final ChannelSftp sftp) throws SftpException {  
+        @SuppressWarnings("unchecked")  
+        Vector<LsEntry> vector = sftp.ls(filePath);  
+        if (vector.size() == 1) { // 文件，直接删除  
+            sftp.rm(filePath);  
+        } else if (vector.size() == 2) { // 空文件夹，直接删除  
+            sftp.rmdir(filePath);  
+        } else {  
+            String fileName = "";  
+            // 删除文件夹下所有文件  
+            for (LsEntry en : vector) {  
+                fileName = en.getFilename();  
+                if (".".equals(fileName) || "..".equals(fileName)) {  
+                    continue;  
+                } else {  
+                	deleteFile(filePath + "/" + fileName, sftp);  
+                }  
+            }  
+            // 删除文件夹  
+            sftp.rmdir(filePath);  
+        }  
+    }  
+    
+    /**
+	 * 下载文件
+	 * @param targetPath
+	 * @param localFilePath
+	 * @param ftp
+     * @throws SftpException 
+     * @throws FileNotFoundException 
+	 */
+    public static void downloadFile(String targetPath, String localFilePath, final ChannelSftp ftp) throws SftpException, FileNotFoundException {  
+    	OutputStream os = null;
+		try {
+			os = FileUtils.getOutputStream(localFilePath);
+			ftp.get(targetPath, os); 
+		} catch (FileNotFoundException ex) {
+			throw ex;
+		} catch (SftpException ex) {
+			throw ex;
+		} finally {
+			IOUtils.close(os);
+		}
+       
+    } 
+    
+    /**
+	 * 上传文件
+	 * @param loacalFile	本地文件
+	 * @param basePath	目标路径
+	 * @return
+     * @throws IOException 
+     * @throws SftpException 
+	 */
+	public static void uploadFile(File localFile, String targetPath, ChannelSftp ftp) throws IOException, SftpException {
+		try {
+			
+			//上传文件
+			OutputStream out = ftp.put(targetPath);  
+			InputStream in = new FileInputStream(localFile);  
+            IOUtils.write(in, out, 1024);	//附带关闭流
+		} catch (IOException ex) {
+			throw ex;
+		} catch (SftpException ex) {
+			throw ex;
+		} finally {
+		}
+	}
+    
+	/**
+	 * 删除文件或目录
+	 * @param filePath
+	 * @return
+	 */
+	public boolean deleteFile(String filePath) {
+		ChannelSftp ftp = null;
+		try {
+			//设置通道
+			ftp = getChannelFtp();
+			ftp.connect();
+			deleteFile(filePath, ftp);
+            return true;
+		} catch(JSchException ex) {
+			Console.err(ex);
+		} catch (SftpException ex) {
+			Console.err(ex);
+		} finally {
+			if(ftp != null) {
+				ftp.disconnect();
+			}
+		}
+		return false;
 	}
 	
 	/**
@@ -153,30 +255,19 @@ public class SSHHelper {
 	
 	/**
 	 * 
-	 * @param f
+	 * @param localFile
 	 * @param basePath
 	 * @param fileRename
 	 * @return
 	 */
-	public boolean uploadFile(File f, String basePath, String fileRename) {
-		ChannelSftp channel = null;
+	public boolean uploadFile(File localFile, String targetPath) {
+		ChannelSftp ftp = null;
 		try {
-			if(fileRename == null) {
-				fileRename = f.getName();
-			}
 			//设置通道
-			channel = getChannelFtp();
-			channel.connect();
+			ftp = getChannelFtp();
+			ftp.connect();
 			
-			//进入目标目录
-			if(!StringUtils.isBlank(basePath)) {
-				channel.cd(basePath);
-			}
-			
-			//上传文件
-			OutputStream out = channel.put(fileRename);  
-            InputStream in = new FileInputStream(f);  
-            IOUtils.write(in, out, 1024);
+			uploadFile(localFile, targetPath, ftp);
             
             return true;
 		} catch(JSchException ex) {
@@ -186,49 +277,43 @@ public class SSHHelper {
 		} catch (SftpException ex) {
 			Console.err(ex);
 		} finally {
-			if(channel != null) {
-				channel.disconnect();
+			if(ftp != null) {
+				ftp.disconnect();
 			}
 		}
 		return false;
 	}
 	
 	/**
-	 * 删除文件或目录
-	 * @param fileName
-	 * @param basePath
+	 * 下载文件
+	 * @param targetPath 目标文件路径
+	 * @param localFilePath	本地文件路径
 	 * @return
 	 */
-	public boolean deleteFile(String fileName, String basePath) {
-		ChannelSftp channel = null;
+	public boolean downLoadFile(String targetPath, String localFilePath) {
+		ChannelSftp ftp = null;
 		try {
 			//设置通道
-			channel = getChannelFtp();
-			channel.connect();
+			ftp = getChannelFtp();
+			ftp.connect();
 			
-			//进入目标目录
-			if(!StringUtils.isBlank(basePath)) {
-				channel.cd(basePath);
-			}
-			if(fileName.endsWith("\\") || fileName.endsWith("/")) {
-				channel.rmdir(fileName);
-			} else {
-				channel.rm(fileName);
-			}
-			
-			
+			downloadFile(targetPath, localFilePath, ftp);
+            
             return true;
 		} catch(JSchException ex) {
+			Console.err(ex);
+		} catch (IOException ex) {
 			Console.err(ex);
 		} catch (SftpException ex) {
 			Console.err(ex);
 		} finally {
-			if(channel != null) {
-				channel.disconnect();
+			if(ftp != null) {
+				ftp.disconnect();
 			}
 		}
 		return false;
 	}
+	
 	
 	@SuppressWarnings("unchecked")
 	public Optional<List<String>> ls(String basePath) {
@@ -291,7 +376,8 @@ public class SSHHelper {
 //		System.out.println(ssh.uploadFile(new File("E:\\a.txt"), "/usr/local/tomcat/",null));	///usr/local/tomcat也可以
 		
 //		System.out.println(ssh.deleteFile("/usr/local/tomcat/webapps/ss/", null));
-		Console.log(ssh.ls("/usr/local/tomcat/webapps"));
+//		Console.log(ssh.ls("/usr/local/tomcat/webapps"));
+		ssh.deleteFile("/usr/local/tomcat/webapps/dd");
 		ssh.dispose();
 		
 	}
