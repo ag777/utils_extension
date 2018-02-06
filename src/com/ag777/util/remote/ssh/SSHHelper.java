@@ -34,7 +34,7 @@ import com.jcraft.jsch.SftpException;
  * </p>
  * 
  * @author ag777
- * @version last modify at 2018年02月05日
+ * @version last modify at 2018年02月06日
  */
 public class SSHHelper {
 
@@ -60,6 +60,10 @@ public class SSHHelper {
 	}
 	
 	public static SSHHelper connect(String ip, int port, String user, String password) throws JSchException {
+        return connect(ip, port, user, password, TIMEOUT_CONNECT);
+	}
+	
+	public static SSHHelper connect(String ip, int port, String user, String password, int timeout) throws JSchException {
 		JSch jsch = new JSch(); 
 		//采用指定的端口连接服务器  
 		Session session = jsch.getSession(user, ip, port);  
@@ -68,7 +72,7 @@ public class SSHHelper {
         //设置第一次登陆的时候提示，可选值：(ask | yes | no)  
         session.setConfig("StrictHostKeyChecking", "no");
         //设置登陆超时时间
-        session.connect(TIMEOUT_CONNECT); 
+        session.connect(timeout); 
         return new SSHHelper(session);
 	}
 	
