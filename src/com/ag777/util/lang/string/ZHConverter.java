@@ -15,7 +15,7 @@ import java.util.Properties;
  * </p>
  * 
  * @author rookiefly
- * @version create on 2017年10月13日,last modify at 2017年11月01日
+ * @version create on 2017年10月13日,last modify at 2018年02月07日
  */
 public class ZHConverter {
 
@@ -85,6 +85,9 @@ public class ZHConverter {
      * @return
      */
     public static String convert(String text, int converterType) {
+    	if(text == null) {
+    		return null;
+    	}
         ZHConverter instance = getInstance(converterType);
         return instance.convert(text);
     }
@@ -94,6 +97,9 @@ public class ZHConverter {
      * @return
      */
     public String convert(String in) {
+    	if(in == null) {
+    		return null;
+    	}
         StringBuilder outString = new StringBuilder();
         StringBuilder stackString = new StringBuilder();
 

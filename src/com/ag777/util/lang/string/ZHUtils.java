@@ -12,20 +12,34 @@ import java.util.regex.Pattern;
  * </p>
  * 
  * @author rookiefly
- * @version create on 2017年10月13日,last modify at 2017年10月13日
+ * @version create on 2017年10月13日,last modify at 2018年02月07日
  */
 public class ZHUtils {
 
+	/**
+	 * 转换为繁体中文
+	 * @param in
+	 * @return
+	 */
     public static String toTraditional(String in) {
         return ZHConverter.convert(in, ZHConverter.TRADITIONAL);
     }
 
+    /**
+     * 转换为简体中文
+     * @param in
+     * @return
+     */
     public static String toSimplified(String in) {
         return ZHConverter.convert(in, ZHConverter.SIMPLIFIED);
     }
 
+    /**
+     * 是否为繁体
+     * @param in
+     * @return
+     */
     public static boolean isTraditional(String in) {
-
         ZHConverter converter = ZHConverter.getInstance(ZHConverter.SIMPLIFIED);
         Properties dict = converter.getDict();
         for (int i = 0; i < in.length(); i++) {
@@ -38,6 +52,11 @@ public class ZHUtils {
         return false;
     }
 
+    /**
+     * 是否包含中文
+     * @param str
+     * @return
+     */
     public static boolean isContainsChinese(String str) {
 
         String regEx = "[\u4e00-\u9fa5]";
@@ -50,6 +69,11 @@ public class ZHUtils {
         return flg;
     }
 
+    /**
+     * 是否都为中文
+     * @param str
+     * @return
+     */
     public static boolean isAllChinese(String str) {
 
         boolean flag = true;
