@@ -261,7 +261,7 @@ public class SqlBuilder {
 						if("TEXT".equals(type)) {
 							columnNameList.set(i, columnName+"(255)");
 						} else if(type.startsWith("VARCHAR")) {
-							Integer size = RegexUtils.findInteger(type, "\\((\\d+)\\)", "$1");
+							Integer size = RegexUtils.findInt(type, "\\((\\d+)\\)", "$1");
 							if(size > 255) {
 								columnNameList.set(i, columnName+"(255)");
 							}

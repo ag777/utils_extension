@@ -17,7 +17,7 @@ import com.ag777.util.lang.model.Pair;
  * </p>
  * 
  * @author ag777
- * @version create on 2017年12月14日,last modify at 2017年12月15日
+ * @version create on 2017年12月14日,last modify at 2018年03月15日
  */
 public class HtmlBuilder {
 	
@@ -138,7 +138,7 @@ public class HtmlBuilder {
 			for (Map<String, Object> map : dataList) {
 				XmlBuilder tr = tr();
 				for (Pair<String, String> pair : keyTitlePair) {
-					tr.child(td(MapUtils.getString(map, pair.first, "")));
+					tr.child(td(MapUtils.getStr(map, pair.first, "")));
 				}
 				table.child(tr);
 			}

@@ -33,7 +33,7 @@ import com.ag777.util.lang.collection.MapUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2017年06月05日,last modify at 2017年10月29日
+ * @version create on 2017年06月05日,last modify at 2018年03月15日
  */
 public class JsoupUtils {
 
@@ -491,13 +491,13 @@ public class JsoupUtils {
 	 */
 	private String findByJsonMap(Element element, Map<String, Object> params) {
 		String result = null;
-		Elements target = element.select(MapUtils.getString(params, "selector"));
+		Elements target = element.select(MapUtils.getStr(params, "selector"));
 		if(target != null) {	//通过【selector】找到节点
 
 			//通过【fun】来提取对应属性
-			String fun = MapUtils.getString(params, "fun");
+			String fun = MapUtils.getStr(params, "fun");
 			if ("attr".equals(fun)) {
-				result = target.attr(MapUtils.getString(params, "param"));
+				result = target.attr(MapUtils.getStr(params, "param"));
 			} else if ("html".equals(fun)) {
 				result = target.html();
 			} else if ("text".equals(fun)) {
@@ -506,11 +506,11 @@ public class JsoupUtils {
 				result = target.toString();
 			}
 			//预存pattern,实际上直接用正则也能获取到结果
-			String reg = MapUtils.getString(params, "regex");
+			String reg = MapUtils.getStr(params, "regex");
 			if(reg != null && !params.containsKey("pattern")) {
 				params.put("pattern", Pattern.compile(reg));
 			}
-			result = get(result, (Pattern) params.get("pattern"), MapUtils.getString(params, "replacement"));
+			result = get(result, (Pattern) params.get("pattern"), MapUtils.getStr(params, "replacement"));
 
 		}
 		return result;

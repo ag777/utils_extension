@@ -34,7 +34,7 @@ import com.jcraft.jsch.SftpException;
  * </p>
  * 
  * @author ag777
- * @version last modify at 2018年02月06日
+ * @version last modify at 2018年02月27日
  */
 public class SSHHelper {
 
@@ -258,6 +258,49 @@ public class SSHHelper {
 	}
 	
 	/**
+	 * 执行shell命令,读取控制台输出
+	 * <p>
+	 * 	请不要用该方法
+	 * </p>
+	 * @param command
+	 * @param basePath
+	 */
+	@Deprecated
+	public void consoleShell(String command) {
+		ChannelShell channel = null;
+		try {
+			channel  = getChannelShell();
+			// Create and connect channel.  
+			
+	        ChannelShell channelShell = getChannelShell();
+//		    InputStream in = channelShell.getInputStream();
+	        OutputStream outputStream = channelShell.getOutputStream();
+	        channelShell.setOutputStream(System.out);
+
+	        channelShell.connect( TIME_WAIT );  
+	        //写命令
+	        outputStream.write((command + "\n\n").getBytes(DEFAULT_ENCODING));
+	        outputStream.flush();
+	        
+	        while(true) {
+	        	Thread.sleep(TIME_WAIT);
+	        }
+	        
+		} catch(JSchException ex) {
+			Console.err(ex);
+		} catch (IOException ex) {
+			Console.err(ex);
+		} catch (InterruptedException e) {
+			
+		} finally {
+			if(channel != null) {
+				 // Disconnect the channel and session.  
+	            channel.disconnect();
+			}
+		}
+	}
+	
+	/**
 	 * 
 	 * @param localFile
 	 * @param basePath
@@ -367,21 +410,11 @@ public class SSHHelper {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		SSHHelper ssh = connect("192.168.162.100", 30022, "root", "123456");
+		SSHHelper ssh = SSHHelper.connect("192.168.162.100", 22, "root", "111111");
 		
-//		System.out.println(ssh.execShell("startup.sh", "/usr/local/tomcat/bin"));
-//		Optional<List<String>> linesP = ssh.readLinesExec("ifconfig");
-//		if(linesP.isPresent()) {
-//			List<String> lines = linesP.get();
-//			for (String line : lines) {
-//				System.out.println(line);
-//			}
-//		}
-//		System.out.println(ssh.uploadFile(new File("E:\\a.txt"), "/usr/local/tomcat/",null));	///usr/local/tomcat也可以
-		
-//		System.out.println(ssh.deleteFile("/usr/local/tomcat/webapps/ss/", null));
-//		Console.log(ssh.ls("/usr/local/tomcat/webapps"));
-		ssh.deleteFile("/usr/local/tomcat/webapps/dd");
+//		System.out.println(ssh.uploadFile(new File("E:\\a.txt"), "/usr/local/",null));	
+//		ssh.deleteFile("/usr/local/a.txt");
+
 		ssh.dispose();
 		
 	}
