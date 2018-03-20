@@ -33,7 +33,7 @@ import com.ag777.util.lang.collection.MapUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2017年06月05日,last modify at 2018年03月15日
+ * @version create on 2017年06月05日,last modify at 2018年03月20日
  */
 public class JsoupUtils {
 
@@ -147,6 +147,14 @@ public class JsoupUtils {
 		return html;
 	}
 
+	/**
+	 * 获取当前页的地址
+	 * @return
+	 */
+	public String getUrl() {
+		return doc.baseUri();
+	}
+	
 	/**
 	 * 通过id获取节点
 	 * @param id
