@@ -34,7 +34,7 @@ import com.jcraft.jsch.SftpException;
  * </p>
  * 
  * @author ag777
- * @version last modify at 2018年02月27日
+ * @version last modify at 2018年03月29日
  */
 public class SSHHelper {
 
@@ -54,7 +54,8 @@ public class SSHHelper {
 	
 	public void dispose() {
 		if(session != null) {
-			session.disconnect(); 
+			session.disconnect();
+			session = null;
 		}
 		
 	}
