@@ -3,9 +3,8 @@ package com.ag777.util.lang.string;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
-
 import com.ag777.util.gson.GsonUtils;
-import com.ag777.util.http.HttpUtils;
+import com.ag777.util.http.HttpEasy;
 import com.ag777.util.lang.StringUtils;
 import com.ag777.util.lang.collection.MapUtils;
 import com.ag777.util.lang.string.model.ApiTranslatePojo;
@@ -17,7 +16,7 @@ import com.ag777.util.lang.string.model.ApiTranslatePojo;
  * </p>
  * 
  * @author ag777
- * @version create on 2017年10月16日,last modify at 2018年01月04日
+ * @version create on 2017年10月16日,last modify at 2018年03月30日
  */
 public class TranslateUtils {
 
@@ -73,7 +72,7 @@ public class TranslateUtils {
 			return Optional.of("");
 		}
 		
-        Optional<String> json=HttpUtils.doGet(BASEURL, getParams(from.toString(), to.toString(), source));
+        Optional<String> json=HttpEasy.get(BASEURL, getParams(from.toString(), to.toString(), source), null);
         if(json.isPresent()) {
         	ApiTranslatePojo translateMode=GsonUtils.get().fromJson(json.get(), ApiTranslatePojo.class);
             
@@ -82,7 +81,7 @@ public class TranslateUtils {
                 return Optional.ofNullable(translateMode.getData().get(0).getDst());
             }
         } else {
-        	throw new IOException("连接失败");
+        	throw new IOException("请求失败");
         }
 	            
 	    return Optional.empty();
