@@ -21,7 +21,7 @@ import org.apache.poi.ss.usermodel.Workbook;
  * </p>
  * 
  * @author ag777
- * @version last modify at 2017年09月06日
+ * @version last modify at 2018年04月10日
  */
 public class ExcelStyleUtils {
 	
@@ -42,6 +42,28 @@ public class ExcelStyleUtils {
 			IndexedColors backgroundColor,
 			Short indention,
 			boolean isWrapText) {
+		return customStyle(workBook, centerInHorizontal, centerInVertical, backgroundColor, indention, isWrapText, null);
+	}
+	
+	/**
+	 * 自定义单元格样式
+	 * @param workBook
+	 * @param centerInHorizontal	水平居中对齐
+	 * @param centerInVertical		垂直居中对齐
+	 * @param backgroundColor	背景色
+	 * @param indention				缩进
+	 * @param isWrapText				内容遇到\r\n换行
+	 * @param font 						字体
+	 * @return
+	 */
+	public static CellStyle customStyle(
+			Workbook workBook,
+			boolean centerInHorizontal,
+			boolean centerInVertical,
+			IndexedColors backgroundColor,
+			Short indention,
+			boolean isWrapText,
+			Font font) {
 		CellStyle style = workBook.createCellStyle();
 		
 		if(centerInHorizontal) {
@@ -63,6 +85,11 @@ public class ExcelStyleUtils {
 		if(isWrapText) {
 			style.setWrapText(true);	//\r\n换行
 		}
+		
+		if(font != null) {
+			style.setFont(font);
+		}
+		
 		return style;
 	}
 
@@ -76,6 +103,20 @@ public class ExcelStyleUtils {
 	 * @return
 	 */
 	public static Font customFont(Workbook workBook,String fontName,Short fontSize, IndexedColors color,  boolean isBold) {
+		return customFont(workBook, fontName, fontSize, color, isBold, false);
+	}
+	
+	/**
+	 * 自定义字体
+	 * @param workBook
+	 * @param fontName	比如"宋体"
+	 * @param fontSize 		字体大小
+	 * @param color			颜色
+	 * @param isBold			粗体
+	 * @param isItalic			斜体
+	 * @return
+	 */
+	public static Font customFont(Workbook workBook,String fontName,Short fontSize, IndexedColors color,  boolean isBold, boolean isItalic) {
 		Font font = workBook.createFont();
 		if(fontName != null) {
 			font.setFontName(fontName);
@@ -90,6 +131,10 @@ public class ExcelStyleUtils {
 		
 		if(isBold) {
 			font.setBold(true);
+		}
+		
+		if(isItalic) {
+			font.setItalic(isItalic);
 		}
 		
 		return font;
