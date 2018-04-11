@@ -35,5 +35,8 @@ bonecp-0.8.0.RELEASE.jar
 guava-15.0.jar
 slf4j-api-1.7.25.jar
 
-[com.ag777.util.file.*]
+[com.ag777.util.file.xml.*]
 dom4j-1.6.1.jar
+
+[com.ag777.util.file.CompressUtils]
+commons-compress-1.16.1.jar
