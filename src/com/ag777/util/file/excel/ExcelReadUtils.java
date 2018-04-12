@@ -10,23 +10,23 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.POIXMLDocument;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+import org.apache.poi.poifs.filesystem.FileMagic;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-
 import com.ag777.util.lang.IOUtils;
 import com.ag777.util.lang.collection.CollectionAndMapUtils;
 
 /**
  * excel文件读取工具类
+ * <p>
+ * 官方文档:https://poi.apache.org/apidocs/org/apache/poi/ss/usermodel/
+ * 3.17版本更新内容:https://segmentfault.com/a/1190000012165530
  * <p>
  * 	需要jar包:
  * <ul>
@@ -36,9 +36,10 @@ import com.ag777.util.lang.collection.CollectionAndMapUtils;
  * <li>commons-collections4-4.1.jar</li>
  * </ul>
  * </p>
+ * </p>
  * 
  * @author ag777
- * @version last modify at 2017年09月27日
+ * @version last modify at 2018年04月12日
  */
 public class ExcelReadUtils {
 
@@ -266,20 +267,32 @@ public class ExcelReadUtils {
      * @throws IOException
      * @throws InvalidFormatException
      */
-    @SuppressWarnings("deprecation")
 	public static  boolean isExcel2007(InputStream is) throws IOException, InvalidFormatException {
     	// If clearly doesn't do mark/reset, wrap up  
-        if(! is.markSupported()) {  
+        if(! is.markSupported()) {  //关于该方法:https://blog.csdn.net/jektonluo/article/details/49588673
         	is = new PushbackInputStream(is, 8);  
-        }  
-    	POIFSFileSystem.hasPOIFSHeader(is);
-    	if(POIFSFileSystem.hasPOIFSHeader(is)) {  
-            return false;  
-        }  
-    	if(POIXMLDocument.hasOOXMLHeader(is)) {  
+        } 
+        /*
+         * 官方文档:
+         * Get the file magic of the supplied InputStream (which MUST support mark and reset).
+			If unsure if your InputStream does support mark / reset, use prepareToCheckMagic(InputStream) to wrap it and make sure to always use that, and not the original!
+			Even if this method returns UNKNOWN it could potentially mean, that the ZIP stream has leading junk bytes
+         */
+        FileMagic fileMagic = FileMagic.valueOf(FileMagic.prepareToCheckMagic(is));
+        /*
+         * 官方文档:
+         * 	hasOOXMLHeader(java.io.InputStream inp)
+			Deprecated. 
+         * in 3.17-beta2, use FileMagic.valueOf(InputStream) == FileMagic.OOXML instead
+         */
+        if(fileMagic == FileMagic.OOXML) {  
     		//Excel版本为excel2007及以上  
     		return true;
-        }  
+        } else if(fileMagic == FileMagic.OLE2) {
+        	return false;
+        }
+    	
     	throw new IllegalArgumentException("Your InputStream was neither an OLE2 stream, nor an OOXML stream"); 
     }
+   
 }
