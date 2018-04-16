@@ -10,7 +10,7 @@ import java.util.zip.GZIPOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
 import com.ag777.util.file.FileUtils;
-import com.ag777.util.file.compress.base.BaseCompressUtils;
+import com.ag777.util.file.compress.base.BaseApacheCompressUtils;
 import com.ag777.util.lang.IOUtils;
 import com.ag777.util.lang.exception.Assert;
 
@@ -42,8 +42,8 @@ public class GzUtils {
 			gos = new GZIPOutputStream(FileUtils.getOutputStream(gzPath));
 	
 			int count;
-			byte data[] = new byte[BaseCompressUtils.BUFFER];
-			while ((count = is.read(data, 0, BaseCompressUtils.BUFFER)) != -1) {
+			byte data[] = new byte[BaseApacheCompressUtils.BUFFER];
+			while ((count = is.read(data, 0, BaseApacheCompressUtils.BUFFER)) != -1) {
 				gos.write(data, 0, count);
 			}
 			
@@ -75,7 +75,7 @@ public class GzUtils {
 	        gcis = new GzipCompressorInputStream(
 	        		new BufferedInputStream(FileUtils.getInputStream(gzPath)));
 	        
-	        IOUtils.write(gcis, bos, BaseCompressUtils.BUFFER);
+	        IOUtils.write(gcis, bos, BaseApacheCompressUtils.BUFFER);
 		} catch(Exception ex) {
 			throw ex;
 		} finally {

@@ -30,7 +30,7 @@ import com.ag777.util.lang.model.Charsets;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年04月13日,last modify at 2018年04月13日
+ * @version create on 2018年04月13日,last modify at 2018年04月16日
  */
 public class FtpHelper {
 
@@ -43,6 +43,12 @@ public class FtpHelper {
 	
 	public FtpHelper(FTPClient client) {
 		this.client = client;
+		modeLocalPassiveMode(localPassiveMode);
+	}
+	
+	@Deprecated
+	public FTPClient getClient() {
+		return client;
 	}
 	
 	/**
@@ -111,6 +117,12 @@ public class FtpHelper {
 	 */
 	public FtpHelper modeLocalPassiveMode(boolean localPassiveMode) {
 		this.localPassiveMode = localPassiveMode;
+		// 设置PassiveMode传输
+		if(localPassiveMode) {
+			 client.enterLocalPassiveMode();
+		} else {
+			client.enterLocalActiveMode();
+		}
 		return this;
 	}
 	
@@ -191,9 +203,6 @@ public class FtpHelper {
 		try {
 			client.setControlEncoding(charset.toString()); // 中文支持  
 			client.setFileType(FTPClient.BINARY_FILE_TYPE);
-			if(localPassiveMode) {
-				client.enterLocalPassiveMode();
-			}
 //			client.changeWorkingDirectory(ftpPath);
 	        return client.retrieveFileStream(encode(targetPath));	//需要注意编码转换
 		} catch(Exception ex) {
@@ -223,6 +232,10 @@ public class FtpHelper {
 	
 	/**
 	 * 删除文件或文件夹(文件夹删除还有问题)
+	 * <p>
+	 * 	试了各种方法都删不掉空目录，极小概率成功，原因未知，望dalao指点
+	 * </p>
+	 * 
 	 * @param targetPath
 	 * @return
 	 */
@@ -307,10 +320,6 @@ public class FtpHelper {
 		}
 		InputStream in = null;
 		try {
-			// 设置PassiveMode传输
-			if(localPassiveMode) {
-				 client.enterLocalPassiveMode();
-			}
 			
 			// 设置以二进制流的方式传输  
 	        client.setFileType(FTPClient.BINARY_FILE_TYPE);
@@ -381,6 +390,7 @@ public class FtpHelper {
 		}
 		return fileName;
 	}
+    
 	
 	public static void main(String[] args) {
 		FtpHelper helper = null;

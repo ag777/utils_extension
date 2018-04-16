@@ -41,5 +41,11 @@ dom4j-1.6.1.jar
 [com.ag777.util.file.compress.*]
 commons-compress-1.16.1.jar
 
+[com.ag777.util.file.compress.SevenZUtils]
+xz-1.8.jar
+
 [com.ag777.util.remote.ftp.FtpHelper]
 commons-net-3.6.jar
+
+[com.ag777.util.remote.mail.*]
+javax.mail-1.6.1.jar

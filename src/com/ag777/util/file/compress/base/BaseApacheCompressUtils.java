@@ -26,9 +26,9 @@ import com.ag777.util.lang.exception.Assert;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年04月12日,last modify at 2018年04月12日
+ * @version create on 2018年04月12日,last modify at 2018年04月16日
  */
-public abstract class BaseCompressUtils {
+public abstract class BaseApacheCompressUtils {
 	public final static int BUFFER = 1024;
 	
 	/**
@@ -41,6 +41,7 @@ public abstract class BaseCompressUtils {
 	protected File compress(File[] files, String packagePath) throws IOException {
 		Assert.notEmpty(files, "至少选择压缩一个文件");
 		for (File f : files) {
+			Assert.notNull(f, "需要压缩的文件不能为空");
 			Assert.notExisted(f, "需要压缩的文件不存在:" + f.getAbsolutePath());
 		}
 		ArchiveOutputStream tos = null;
@@ -73,7 +74,6 @@ public abstract class BaseCompressUtils {
 		ArchiveInputStream tais = null;
 		try {
 			File tarFile = new File(packagePath);
-			Assert.notExisted(tarFile, "压缩包不存在:" + packagePath);
 			tais = getArchiveInputStream(FileUtils.getInputStream(tarFile));
 			ArchiveEntry entry = null;
 			while ((entry = tais.getNextEntry()) != null) {
@@ -162,7 +162,6 @@ public abstract class BaseCompressUtils {
         	}
 	    	bis = FileUtils.getBufferedInputStream(file);
 	    	
-	
 	        byte[] buffer = new byte[BUFFER];
 	        int read = -1;
 	        while((read = bis.read(buffer)) != -1){
@@ -184,7 +183,7 @@ public abstract class BaseCompressUtils {
      * @param isFile 	如果是当前项是目录则为0，否则为文件大小
      * @return
      */
-    public abstract ArchiveEntry getArchiveEntry(String filePath, File file, boolean isFile);
+    public abstract ArchiveEntry getArchiveEntry(String filePath, File file, boolean isFile)  throws IOException;
     
     public abstract ArchiveOutputStream getArchiveOutputStream(String filePath) throws FileNotFoundException, IOException;
     public abstract ArchiveInputStream getArchiveInputStream(InputStream is) throws FileNotFoundException;

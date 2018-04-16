@@ -13,8 +13,7 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 
-import com.ag777.util.file.compress.base.BaseCompressUtils;
-import com.ag777.util.lang.exception.Assert;
+import com.ag777.util.file.compress.base.BaseApacheCompressUtils;
 
 /**
  * 有关zip文件的压缩和解压的工具基类,commons-compress二次封装
@@ -31,9 +30,9 @@ import com.ag777.util.lang.exception.Assert;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年04月12日,last modify at 2018年04月12日
+ * @version create on 2018年04月12日,last modify at 2018年04月16日
  */
-public class ZipUtils extends BaseCompressUtils{
+public class ZipUtils extends BaseApacheCompressUtils{
 
 	private static ZipUtils mInstance;
 	
@@ -51,33 +50,6 @@ public class ZipUtils extends BaseCompressUtils{
 	private ZipUtils() {}
 	
 	/*============压缩==================*/
-	/**
-	 * 
-	 * @param filePath
-	 * @param zipPath
-	 * @return
-	 * @throws IOException
-	 */
-	public  File zip(String filePath, String zipPath) throws IOException {
-		return zip(new String[]{filePath}, zipPath);
-	}
-	
-	/**
-	 * 
-	 * @param paths
-	 * @param zipPath
-	 * @return
-	 * @throws IOException
-	 */
-	public  File zip(String[] paths, String zipPath) throws IOException {
-		Assert.notEmpty(paths, "至少选择压缩一个文件");
-		File[] files = new File[paths.length];
-		for(int i=0;i<paths.length;i++) {
-			files[i] = new File(paths[i]);
-		}
-		return zip(files, zipPath);
-	}
-	
 	/**
 	 * 
 	 * @param files
@@ -121,7 +93,7 @@ public class ZipUtils extends BaseCompressUtils{
 	}
 	
 	public static void main(String[] args) throws Exception {
-		ZipUtils.getInstance().zip(new String[]{"f:\\临时"}, "f:\\a.zip");
+		ZipUtils.getInstance().zip(new File[]{new File("f:\\临时")}, "f:\\a.zip");
 //		ZipUtils.getInstance().unZip("f:\\a.zip", "e:\\");
 		
 //		FileUtils.delete("f:\\a.zip");

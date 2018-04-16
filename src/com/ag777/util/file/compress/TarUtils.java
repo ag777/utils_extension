@@ -12,8 +12,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 
 import com.ag777.util.file.FileUtils;
-import com.ag777.util.file.compress.base.BaseCompressUtils;
-import com.ag777.util.lang.exception.Assert;
+import com.ag777.util.file.compress.base.BaseApacheCompressUtils;
 
 /**
  * 有关tar文件的压缩和解压的工具基类,commons-compress二次封装
@@ -28,9 +27,9 @@ import com.ag777.util.lang.exception.Assert;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年04月12日,last modify at 2018年04月12日
+ * @version create on 2018年04月12日,last modify at 2018年04月16日
  */
-public class TarUtils extends BaseCompressUtils{
+public class TarUtils extends BaseApacheCompressUtils{
 
 	public static TarUtils mInstance = new TarUtils();
 	
@@ -48,47 +47,6 @@ public class TarUtils extends BaseCompressUtils{
 	private TarUtils() {}
 	
 	/*============压缩==================*/
-	/**
-	 * 将文件打成tar包
-	 * <p>
-	 *  windows下文件中文乱码没关系,用工具打也会,
-	 *  将getTarArchiveOutputStream设置成gbk编码就不会乱码但是会产生如下问题
-	 *  ①只能在解压时也采用这种编码才能正常解压
-	 *  ②linux下文件名乱码(ls命令会得到一堆乱码)
-	 * </p>
-	 * 
-	 * @param filePath
-	 * @param targetPath 目标tar文件路径
-	 * @return
-	 * @throws IOException
-	 */
-	public  File tar(String filePath, String tarPath) throws IOException {
-		return tar(new String[]{filePath}, tarPath);
-	}
-	
-	/**
-	 * 将一系列文件打包成tar包
-	 * <p>
-	 *  windows下文件中文乱码没关系,用工具打也会,
-	 *  将getTarArchiveOutputStream设置成gbk编码就不会乱码但是会产生如下问题
-	 *  ①只能在解压时也采用这种编码才能正常解压
-	 *  ②linux下文件名乱码(ls命令会得到一堆乱码)
-	 * </p>
-	 * 
-	 * @param paths    文件路径列表(绝对路径)
-	 * @param tarPath 目标tar文件路径
-	 * @return
-	 * @throws IOException
-	 */
-	public  File tar(String[] paths, String tarPath) throws IOException {
-		Assert.notEmpty(paths, "至少选择压缩一个文件");
-		File[] files = new File[paths.length];
-		for(int i=0;i<paths.length;i++) {
-			files[i] = new File(paths[i]);
-		}
-		return tar(files, tarPath);
-	}
-    
 	/**
 	 * 将一系列文件打包成tar包
 	 * <p>

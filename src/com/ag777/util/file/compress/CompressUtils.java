@@ -17,12 +17,14 @@ import com.ag777.util.lang.exception.Assert;
  * 	需要jar包:
  * <ul>
  * <li>commons-compress-1.16.1.jar</li>
+ * <li>xz-1.8.jar</li>
+ * 其中xz-1.8.jar是压缩解压7z文件夹用的
  * </ul>
  * </p>
  * </p>
  * 
  * @author ag777
- * @version create on 2018年04月12日,last modify at 2018年04月12日
+ * @version create on 2018年04月12日,last modify at 2018年04月16日
  */
 public class CompressUtils {
 
@@ -46,12 +48,7 @@ public class CompressUtils {
 	 * @throws IOException
 	 */
 	public static File targz(String[] paths, String gzPath) throws IOException {
-		Assert.notEmpty(paths, "至少选择压缩一个文件");
-		File[] files = new File[paths.length];
-		for(int i=0;i<paths.length;i++) {
-			files[i] = new File(paths[i]);
-		}
-		return targz(files, gzPath);
+		return targz(getFiles(paths), gzPath);
 	}
 	
 	/**
@@ -93,11 +90,11 @@ public class CompressUtils {
 	 * @throws IOException
 	 */
 	public static File zip(String filePath, String zipPath) throws IOException {
-		return ZipUtils.getInstance().zip(filePath, zipPath);
+		return ZipUtils.getInstance().zip(getFiles(filePath), zipPath);
 	}
 	
 	/**
-	 * 将zip包解压到指定目录
+	 * 将文件或文件夹压缩成zip包
 	 * 
 	 * @param paths
 	 * @param zipPath
@@ -105,10 +102,11 @@ public class CompressUtils {
 	 * @throws IOException
 	 */
 	public static File zip(String[] paths, String zipPath) throws IOException {
-		return ZipUtils.getInstance().zip(paths, zipPath);
+		return ZipUtils.getInstance().zip(getFiles(paths), zipPath);
 	}
 	
 	/**
+	 * 将文件或文件夹压缩成zip包
 	 * 
 	 * @param files
 	 * @param zipPath
@@ -117,6 +115,43 @@ public class CompressUtils {
 	 */
 	public static File zip(File[] files, String zipPath) throws IOException {
 		return ZipUtils.getInstance().zip(files, zipPath);
+	}
+	
+	//-7z压缩
+	/**
+	 * 将文件或文件夹压缩成7z包
+	 * 
+	 * @param filePath
+	 * @param sevenZPath
+	 * @return
+	 * @throws IOException
+	 */
+	public static File sevenZ(String filePath, String sevenZPath) throws IOException {
+		return SevenZUtils.compress(getFiles(filePath), sevenZPath);
+	}
+	
+	/**
+	 * 将文件或文件夹压缩成7z包
+	 * 
+	 * @param paths
+	 * @param sevenZPath
+	 * @return
+	 * @throws IOException
+	 */
+	public static File sevenZ(String[] paths, String sevenZPath) throws IOException {
+		return SevenZUtils.compress(getFiles(paths), sevenZPath);
+	}
+	
+	/**
+	 * 将文件或文件夹压缩成7z包
+	 * 
+	 * @param files
+	 * @param sevenZPath
+	 * @return
+	 * @throws IOException
+	 */
+	public static File sevenZ(File[] files, String sevenZPath) throws IOException {
+		return SevenZUtils.compress(files, sevenZPath);
 	}
 	
 	/*============解压================*/
@@ -154,6 +189,43 @@ public class CompressUtils {
 	 */
 	public static void unZip(String zipPath, String targetPath) throws IOException {
 		ZipUtils.getInstance().unZip(zipPath, targetPath);
+	}
+	
+	/**
+	 * 解压7z包到指定路径
+	 * 
+	 * @param sevenZPath
+	 * @param targetPath
+	 * @throws IOException
+	 */
+	public static void unSevenZ(String sevenZPath, String targetPath) throws IOException {
+		SevenZUtils.decompress(sevenZPath, targetPath);
+	}
+	
+	/*============内部方法================*/
+	/**
+	 * 将路径转文件数组(参数传递用)
+	 * @param paths
+	 * @return
+	 */
+	private static File[] getFiles(String filePath) {
+		File f = new File(filePath);
+//		Assert.notExisted(f, "需要被压缩的文件不存在:"+filePath);
+		return new File[]{f};
+	}
+	/**
+	 * 将路径数组转文件数组(参数传递用)
+	 * @param paths
+	 * @return
+	 */
+	private static File[] getFiles(String[] paths) {
+//		Assert.notEmpty(paths, "至少选择压缩一个文件");
+		File[] files = new File[paths.length];
+		for(int i=0;i<paths.length;i++) {
+//			Assert.notExisted(paths[i], "需要被压缩的文件不存在:"+paths[i]);
+			files[i] = new File(paths[i]);
+		}
+		return files;
 	}
 	
 	public static void main(String[] args) throws Exception {
