@@ -6,6 +6,8 @@ import java.util.regex.Pattern;
 import com.ag777.util.lang.StringUtils;
 import com.ag777.util.lang.collection.ListUtils;
 
+import sun.net.util.IPAddressUtil;
+
 /**
  * ip地址验证辅助类
  * <p>
@@ -13,24 +15,93 @@ import com.ag777.util.lang.collection.ListUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年02月27日,last modify at 2018年03月15日
+ * @version create on 2018年02月27日,last modify at 2018年04月17日
  */
 public class IpValidator {
 
-	public static Pattern PATTERN_IPRANGE;	//ip验证，包含网段
+	public static Pattern PATTERN_IP;	//单ip验证,不包含网段(严格版)
+	public static Pattern PATTERN_IPRANGE;	//ip验证，包含网段(严格版)
 	
 	static {
+		PATTERN_IP = Pattern.compile(
+				"^(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]\\d|[1-9])\\." //第一节不能为0
+				+"((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]\\d|[0-9])\\.){2}" //第二三节可以为0
+				+ "(25[0-4]|2[0-4]\\d|1\\d{2}|[1-9]\\d|[1-9])"	//第四节不能为0,也不能为255,最后一位255是留给广播地址用的.0的话是网段的意思.
+				);
 		PATTERN_IPRANGE = Pattern.compile("^(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]\\d|[1-9])\\."//第一节不能为0
 				+"(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]\\d|[0-9])\\."//第二节可以为0
 				+"("	//第三节分两种情况,如果第三节带-或者为*,则第四节一定为*
 					+ "(((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]\\d|[0-9])-(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]\\d|[1-9]))|\\*)\\.\\*"	//前半段可以为0,后半段不能为0
 					+ "|"
 					+ "(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]\\d|[0-9])\\."	//不带-不为*的情况,可以为0
-					+ "((25[0-4]|2[0-4]\\d|1\\d{2}|[1-9]\\d|[1-9])(-(25[0-4]|2[0-4]\\d|1\\d{2}|[1-9]\\d|[1-9]))?|\\*)"
-				+ ")$");	//第四节不能为0
+					+ "((25[0-4]|2[0-4]\\d|1\\d{2}|[1-9]\\d|[1-9])(-(25[0-4]|2[0-4]\\d|1\\d{2}|[1-9]\\d|[1-9]))?|\\*)"	//第四节不能为0,也不能为255,最后一位255是留给广播地址用的.0的话是网段的意思.
+				+ ")$");	
 	}
 	
 	private IpValidator() {
+	}
+	
+	/**
+	 *  判断是否是内网ip
+	 *  <p>
+	 *  代码参考:https://yq.aliyun.com/ziliao/151375
+	 *  注意:该方法处理127.0.0.1不算做内网ip
+	 *  以下网段为内网ip:
+	 *  10.0.0.0/8：10.0.0.0～10.255.255.255 
+		172.16.0.0/12：172.16.0.0～172.31.255.255 
+		192.168.0.0/16：192.168.0.0～192.168.255.255
+	 *  </p>
+	 *  
+	 * @param src
+	 * @return
+	 */
+	public static boolean isLan(String src) {
+		if(StringUtils.isBlank(src)) {
+			throw new IllegalArgumentException("参数字符串不能为空");
+		}
+		if(!isIp(src)) {
+			throw new IllegalArgumentException("参数字符串:"+src+"不是ip");
+		}
+		byte[] addr = IPAddressUtil.textToNumericFormatV4(src);
+		final byte b0 = addr[0];
+	    final byte b1 = addr[1];
+	    //10.x.x.x/8
+	    final byte SECTION_1 = 0x0A;
+	    //172.16.x.x/12
+	    final byte SECTION_2 = (byte) 0xAC;
+	    final byte SECTION_3 = (byte) 0x10;
+	    final byte SECTION_4 = (byte) 0x1F;
+	    //192.168.x.x/16
+	    final byte SECTION_5 = (byte) 0xC0;
+	    final byte SECTION_6 = (byte) 0xA8;
+	    switch (b0) {
+	        case SECTION_1:
+	            return true;
+	        case SECTION_2:
+	            if (b1 >= SECTION_3 && b1 <= SECTION_4) {
+	                return true;
+	            }
+	        case SECTION_5:
+	            switch (b1) {
+	                case SECTION_6:
+	                    return true;
+	            }
+	        default:
+	            return false;
+
+	    }
+	}
+	
+	/**
+	 * 是否为ip
+	 * @param src
+	 * @return
+	 */
+	public static boolean isIp(String src) {
+		if(StringUtils.isBlank(src)) {
+			throw new IllegalArgumentException("参数字符串不能为空");
+		}
+		return PATTERN_IP.matcher(src).matches();
 	}
 	
 	/**
@@ -141,10 +212,11 @@ public class IpValidator {
 	}
 	
 	public static void main(String[] args) {
-		List<String> list = splitNetSegment("192.168.1-3.*");
-		System.out.println(isIpRange("192.168.1-3.*"));
-		for (String item : list) {
-			System.out.println(item);
-		}
+//		List<String> list = splitNetSegment("192.168.1-3.*");
+//		System.out.println(isIpRange("192.168.1-3.*"));
+//		for (String item : list) {
+//			System.out.println(item);
+//		}
+		System.out.println(isLan("172.32.0.1"));
 	}
 }

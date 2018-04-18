@@ -7,6 +7,7 @@ import java.util.Properties;
 import javax.activation.DataHandler;
 import javax.activation.FileDataSource;
 import javax.mail.Address;
+import javax.mail.AuthenticationFailedException;
 import javax.mail.Authenticator;
 import javax.mail.BodyPart;
 import javax.mail.Message;
@@ -24,6 +25,7 @@ import javax.mail.internet.MimeUtility;
 import com.ag777.util.lang.StringUtils;
 import com.ag777.util.lang.collection.ListUtils;
 import com.ag777.util.lang.exception.Assert;
+import com.sun.mail.util.MailConnectException;
 
 /**
  * 邮件操作工具类
@@ -36,35 +38,149 @@ import com.ag777.util.lang.exception.Assert;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年04月16日,last modify at 2018年04月16日
+ * @version create on 2018年04月16日,last modify at 2018年04月17日
  */
 public class MailUtils {
 
 	private MailUtils() {}
 	
 	/**
+	 * 测试连接
+	 * @param smtpHost
+	 * @param user
+	 * @param password
+	 * @return
+	 */
+	public static boolean testConnect(
+			String smtpHost,
+			String user,
+			String password) {
+		Transport transport = null;
+		Session mailSession = null;
+		try {
+			Properties properties = new Properties();
+			properties.setProperty("mail.smtp.auth", "true");// 提供验证
+			properties.setProperty("mail.transport.protocol", "smtp");// 使用的协议					
+			properties.setProperty("mail.smtp.host", smtpHost);	// 这里是smtp协议
+			// 设置发送验证机制
+			Authenticator auth = new Authenticator() {
+				public PasswordAuthentication getPasswordAuthentication() {
+					return new PasswordAuthentication(user, password);
+				}
+			};
+			mailSession = Session.getInstance(properties, auth);
+			transport = mailSession.getTransport();
+			transport.connect(smtpHost, 25, user, password);
+			return true;
+		} catch(MailConnectException ex) { //连接失败
+//			ex.printStackTrace();
+		} catch(AuthenticationFailedException ex) {	//账号密码错误
+//			ex.printStackTrace();
+		} catch (MessagingException ex) {	//其他异常
+//			ex.printStackTrace();
+		} finally {
+			mailSession = null;
+			if(transport != null) {
+				try {
+					transport.close();
+				} catch (MessagingException e) {
+				}
+				transport = null;
+			}
+		}
+		return false;
+	}
+	
+	/**
 	 * 发送邮件
+	 * <p>
+	 * 是否使用缓存
+	 * ①是:创建session时会使用getDefaultInstance方法,
+	 * javamail首先是从缓存中查找是否有properties存在 
+		如果存在，则加载默认的properties 
+		如果不存在才加载用户自己定义的properties,
+		单例模式,里面的username和password属性是final型的，无法更改
+		选择使用缓存会导致一个问题，比如你登录了一个邮箱，然后使用错误的密码再次登录依然能够成功发送邮件
+		②否:创建session时会使用getInstance方法,每次都会创建一个新对象,可以避免①中的问题，但是会增大系统开销
+	 * </p>
+	 * 
 	 * @param smtpHost 邮件服务器地址
-	 * @param mailFrom 发件邮箱
+	 * @param user 发件邮箱账号
+	 * @param password 发件邮箱密码
+	 * @param from 发件邮箱
 	 * @param fromDisplay 邮件显示的发件人
-	 * @param mailTo 收件邮箱
-	 * @param mailUser 发件邮箱账号
-	 * @param mailPwd 发件邮箱密码
-	 * @param mailSubject 主题
-	 * @param mailContent 邮件内容
+	 * @param to 收件邮箱
+	 * @param subject 主题
+	 * @param content 邮件内容
 	 * @param attachments n.（用电子邮件发送的）附件( attachment的名词复数 )
+	 * @param useCache 是否使用缓存
 	 * @return
 	 */
 	public static boolean send(
 			String smtpHost,
+			String user,
+			String password,
 			String from,
 			String fromDisplay,
 			String to,
-			String user,
-			String password,
 			String subject,
 			String content,
-			File[] attachments) {
+			File[] attachments,
+			boolean useCache) throws IllegalArgumentException {
+		Assert.notBlank(smtpHost, "邮件服务器地址不能为空");
+		try {
+			sendWithException(smtpHost, user, password, from, fromDisplay, to, subject, content, attachments, useCache);
+			return true;
+		} catch (UnsupportedEncodingException | MessagingException ex) {
+//			ex.printStackTrace();
+		}
+
+		return false;
+	}
+	
+	/**
+	 * 发送邮件(伴随异常返回)
+	 * <p>
+	 * 详见send()方法
+	 * </p>
+	 * 
+	 * @param smtpHost
+	 * @param user
+	 * @param password
+	 * @param from
+	 * @param fromDisplay
+	 * @param to
+	 * @param subject
+	 * @param content
+	 * @param attachments
+	 * @param useCache
+	 * @throws IllegalArgumentException 参数验证异常
+	 * @throws MailConnectException 连接失败
+	 * @throws AuthenticationFailedException 账号密码错误
+	 * @throws MessagingException 其他异常
+	 * @throws UnsupportedEncodingException InternetAddress转换失败(发件箱，收件箱)
+	 */
+	public static void sendWithException(
+			String smtpHost,
+			String user,
+			String password,
+			String from,
+			String fromDisplay,
+			String to,
+			String subject,
+			String content,
+			File[] attachments,
+			boolean useCache) throws IllegalArgumentException, MailConnectException, AuthenticationFailedException, MessagingException, UnsupportedEncodingException {
+		
+		/*参数验证*/
+		Assert.notBlank(smtpHost, "邮件服务器地址不能为空");
+		Assert.notBlank(from, "发件邮箱不能为空");
+		Assert.notBlank(to, "收件邮箱不能为空");
+		if(fromDisplay == null) {	//发送人默认为邮箱
+			fromDisplay = from;
+		}
+		subject = StringUtils.emptyIfNull(subject);
+		content = StringUtils.emptyIfNull(content);
 		
 		//验证附件存在性
 		if(!ListUtils.isEmpty(attachments)) {
@@ -73,8 +189,10 @@ public class MailUtils {
 				Assert.notExisted(file, "邮件附件文件不存在:" + file.getAbsolutePath());
 			}
 		}
+		/*参数验证 end*/
 		
 		Transport transport = null;
+		Session mailSession = null;
 		try {
 			// 设置java mail属性，并添入数据源
 			Properties properties = new Properties();
@@ -88,7 +206,12 @@ public class MailUtils {
 				}
 			};
 			// 建立一个默认会话
-			Session mailSession = Session.getDefaultInstance(properties, auth);
+			if(useCache) {	//使用缓存
+				mailSession = Session.getDefaultInstance(properties, auth);
+			} else {	//不使用缓存
+				mailSession = Session.getInstance(properties, auth);
+			}
+			
 			MimeMessage msg = new MimeMessage(mailSession); // 创建MIME邮件对象
 			MimeMultipart mp = new MimeMultipart();
 
@@ -114,10 +237,17 @@ public class MailUtils {
 			transport.connect(smtpHost, 25, user, password);
 			transport.sendMessage(msg, new Address[] { new InternetAddress(
 					to) });
-			return true;
-		} catch (Exception ex) {
-//			ex.printStackTrace();
+			
+		} catch(MailConnectException ex) { //连接失败
+			throw ex;
+		} catch(AuthenticationFailedException ex) {	//账号密码错误
+			throw ex;
+		} catch (MessagingException ex) {		//其他异常
+			throw ex;
+		} catch (UnsupportedEncodingException ex) {	//InternetAddress转换失败(发件箱，收件箱)
+			throw ex;
 		} finally {
+			mailSession = null;
 			if(transport != null) {
 				try {
 					transport.close();
@@ -126,7 +256,6 @@ public class MailUtils {
 				transport = null;
 			}
 		}
-		return false;
 	}
 	
 	/**
@@ -173,4 +302,33 @@ public class MailUtils {
 		multipart.addBodyPart(bp);
 	}
 
+	public static void main(String[] args) {
+//		System.out.println(
+//				testConnect(
+//				"192.168.161.106", 
+//				"test", "123456")
+//				);
+		
+		try {
+			sendWithException(
+					"xx", 
+					"xx", "xxxx", "test@test.com", null, "test@test.com", null, null, null, false);
+			System.out.println("成功");
+		} catch (IllegalArgumentException e) {
+			System.out.println("参数异常");
+			e.printStackTrace();
+		} catch (MailConnectException e) {
+			System.out.println("连接不上");
+			e.printStackTrace();
+		} catch (AuthenticationFailedException e) {
+			System.out.println("账号密码错误");
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			System.out.println("地址转换失败");
+			e.printStackTrace();
+		} catch (MessagingException e) {
+			System.out.println("其他异常");
+			e.printStackTrace();
+		}
+	}
 }
