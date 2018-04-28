@@ -3,7 +3,6 @@ package com.ag777.util.remote.ftp;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.SocketException;
 import java.nio.charset.Charset;
 import javax.naming.AuthenticationException;
@@ -15,6 +14,7 @@ import com.ag777.util.lang.Console;
 import com.ag777.util.lang.IOUtils;
 import com.ag777.util.lang.collection.ListUtils;
 import com.ag777.util.lang.exception.Assert;
+import com.ag777.util.lang.interf.Disposable;
 import com.ag777.util.lang.model.Charsets;
 
 /**
@@ -30,16 +30,16 @@ import com.ag777.util.lang.model.Charsets;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年04月13日,last modify at 2018年04月16日
+ * @version create on 2018年04月13日,last modify at 2018年04月28日
  */
-public class FtpHelper {
+public class FtpHelper implements Disposable {
 
 	public final static int PORT_DEFAULT = 21; //ftp默认端口号为21
 	
 	private FTPClient client;
 	private boolean localPassiveMode = true; //被动传输
 	private boolean encodingMode = true;
-	private String[] ENCODINGS = {Charsets.GBK, Charsets.ISO_8859_1};
+	private Charset[] ENCODINGS = {Charsets.GBK, Charsets.ISO_8859_1};
 	
 	public FtpHelper(FTPClient client) {
 		this.client = client;
@@ -54,6 +54,7 @@ public class FtpHelper {
 	/**
 	 * 请务必在使用过后调用该方法,来关闭ftp连接
 	 */
+	@Override
 	public void dispose() {
 		if(client == null && client.isConnected()) {
 			try {
@@ -144,12 +145,12 @@ public class FtpHelper {
 	 * 调用该方法意味着开启编码转换功能
 	 * </p>
 	 * 
-	 * @param encodingLocal
-	 * @param encodingServer
+	 * @param charsetLocal
+	 * @param charsetServer
 	 * @return
 	 */
-	public FtpHelper setEncoding(String encodingLocal, String encodingServer) {
-		ENCODINGS = new String[]{encodingLocal, encodingServer};
+	public FtpHelper setEncoding(Charset charsetLocal, Charset charsetServer) {
+		ENCODINGS = new Charset[]{charsetLocal, charsetServer};
 		modeEncoding(true);
 		return this;
 	}
@@ -198,7 +199,7 @@ public class FtpHelper {
 	 */
 	public InputStream readFile(String targetPath, Charset charset) throws IOException {
 		if(charset == null) {
-			charset = Charsets.utf8();
+			charset = Charsets.UTF_8;
 		}
 		try {
 			client.setControlEncoding(charset.toString()); // 中文支持  
@@ -383,10 +384,7 @@ public class FtpHelper {
 	 */
 	private String encode(String fileName) {
 		if(encodingMode) {
-			try {
-				return new String(fileName.getBytes(ENCODINGS[0]), ENCODINGS[1]);
-			} catch (UnsupportedEncodingException e) {
-			}
+			return new String(fileName.getBytes(ENCODINGS[0]), ENCODINGS[1]);
 		}
 		return fileName;
 	}

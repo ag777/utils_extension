@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Optional;
 import java.util.Vector;
@@ -14,6 +15,7 @@ import com.ag777.util.lang.Console;
 import com.ag777.util.lang.IOUtils;
 import com.ag777.util.lang.StringUtils;
 import com.ag777.util.lang.collection.ListUtils;
+import com.ag777.util.lang.interf.Disposable;
 import com.ag777.util.lang.model.Charsets;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.ChannelSftp;
@@ -34,11 +36,11 @@ import com.jcraft.jsch.SftpException;
  * </p>
  * 
  * @author ag777
- * @version last modify at 2018年03月29日
+ * @version last modify at 2018年04月28日
  */
-public class SSHHelper {
+public class SSHHelper implements Disposable {
 
-	private static String DEFAULT_ENCODING = Charsets.UTF_8;
+	private static Charset DEFAULT_CHARSET = Charsets.UTF_8;
 	private static int TIMEOUT_CONNECT = 10000;	//超时时间
 	private static int TIME_WAIT = 1000;	//执行完命令后等待一段时间再关闭通道
 	
@@ -52,6 +54,7 @@ public class SSHHelper {
 		return session;
 	}
 	
+	@Override
 	public void dispose() {
 		if(session != null) {
 			session.disconnect();
@@ -206,7 +209,7 @@ public class SSHHelper {
 	        
 	        
 	        // Get the output of remote command.  
-            List<String> lines = IOUtils.readLines(in, DEFAULT_ENCODING);
+            List<String> lines = IOUtils.readLines(in, DEFAULT_CHARSET);
             
             return Optional.of(lines);
 		} catch(JSchException ex) {
@@ -237,7 +240,7 @@ public class SSHHelper {
 
 	        channelShell.connect( TIME_WAIT );  
 	        //写命令
-	        outputStream.write((command + "\n\n").getBytes(DEFAULT_ENCODING));
+	        outputStream.write((command + "\n\n").getBytes(DEFAULT_CHARSET));
 	        outputStream.flush();
 	        
 	        
@@ -280,7 +283,7 @@ public class SSHHelper {
 
 	        channelShell.connect( TIME_WAIT );  
 	        //写命令
-	        outputStream.write((command + "\n\n").getBytes(DEFAULT_ENCODING));
+	        outputStream.write((command + "\n\n").getBytes(DEFAULT_CHARSET));
 	        outputStream.flush();
 	        
 	        while(true) {

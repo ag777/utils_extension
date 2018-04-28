@@ -33,7 +33,7 @@ import com.ag777.util.lang.collection.MapUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2017年06月05日,last modify at 2018年03月20日
+ * @version create on 2017年06月05日,last modify at 2018年04月25日
  */
 public class JsoupUtils {
 
@@ -108,8 +108,8 @@ public class JsoupUtils {
 		if(retryTimes == null) {
 			retryTimes = 1;
 		}
-		Whitelist whitelist = Whitelist.basicWithImages();
-		Cleaner cleaner = new Cleaner(whitelist);
+//		Whitelist whitelist = Whitelist.basicWithImages();
+//		Cleaner cleaner = new Cleaner(whitelist);
 		IOException ex = null;
 		for(int i=0;i<retryTimes;i++) {
 			try {
@@ -146,6 +146,15 @@ public class JsoupUtils {
 	public String getHtml() {
 		return html;
 	}
+	
+	/**
+	 * 获取格式化的html
+	 * @return
+	 */
+	public String getPrettyHtml() {
+		doc.outputSettings().prettyPrint(true);//是否格式化
+		return doc.html();
+	}
 
 	/**
 	 * 获取当前页的地址
@@ -153,6 +162,38 @@ public class JsoupUtils {
 	 */
 	public String getUrl() {
 		return doc.baseUri();
+	}
+	
+	/**
+	 * 利用白名单功能清除javascript标签
+	 * <p>
+	 * 详见filterTags(String... tags)方法注释
+	 * </p>
+	 * 
+	 * @param tags
+	 * @return
+	 */
+	public JsoupUtils filterScript(String... tags) {
+		return filterTags();
+	}
+	
+	/**
+	 * 利用白名单清除标签
+	 * <p>
+	 * Whitelist本身允许的标签:
+	 *  a, b, blockquote, br, caption, cite, code, col, colgroup, dd, dl, dt, em, h1, h2, h3, h4, h5, h6, i, img, li, ol, p, pre, q, small, strike, strong, sub, sup, table, tbody, td, tfoot, th, thead, tr, u, ul。结果不包含标签rel=nofollow ，如果需要可以手动添加
+	 * 另外加上span标签,其余的标签均会被删除
+	 * </p>
+	 * 
+	 * @return 
+	 */
+	public JsoupUtils filterTags(String... tags) {
+		Whitelist whitelist = Whitelist.relaxed();
+		whitelist.addTags("span");
+		whitelist.removeTags(tags);
+		Cleaner cleaner = new Cleaner(whitelist);
+		doc = cleaner.clean(doc);
+		return this;
 	}
 	
 	/**
@@ -384,6 +425,7 @@ public class JsoupUtils {
 			Map<String,Object> result = new HashMap<>();
 			if(jsonMap.containsKey("item")) {
 				List<Map<String,Object>> list = new ArrayList<>();
+				@SuppressWarnings("unchecked")
 				Map<String,Object> selectorMap = (Map<String, Object>) jsonMap.get("item");
 				String selector = (String) selectorMap.get("selector");
 //				jsonMap.remove("item");

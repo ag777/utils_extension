@@ -5,8 +5,6 @@ import java.sql.SQLException;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-
-import com.ag777.util.db.DbHelper;
 import com.ag777.util.lang.Console;
 import com.ag777.util.lang.IOUtils;
 import com.ag777.util.lang.StringUtils;
@@ -28,10 +26,12 @@ import com.jolbox.bonecp.Statistics;
  * </p>
  * 
  * @author ag777
- * @version create on 2017年10月11日,last modify at 2017年12月12日
+ * @version create on 2017年10月11日,last modify at 2018年04月25日
  */
 public class BonecpHelper {
 
+	private static String URL_TAIL = "?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull";
+	
 	private BoneCP connectionPool;
 	
 	private BonecpHelper(BoneCP connectionPool) {
@@ -110,7 +110,16 @@ public class BonecpHelper {
 
 		try {
 			BoneCPConfig config = new BoneCPConfig();
-			config.setJdbcUrl(DbHelper.getDbUrlString(ip, port, dbName, DbHelper.DRIVER_CLASS_NAME_MYSQL)); // jdbc url specific to your database, eg jdbc:mysql://127.0.0.1/yourdb
+			StringBuilder url = new StringBuilder()
+					.append("jdbc:mysql://")
+					.append(ip)
+					.append(':')
+					.append(port);
+			if(dbName != null) {
+				url.append('/')
+					.append(dbName);
+			}
+			config.setJdbcUrl(url.toString()+URL_TAIL); // jdbc url specific to your database, eg jdbc:mysql://127.0.0.1/yourdb
 			config.setUsername(user);
 			config.setPassword(password);
 			// 设置每60秒检查数据库中的空闲连接数

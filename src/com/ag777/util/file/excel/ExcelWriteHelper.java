@@ -28,6 +28,7 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.RegionUtil;
 
 import com.ag777.util.lang.IOUtils;
+import com.ag777.util.lang.interf.Disposable;
 
 /**
  * excel写入工具(样式请在外部定义)
@@ -45,9 +46,9 @@ import com.ag777.util.lang.IOUtils;
  * </p>
  * 
  * @author ag777
- * @version last modify at 2017年08月28日
+ * @version last modify at 2018年04月28日
  */
-public class ExcelWriteHelper {
+public class ExcelWriteHelper implements Disposable {
 	
 	private Workbook workBook;
 	private Sheet curSheet;
@@ -97,6 +98,7 @@ public class ExcelWriteHelper {
 	/**
 	 * 销毁对象
 	 */
+	@Override
 	public void dispose() {
 		IOUtils.close(workBook);
 		workBook = null;

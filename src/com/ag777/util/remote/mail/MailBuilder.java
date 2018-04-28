@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.List;
 
 import com.ag777.util.lang.collection.ListUtils;
-import com.ag777.util.lang.exception.Assert;
 
 /**
  * 邮件辅助构建类
