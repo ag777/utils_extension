@@ -35,6 +35,7 @@ import com.sun.mail.util.MailConnectException;
  * <li>javax.mail.xxx.jar</li>
  * </ul>
  * 最新包请从github上获取
+ * https://github.com/javaee/javamail/releases
  * </p>
  * 
  * @author ag777

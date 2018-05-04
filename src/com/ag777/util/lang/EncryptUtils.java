@@ -16,7 +16,7 @@ import org.apache.commons.codec.binary.Base64;
  * </p>
  * 
  * @author ag777
- * @version last modify at 2017年08月31日
+ * @version last modify at 2017年05月04日
  */
 public class EncryptUtils {
 
@@ -52,8 +52,11 @@ public class EncryptUtils {
 	 * @throws Exception
 	 */
 	public static String decryptAes(String data, String key) throws Exception {
-		String result = (data.equals("")||data==null) ? null : decryptAesByBytes(base64Decode(new String(data.getBytes("ISO8859-1"),"UTF-8")), key);
-		return RegexUtils.find(result, "([^\0]*)");
+		if(StringUtils.isEmpty(data)) {
+			return null;
+		}
+		String temp =decryptAesByBytes(base64Decode(new String(data.getBytes("ISO8859-1"),"UTF-8")), key);
+		return RegexUtils.find(temp, "([^\0]*)");
 	}
 	
 	

@@ -2,19 +2,19 @@
 utils.jar
 
 [utils.jar]
-gson-2.8.2.jar
-joda-time-2.9.9.jar
-okhttp-3.8.0.jar
+gson-2.8.4.jar(20180501)
+joda-time-2.9.9.jar(20170313)
+okhttp-3.10.0.jar(20180224)
 okio-1.13.0.jar
 
 [com.ag777.util.jsoup.JsoupUtils]
-jsoup-1.11.2.jar
+jsoup-1.11.3.jar(20180415)
 
 [com.ag777.util.lang.EncryptUtils]
 commons-codec-1.10.jar
 
 [com.ag777.util.file.excel.*]
-poi-3.17.jar
+poi-3.17.jar(20170908)
 poi-examples-3.17.jar
 poi-excelant-3.17.jar
 poi-ooxml-3.17.jar
@@ -25,27 +25,27 @@ commons-codec-1.11.jar
 commons-collections4-4.1.jar
 
 [com.ag777.util.file.csv.CsvUtils]
-javacsv.jar
+javacsv.jar(20080220)
 
 [com.ag777.util.remote.ssh.SSHHelper]
-jsch-0.1.54.jar
+jsch-0.1.54.jar(20160903)
 
 [com.ag777.util.db.bonecp.BonecpHelper]
 bonecp-0.8.0.RELEASE.jar
 guava-15.0.jar
-slf4j-api-1.7.25.jar
+slf4j-api-1.8.0-beta2.jar(20180321)
 
 [com.ag777.util.file.xml.*]
-dom4j-1.6.1.jar
+dom4j-1.6.1.jar(20180210)
 
 [com.ag777.util.file.compress.*]
-commons-compress-1.16.1.jar
+commons-compress-1.16.1.jar(20180207)
 
 [com.ag777.util.file.compress.SevenZUtils]
 xz-1.8.jar
 
 [com.ag777.util.remote.ftp.FtpHelper]
-commons-net-3.6.jar
+commons-net-3.6.jar(20170211)
 
 [com.ag777.util.remote.mail.*]
-javax.mail-1.6.1.jar
+javax.mail-1.6.1.jar(20180213)

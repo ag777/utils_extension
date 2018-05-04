@@ -12,6 +12,7 @@ import org.apache.commons.net.ftp.FTPReply;
 import com.ag777.util.file.FileUtils;
 import com.ag777.util.lang.Console;
 import com.ag777.util.lang.IOUtils;
+import com.ag777.util.lang.StringUtils;
 import com.ag777.util.lang.collection.ListUtils;
 import com.ag777.util.lang.exception.Assert;
 import com.ag777.util.lang.interf.Disposable;
@@ -30,7 +31,7 @@ import com.ag777.util.lang.model.Charsets;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年04月13日,last modify at 2018年04月28日
+ * @version create on 2018年04月13日,last modify at 2018年05月04日
  */
 public class FtpHelper implements Disposable {
 
@@ -232,15 +233,11 @@ public class FtpHelper implements Disposable {
 	}
 	
 	/**
-	 * 删除文件或文件夹(文件夹删除还有问题)
-	 * <p>
-	 * 	试了各种方法都删不掉空目录，极小概率成功，原因未知，望dalao指点
-	 * </p>
+	 * 删除文件或文件夹(文件夹删除参考了网上的代码)
 	 * 
 	 * @param targetPath
 	 * @return
 	 */
-	@Deprecated
 	public synchronized boolean delete(String targetPath) {
 		
 		try {	//文件夹
@@ -252,7 +249,7 @@ public class FtpHelper implements Disposable {
 			if(files.length == 1) {	//文件
 				return client.deleteFile(targetPath);
 			} else {	//文件夹
-				return deleteDir(targetPath, files);
+				return deleteDir(targetPath, "");
 			}
 			
 		} catch (IOException e) {
@@ -336,46 +333,66 @@ public class FtpHelper implements Disposable {
 		}
 	}
 	
-	private boolean deleteDir(String targetPath, FTPFile[] files) throws IOException {
-		if(!ListUtils.isEmpty(files)) {
-			client.changeWorkingDirectory(targetPath);
-			try {
-				for (FTPFile file : files) {
-					String name = encode(file.getName());
-					if(".".equals(name) || "..".equals(name)) {
-						continue;
-					}
-					if(file.isDirectory()) {	//文件夹
-						String dir = name+File.separator;
-						
-						if(!deleteDir(name+File.separator, client.listFiles(dir))) {
-							Console.err("删除目录失败:"+file.getName());
-							return false;
-						}
-						if(!client.removeDirectory(dir)) {
-							Console.err("删除目录失败:"+file.getName());
-							return false;
-						}
-					} else {	//文件
-						System.out.println("删除文件"+file.getName());
-						if(!client.deleteFile(name)) {
-							Console.err("删除文件失败:"+file.getName());
-							return false;
-						}
-					}
-					
-				}
-				return client.removeDirectory(targetPath);
-			} catch(Exception ex) {
-				throw ex;
-			} finally {
-				client.changeToParentDirectory();
-			}
-			
-			
-		}
-		return false;
-	}
+	/**
+	 * 删除目录
+	 * <p>
+	 * 参考代码(需梯子):
+	 * http://www.codejava.net/java-se/networking/ftp/how-to-remove-a-non-empty-directory-on-a-ftp-server
+	 * </p>
+	 * 
+	 * @param targetDir
+	 * @param currentDir
+	 * @return
+	 * @throws IOException
+	 */
+	private boolean deleteDir(String targetDir,
+            String currentDir) throws IOException {
+        String dirToList = targetDir;
+        if (!currentDir.equals("")) {
+            dirToList += "/" + currentDir;
+        }
+ 
+        FTPFile[] subFiles = client.listFiles(dirToList);
+ 
+        if (subFiles != null && subFiles.length > 0) {
+            for (FTPFile aFile : subFiles) {
+                String currentFileName = aFile.getName();
+                if (currentFileName.equals(".") || currentFileName.equals("..")) {
+                    // skip parent directory and the directory itself
+                    continue;
+                }
+                String filePath = StringUtils.concat(
+                		targetDir, "/", currentDir, "/", currentFileName);
+                if (currentDir.equals("")) {
+                    filePath = StringUtils.concat(targetDir, "/", currentFileName);
+                }
+ 
+                if (aFile.isDirectory()) {
+                    // remove the sub directory
+                	boolean deleted = deleteDir(dirToList, currentFileName);
+                	if(!deleted) {
+                		return false;
+                	}
+                } else {
+                    // delete the file
+                    boolean deleted = client.deleteFile(filePath);
+                    if (!deleted) {
+                    	System.out.println("删除失败:"+filePath);
+                    	return false;
+                    }
+                }
+            }
+           
+        }
+        
+        // finally, remove the directory itself
+        boolean removed = client.removeDirectory(dirToList);
+        if (!removed) {
+        	System.out.println("删除目录失败:"+dirToList);
+        	return false;
+        }
+        return true;
+    }
 	
 	/**
 	 * 转换文件名/路径编码
