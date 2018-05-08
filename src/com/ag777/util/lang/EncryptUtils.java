@@ -1,9 +1,11 @@
 package com.ag777.util.lang;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import org.apache.commons.codec.binary.Base64;
 
 /**
  * 加解密工具
@@ -16,10 +18,13 @@ import org.apache.commons.codec.binary.Base64;
  * </p>
  * 
  * @author ag777
- * @version last modify at 2017年05月04日
+ * @version last modify at 2017年05月08日
  */
 public class EncryptUtils {
 
+	private static final String AES_CBC_NOPADDING= "AES/CBC/NoPadding";
+	private static final String AES= "AES";
+	
 	private EncryptUtils() {
 	}
 	
@@ -55,7 +60,7 @@ public class EncryptUtils {
 		if(StringUtils.isEmpty(data)) {
 			return null;
 		}
-		String temp =decryptAesByBytes(base64Decode(new String(data.getBytes("ISO8859-1"),"UTF-8")), key);
+		String temp =decryptAesByBytes(base64Decode(data), key);
 		return RegexUtils.find(temp, "([^\0]*)");
 	}
 	
@@ -69,10 +74,10 @@ public class EncryptUtils {
      * @throws Exception
      */
     public static byte[] encryptAesToBytes(String content, String encryptKey) throws Exception {  
-    	Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding");// 创建密码器
-    	SecretKeySpec key = new SecretKeySpec(encryptKey.getBytes(), "AES");
+    	Cipher cipher = Cipher.getInstance(AES_CBC_NOPADDING);// 创建密码器
+    	SecretKeySpec key = new SecretKeySpec(encryptKey.getBytes(), AES);
     	cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(new byte[]{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}));
-        byte[] result = cipher.doFinal(content.getBytes("utf-8"));
+        byte[] result = cipher.doFinal(content.getBytes(StandardCharsets.UTF_8));
         return result; 
         
     }  
@@ -86,30 +91,34 @@ public class EncryptUtils {
      * @throws Exception
      */
     public static String decryptAesByBytes(byte[] encryptBytes, String decryptKey) throws Exception {  
-    	Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding");// 创建密码器
-    	SecretKeySpec key = new SecretKeySpec(decryptKey.getBytes(), "AES");
+    	Cipher cipher = Cipher.getInstance(AES_CBC_NOPADDING);// 创建密码器
+    	SecretKeySpec key = new SecretKeySpec(decryptKey.getBytes(), AES);
     	cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(new byte[]{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}));
-        return new String(cipher.doFinal(encryptBytes), "UTF-8"); // 解密
+        return new String(cipher.doFinal(encryptBytes), StandardCharsets.UTF_8); // 解密
     }  
     
     /*-------base64-----------*/
-    /** 
-     * base 64 encode 
-     * @param bytes 待编码的byte[] 
-     * @return 编码后的base 64 code 
-     */  
-    public static String base64Encode(byte[] bytes){  
-        return Base64.encodeBase64String(bytes);  
+    /**
+     * base64加密(byte[]->String)
+     * 
+     * @param src
+     * @return
+     */
+    public static String base64Encode(byte[] src){  
+    	Base64.Encoder encoder = Base64.getEncoder();
+        return new String(encoder.encode(src), StandardCharsets.UTF_8); 
     }  
       
     /** 
-     * base 64 decode 
-     * @param base64Code 待解码的base 64 code 
-     * @return 解码后的byte[] 
-     * @throws Exception 
+     * base64解密(String->byte[])
+     * 
+     * @param src 
+     * @return 
+     * @throws IllegalArgumentException 
      */  
-    public static byte[] base64Decode(String base64Code) throws Exception{  
-        return (base64Code==null||base64Code.equals("")) ? null : Base64.decodeBase64(base64Code);  
+    public static byte[] base64Decode(String src) throws IllegalArgumentException{  
+    	Base64.Decoder decoder = Base64.getDecoder();
+        return decoder.decode(src);  
     }  
     
 }
