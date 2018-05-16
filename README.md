@@ -7,9 +7,11 @@
 -UtilsExtension【工具包统一配置类】<br>
 
 -com.ag777.jsoup
+----
 爬虫[jsoup的封装]<br>
 
 -com.ag777.file
+----
 【compress】
 压缩解压[common-compress的封装]
 支持zip/7z/tar/gz文件的压缩和解压<br>
@@ -24,6 +26,7 @@ EXCEL文件读写[对poi的封装]<br>
 XML文件的构建[对dom4j的封装]<br>
 
 -com.ag777.remote
+----
 【ftp】
 Ftp远程操作[对commons-net的封装]<br>
 
@@ -34,6 +37,7 @@ Ftp远程操作[对commons-net的封装]<br>
 SSH远程操作[对jsch的封装]<br>
 
 -com.ag777.db
+----
 【bonecp】
 数据库连接池[对bonecp的封装]<br>
 
