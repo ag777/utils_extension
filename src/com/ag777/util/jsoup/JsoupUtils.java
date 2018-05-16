@@ -33,7 +33,7 @@ import com.ag777.util.lang.collection.MapUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2017年06月05日,last modify at 2018年04月25日
+ * @version create on 2017年06月05日,last modify at 2018年05月16日
  */
 public class JsoupUtils {
 
@@ -65,6 +65,7 @@ public class JsoupUtils {
 	public static JsoupUtils parse(String html) {
 		return new JsoupUtils(Jsoup.parse(html));
 	}
+	
 	/**
 	 * 通过文件构建
 	 * @param in
@@ -129,6 +130,9 @@ public class JsoupUtils {
 				if(config.ignoreContentType()) {
 					conn.ignoreContentType(true);
 				}
+				if(config.dataMap() != null) {
+					conn.data(config.dataMap());
+				}
 				return new JsoupUtils(conn.get());
 			} catch(IOException e) {
 				ex = e;
@@ -189,8 +193,14 @@ public class JsoupUtils {
 	 */
 	public JsoupUtils filterTags(String... tags) {
 		Whitelist whitelist = Whitelist.relaxed();
-		whitelist.addTags("span");
+		whitelist.addTags("div", "span");
 		whitelist.removeTags(tags);
+		//增加可信属性
+		whitelist.addAttributes(":all", "style", "class", "id", "name");
+		whitelist.addAttributes("object", "width", "height","classid","codebase");
+		whitelist.addAttributes("param", "name", "value");
+		whitelist.addAttributes("embed", "src","quality","width","height","allowFullScreen","allowScriptAccess","flashvars","name","type","pluginspage");
+		
 		Cleaner cleaner = new Cleaner(whitelist);
 		doc = cleaner.clean(doc);
 		return this;
@@ -252,12 +262,12 @@ public class JsoupUtils {
 			if (src.tagName().equals("img")) {
 				String url = src.attr("abs:src");
 
-				try {
-					String alt = src.attr("alt");
-					int width = Integer.parseInt(src.attr("width"));
-					int height = Integer.parseInt(src.attr("height"));
-				}catch(Exception ex) {
-				}
+//				try {
+//					String alt = src.attr("alt");
+//					int width = Integer.parseInt(src.attr("width"));
+//					int height = Integer.parseInt(src.attr("height"));
+//				}catch(Exception ex) {
+//				}
 				urls.add(url);
 			}
 
@@ -420,12 +430,12 @@ public class JsoupUtils {
 	 * @return
 	 * @throws Exception
 	 */
+	@SuppressWarnings("unchecked")
 	public Map<String,Object> findByJsonMap(Map<String, Object> jsonMap, Element topElement, String defaultKey) throws Exception {
 		try {
 			Map<String,Object> result = new HashMap<>();
 			if(jsonMap.containsKey("item")) {
 				List<Map<String,Object>> list = new ArrayList<>();
-				@SuppressWarnings("unchecked")
 				Map<String,Object> selectorMap = (Map<String, Object>) jsonMap.get("item");
 				String selector = (String) selectorMap.get("selector");
 //				jsonMap.remove("item");

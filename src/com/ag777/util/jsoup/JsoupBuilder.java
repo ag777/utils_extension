@@ -3,14 +3,13 @@ package com.ag777.util.jsoup;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
-
 import com.ag777.util.lang.collection.MapUtils;
 
 /**
  * JsoupUtils配套的配置类
  * 
  * @author ag777
- * @version create on 2017年10月17日,last modify at 2017年11月21日
+ * @version create on 2017年10月17日,last modify at 2018年05月14日
  */
 public class JsoupBuilder {
 
@@ -21,6 +20,7 @@ public class JsoupBuilder {
 	private boolean ignoreContentType;
 	private Map<String, String> headerMap;
 	private Map<String, String> cookieMap;
+	private Map<String, String> dataMap;
 	
 	private JsoupBuilder() {
 		ignoreContentType = false;
@@ -74,6 +74,9 @@ public class JsoupBuilder {
 	}
 	
 	public JsoupBuilder cookies(Map<String, String> cookies) {
+		if(MapUtils.isEmpty(cookies)) {
+			return this;
+		}
 		cookies.forEach((key, value)->{
 			cookie(key, value);
 		});
@@ -98,13 +101,52 @@ public class JsoupBuilder {
 				}
 			}
 		}
-		headerMap.put(key, value);
+		if(value != null) {
+			headerMap.put(key, value);
+		}
 		return this;
 	}
 	
-	public JsoupBuilder headers(Map<String, String> headers) {
+	/**
+	 * 注意:该方法会略过值为null的键
+	 * @param headers
+	 * @return
+	 */
+	public <K, V>JsoupBuilder headers(Map<K, V> headers) {
+		if(MapUtils.isEmpty(headers)) {
+			return this;
+		}
 		headers.forEach((key, value)->{
-			header(key, value);
+			header(key.toString(), value.toString());
+		});
+		return this;
+	}
+	
+	public JsoupBuilder data(String key, String value) {
+		if(dataMap == null) {
+			synchronized (JsoupBuilder.class) {
+				if(dataMap == null) {
+					dataMap = MapUtils.newHashTable();
+				}
+			}
+		}
+		if(value != null) {
+			dataMap.put(key, value);
+		}
+		return this;
+	}
+	
+	/**
+	 * 注意:该方法会略过值为null的键
+	 * @param datas
+	 * @return
+	 */
+	public <K, V>JsoupBuilder dataMap(Map<K, V> datas) {
+		if(MapUtils.isEmpty(datas)) {
+			return this;
+		}
+		datas.forEach((key, value)->{
+			data(key.toString(), value.toString());
 		});
 		return this;
 	}
@@ -137,6 +179,10 @@ public class JsoupBuilder {
 	
 	public Map<String, String> headers() {
 		return headerMap;
+	}
+	
+	public Map<String, String> dataMap() {
+		return dataMap;
 	}
 	
 	public class Proxy {
