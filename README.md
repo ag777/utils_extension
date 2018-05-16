@@ -23,7 +23,7 @@ EXCEL文件读写[对poi的封装]<br>
 【xml】
 XML文件的构建[对dom4j的封装]<br>
 
--com.ag77.remote
+-com.ag777.remote
 【ftp】
 Ftp远程操作[对commons-net的封装]<br>
 
