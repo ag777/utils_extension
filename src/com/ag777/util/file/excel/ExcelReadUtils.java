@@ -21,6 +21,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import com.ag777.util.lang.IOUtils;
 import com.ag777.util.lang.collection.CollectionAndMapUtils;
+import com.ag777.util.lang.exception.Assert;
 
 /**
  * excel文件读取工具类
@@ -39,7 +40,7 @@ import com.ag777.util.lang.collection.CollectionAndMapUtils;
  * </p>
  * 
  * @author ag777
- * @version last modify at 2018年04月12日
+ * @version last modify at 2018年05月21日
  */
 public class ExcelReadUtils {
 
@@ -55,38 +56,51 @@ public class ExcelReadUtils {
 		return WorkbookFactory.create(inputStream);
 	}
 	
-	
-	public static List<List<Map<String, String>>> read(String filePath, boolean isIgnoreFirstRow) throws EncryptedDocumentException, InvalidFormatException, IOException {
-		if (filePath == null || "".equals(filePath)) {
-			return null;
-		} else {
-			List<List<Map<String, String>>> sheetList = CollectionAndMapUtils.newArrayList();
-			Workbook workBook = WorkbookFactory.create(new File(filePath));
-			Iterator<Sheet> itorSheet = workBook.sheetIterator();
-			while(itorSheet.hasNext()) {
-				List<Map<String, String>> rowList = CollectionAndMapUtils.newArrayList();
-				Sheet sheet = itorSheet.next();
-				Iterator<Row> itorRow = sheet.rowIterator();
-				while(itorRow.hasNext()) {
-					Map<String, String> rowMap = CollectionAndMapUtils.newLinkedHashMap();
-					Row row = itorRow.next();
-					if(isIgnoreFirstRow && row.getRowNum() == 0) {
-						continue;
-					}
-					Iterator<Cell> itorCell = row.cellIterator();
-					while(itorCell.hasNext()) {
-						Cell cell = itorCell.next();
-						char key = (char)('a' + cell.getColumnIndex());
-						String value = getValue(cell);
-						rowMap.put(String.valueOf(key), value);
-					}
-					rowList.add(rowMap);
-				}
-				sheetList.add(rowList);
-			}
-			
-			return sheetList;
+	/**
+	 * 获取sheet名称及对应的数据list
+	 * @param filePath
+	 * @param isIgnoreFirstRow
+	 * @return {sheet的名字:[{"a","第一行第一列","b":"第一行第二列"},{"a":"第二行第一列"}]}
+	 * @throws IllegalArgumentException
+	 * @throws EncryptedDocumentException
+	 * @throws InvalidFormatException
+	 * @throws IOException
+	 */
+	public static Map<String, List<Map<String, String>>> readSheetMap(String filePath, boolean isIgnoreFirstRow) throws IllegalArgumentException, EncryptedDocumentException, InvalidFormatException, IOException {
+		Assert.notEmpty(filePath, "参数文件路径不能为空");
+		Map<String, List<Map<String, String>>> sheetMap = CollectionAndMapUtils.newLinkedHashMap();
+		Workbook workBook = WorkbookFactory.create(new File(filePath));
+		Iterator<Sheet> itorSheet = workBook.sheetIterator();
+		while(itorSheet.hasNext()) {
+			Sheet sheet = itorSheet.next();
+			sheetMap.put(
+					sheet.getSheetName(), 
+					getRowList(sheet, isIgnoreFirstRow));
 		}
+		return sheetMap;
+	}
+	
+	/**
+	 * 
+	 * @param filePath
+	 * @param isIgnoreFirstRow
+	 * @return
+	 * @throws IllegalArgumentException
+	 * @throws EncryptedDocumentException
+	 * @throws InvalidFormatException
+	 * @throws IOException
+	 */
+	public static List<List<Map<String, String>>> read(String filePath, boolean isIgnoreFirstRow) throws IllegalArgumentException, EncryptedDocumentException, InvalidFormatException, IOException {
+		Assert.notEmpty(filePath, "参数文件路径不能为空");
+		List<List<Map<String, String>>> sheetList = CollectionAndMapUtils.newArrayList();
+		Workbook workBook = WorkbookFactory.create(new File(filePath));
+		Iterator<Sheet> itorSheet = workBook.sheetIterator();
+		while(itorSheet.hasNext()) {
+			Sheet sheet = itorSheet.next();
+			sheetList.add(getRowList(sheet, isIgnoreFirstRow));
+		}
+		
+		return sheetList;
 	}
 	
 	/**
@@ -215,6 +229,28 @@ public class ExcelReadUtils {
 		IOUtils.close(workBook);	//关闭流，防止文件被占用
 		
 		return sheetList;
+	}
+	
+	private static List<Map<String, String>> getRowList(Sheet sheet, boolean isIgnoreFirstRow) {
+		List<Map<String, String>> rowList = CollectionAndMapUtils.newArrayList();
+//		String sheetName = sheet.getSheetName();
+		Iterator<Row> itorRow = sheet.rowIterator();
+		while(itorRow.hasNext()) {
+			Map<String, String> rowMap = CollectionAndMapUtils.newLinkedHashMap();
+			Row row = itorRow.next();
+			if(isIgnoreFirstRow && row.getRowNum() == 0) {
+				continue;
+			}
+			Iterator<Cell> itorCell = row.cellIterator();
+			while(itorCell.hasNext()) {
+				Cell cell = itorCell.next();
+				char key = (char)('a' + cell.getColumnIndex());
+				String value = getValue(cell);
+				rowMap.put(String.valueOf(key), value);
+			}
+			rowList.add(rowMap);
+		}
+		return rowList;
 	}
 	
 	/**
