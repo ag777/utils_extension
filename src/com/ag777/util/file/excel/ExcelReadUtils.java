@@ -21,6 +21,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import com.ag777.util.lang.IOUtils;
 import com.ag777.util.lang.collection.CollectionAndMapUtils;
+import com.ag777.util.lang.collection.ListUtils;
 import com.ag777.util.lang.exception.Assert;
 
 /**
@@ -40,18 +41,56 @@ import com.ag777.util.lang.exception.Assert;
  * </p>
  * 
  * @author ag777
- * @version last modify at 2018年05月21日
+ * @version last modify at 2018年05月22日
  */
 public class ExcelReadUtils {
 
-	public static Workbook getWorkBook(String filePath) throws EncryptedDocumentException, InvalidFormatException, IOException {
-		if (filePath == null || "".equals(filePath)) {
-			throw new IOException("文件名为空");
-		} else {
-			return WorkbookFactory.create(new File(filePath));
-		}
+	/**
+	 * 移除角标对应的sheet
+	 * @param wb
+	 * @param index
+	 * @throws IllegalArgumentException 角标超出范围等等
+	 */
+	public static void removeSheet(Workbook wb, int index) throws IllegalArgumentException {
+		wb.removeSheetAt(index);
 	}
 	
+	/**
+	 * 获取sheet名称列表
+	 * @param wb
+	 * @return
+	 */
+	public static List<String> getSheetNameList(Workbook wb) {
+		List<String> list = ListUtils.newArrayList();
+		Iterator<Sheet> itor = wb.sheetIterator();
+		while(itor.hasNext()) {
+			list.add(itor.next().getSheetName());
+		}
+		return list;
+	}
+		
+	/**
+	 * 获取工作簿对象
+	 * @param filePath
+	 * @return
+	 * @throws IllegalArgumentException
+	 * @throws EncryptedDocumentException
+	 * @throws InvalidFormatException
+	 * @throws IOException
+	 */
+	public static Workbook getWorkBook(String filePath) throws IllegalArgumentException, EncryptedDocumentException, InvalidFormatException, IOException {
+		Assert.notBlank(filePath, "文件路径不能为空");
+		return WorkbookFactory.create(new File(filePath));
+	}
+	
+	/**
+	 * 获取工作簿对象
+	 * @param inputStream
+	 * @return
+	 * @throws EncryptedDocumentException
+	 * @throws InvalidFormatException
+	 * @throws IOException
+	 */
 	public static Workbook getWorkBook(InputStream inputStream) throws EncryptedDocumentException, InvalidFormatException, IOException {
 		return WorkbookFactory.create(inputStream);
 	}
@@ -68,8 +107,18 @@ public class ExcelReadUtils {
 	 */
 	public static Map<String, List<Map<String, String>>> readSheetMap(String filePath, boolean isIgnoreFirstRow) throws IllegalArgumentException, EncryptedDocumentException, InvalidFormatException, IOException {
 		Assert.notEmpty(filePath, "参数文件路径不能为空");
+		Workbook workBook = getWorkBook(filePath);
+		return readSheetMap(workBook, isIgnoreFirstRow);
+	}
+	
+	/**
+	 * 从工作簿中获取sheet名称及对应的数据list
+	 * @param workBook
+	 * @param isIgnoreFirstRow
+	 * @return {sheet的名字:[{"a","第一行第一列","b":"第一行第二列"},{"a":"第二行第一列"}]}
+	 */
+	public static Map<String, List<Map<String, String>>> readSheetMap(Workbook workBook, boolean isIgnoreFirstRow) {
 		Map<String, List<Map<String, String>>> sheetMap = CollectionAndMapUtils.newLinkedHashMap();
-		Workbook workBook = WorkbookFactory.create(new File(filePath));
 		Iterator<Sheet> itorSheet = workBook.sheetIterator();
 		while(itorSheet.hasNext()) {
 			Sheet sheet = itorSheet.next();
@@ -78,29 +127,6 @@ public class ExcelReadUtils {
 					getRowList(sheet, isIgnoreFirstRow));
 		}
 		return sheetMap;
-	}
-	
-	/**
-	 * 
-	 * @param filePath
-	 * @param isIgnoreFirstRow
-	 * @return
-	 * @throws IllegalArgumentException
-	 * @throws EncryptedDocumentException
-	 * @throws InvalidFormatException
-	 * @throws IOException
-	 */
-	public static List<List<Map<String, String>>> read(String filePath, boolean isIgnoreFirstRow) throws IllegalArgumentException, EncryptedDocumentException, InvalidFormatException, IOException {
-		Assert.notEmpty(filePath, "参数文件路径不能为空");
-		List<List<Map<String, String>>> sheetList = CollectionAndMapUtils.newArrayList();
-		Workbook workBook = WorkbookFactory.create(new File(filePath));
-		Iterator<Sheet> itorSheet = workBook.sheetIterator();
-		while(itorSheet.hasNext()) {
-			Sheet sheet = itorSheet.next();
-			sheetList.add(getRowList(sheet, isIgnoreFirstRow));
-		}
-		
-		return sheetList;
 	}
 	
 	/**
@@ -231,7 +257,7 @@ public class ExcelReadUtils {
 		return sheetList;
 	}
 	
-	private static List<Map<String, String>> getRowList(Sheet sheet, boolean isIgnoreFirstRow) {
+	protected static List<Map<String, String>> getRowList(Sheet sheet, boolean isIgnoreFirstRow) {
 		List<Map<String, String>> rowList = CollectionAndMapUtils.newArrayList();
 //		String sheetName = sheet.getSheetName();
 		Iterator<Row> itorRow = sheet.rowIterator();

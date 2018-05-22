@@ -46,7 +46,7 @@ import com.ag777.util.lang.interf.Disposable;
  * </p>
  * 
  * @author ag777
- * @version last modify at 2018年04月28日
+ * @version last modify at 2018年05月22日
  */
 public class ExcelWriteHelper implements Disposable {
 	
@@ -655,16 +655,10 @@ public class ExcelWriteHelper implements Disposable {
 	 * 创建一个数据行,一行都采用相同的样式
 	 * @param contentList
 	 * @param style
+	 * @return 
 	 */
-	public void createRow(List<Object> contentList, CellStyle style) {
-		Row row = createRow();
-		for(int i=0; i<contentList.size(); i++) {
-			createCell(
-					row,
-					i,
-					contentList.get(i),
-					style);
-		}
+	public Row createRow(List<Object> contentList, CellStyle style) {
+		return createRow(curSheet, index, contentList, style);
 	}
 	
 	/**
@@ -715,15 +709,46 @@ public class ExcelWriteHelper implements Disposable {
 	 * @return 
 	 */
 	public Row createRow() {
-		Row row = curSheet.createRow(index);
-//		row.setHeightInPoints(ExcelConstant.ROW_HEIGHT);	//行高
-		index++;
-		return row;
+		return createRow(curSheet, index);
 	}
 	
 	
 	/*---------------内部用方法------------------------*/
+	/**
+	 * 创建一行
+	 * @param sheet
+	 * @param index
+	 * @param contentList
+	 * @param style
+	 * @return
+	 */
+	public static Row createRow(Sheet sheet, int index, List<Object> contentList, CellStyle style) {
+		if(contentList == null) {
+			return createRow(sheet, index);
+		}
+		Row row = createRow(sheet, index);
+		for(int i=0; i<contentList.size(); i++) {
+			createCell(
+					row,
+					i,
+					contentList.get(i),
+					style);
+		}
+		return row;
+	}
 	
+	/**
+	 * 创建空行
+	 * @param sheet
+	 * @param index
+	 * @return
+	 */
+	public static Row createRow(Sheet sheet, int index) {
+		Row row = sheet.createRow(index);
+//		row.setHeightInPoints(ExcelConstant.ROW_HEIGHT);	//行高
+		index++;
+		return row;
+	}
 	
 	/**
 	 * 创建单个单元格
