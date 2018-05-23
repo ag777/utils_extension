@@ -33,7 +33,7 @@ import com.ag777.util.lang.collection.MapUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2017年06月05日,last modify at 2018年05月16日
+ * @version create on 2017年06月05日,last modify at 2018年05月23日
  */
 public class JsoupUtils {
 
@@ -48,11 +48,11 @@ public class JsoupUtils {
 	}
 	
 	private Document doc;
-	private String html;
+//	private String html;
 
 	public JsoupUtils(Document doc) {
 		this.doc = doc;
-		this.html = doc.body().html();
+//		this.html = doc.body().html();
 
 	}
 
@@ -148,7 +148,7 @@ public class JsoupUtils {
 	}
 
 	public String getHtml() {
-		return html;
+		return doc.body().html();
 	}
 	
 	/**
@@ -283,7 +283,7 @@ public class JsoupUtils {
 	public List<Element> findByReg(String regex) {
 		List<Element> list = new ArrayList<Element>();
 		Pattern pattern = Pattern.compile(regex);
-		Matcher matcher = pattern.matcher(html);
+		Matcher matcher = pattern.matcher(getHtml());
 
 		while (matcher.find()) {
 			String html = matcher.group();
