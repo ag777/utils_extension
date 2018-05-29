@@ -2,7 +2,7 @@
 utils.jar
 
 [utils.jar]
-gson-2.8.4.jar(20180501)
+gson-2.8.5.jar(20180522)
 joda-time-2.9.9.jar(20170313)
 okhttp-3.10.0.jar(20180224)
 okio-1.13.0.jar
