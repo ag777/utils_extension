@@ -99,6 +99,7 @@ public class BonecpHelper {
 	 * @param requireOnce	连接池中的连接耗尽的时候 BoneCP一次同时获取的连接数
 	 * @return
 	 */
+	@SuppressWarnings("deprecation")
 	public static BonecpHelper init(String ip, int port, String dbName, String user, String password,int minSize, int maxSize,int partitionCount,int requireOnce) {
 		try {
 			// load the database driver (make sure this is in your classpath!)
