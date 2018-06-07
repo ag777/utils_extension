@@ -3,7 +3,7 @@ utils.jar
 
 [utils.jar]
 gson-2.8.5.jar(20180522)
-joda-time-2.9.9.jar(20170313)
+joda-time-2.10.jar(20170530)
 okhttp-3.10.0.jar(20180224)
 okio-1.13.0.jar
 
@@ -11,7 +11,7 @@ okio-1.13.0.jar
 jsoup-1.11.3.jar(20180415)
 
 [com.ag777.util.lang.EncryptUtils]
-commons-codec-1.10.jar
+commons-codec-1.10.jar(20171017)
 
 [com.ag777.util.file.excel.*]
 poi-3.17.jar(20170908)
@@ -39,7 +39,7 @@ slf4j-api-1.8.0-beta2.jar(20180321)
 dom4j-1.6.1.jar(20180210)
 
 [com.ag777.util.file.compress.*]
-commons-compress-1.16.1.jar(20180207)
+commons-compress-1.17.jar(20180531)
 
 [com.ag777.util.file.compress.SevenZUtils]
 xz-1.8.jar

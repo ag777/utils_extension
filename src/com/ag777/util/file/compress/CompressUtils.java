@@ -20,6 +20,7 @@ import com.ag777.util.lang.exception.Assert;
  * <li>xz-1.8.jar</li>
  * 其中xz-1.8.jar是压缩解压7z文件夹用的
  * </ul>
+ * commons-compress包的更新日志:http://commons.apache.org/proper/commons-compress/changes-report.html
  * </p>
  * </p>
  * 
