@@ -36,7 +36,7 @@ guava-15.0.jar
 slf4j-api-1.8.0-beta2.jar(20180321)
 
 [com.ag777.util.file.xml.*]
-dom4j-1.6.1.jar(20180210)
+dom4j-1.6.1.jar(20060210)
 
 [com.ag777.util.file.compress.*]
 commons-compress-1.17.jar(20180531)
