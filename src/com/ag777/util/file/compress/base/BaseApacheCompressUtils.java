@@ -26,7 +26,7 @@ import com.ag777.util.lang.exception.Assert;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年04月12日,last modify at 2018年04月16日
+ * @version create on 2018年04月12日,last modify at 2018年06月26日
  */
 public abstract class BaseApacheCompressUtils {
 	public final static int BUFFER = 1024;
@@ -75,6 +75,8 @@ public abstract class BaseApacheCompressUtils {
 		try {
 			File tarFile = new File(packagePath);
 			tais = getArchiveInputStream(FileUtils.getInputStream(tarFile));
+			
+			new File(targetPath).mkdirs();	//解压根路径得先创建，内部路径会在遍历中创建
 			ArchiveEntry entry = null;
 			while ((entry = tais.getNextEntry()) != null) {
 				
