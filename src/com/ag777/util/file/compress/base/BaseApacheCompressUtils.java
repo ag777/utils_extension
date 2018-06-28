@@ -21,12 +21,12 @@ import com.ag777.util.lang.exception.Assert;
  * <p>
  * 	需要jar包:
  * <ul>
- * <li>commons-compress-1.16.1.jar</li>
+ * <li>commons-compress-1.17.jar</li>
  * </ul>
  * </p>
  * 
  * @author ag777
- * @version create on 2018年04月12日,last modify at 2018年06月26日
+ * @version create on 2018年04月12日,last modify at 2018年06月28日
  */
 public abstract class BaseApacheCompressUtils {
 	public final static int BUFFER = 1024;
@@ -76,7 +76,6 @@ public abstract class BaseApacheCompressUtils {
 			File tarFile = new File(packagePath);
 			tais = getArchiveInputStream(FileUtils.getInputStream(tarFile));
 			
-			new File(targetPath).mkdirs();	//解压根路径得先创建，内部路径会在遍历中创建
 			ArchiveEntry entry = null;
 			while ((entry = tais.getNextEntry()) != null) {
 				
@@ -88,9 +87,10 @@ public abstract class BaseApacheCompressUtils {
 				// 文件检查
 //				FileUtils.makeDir(dirFile.getParent(), true);
 
-				if (entry.isDirectory()) {
+				if (entry.isDirectory()) {		//zip包好像不走这步,所以必须在解压文件时创建父路径
 					dirFile.mkdirs();
 				} else {
+					dirFile.getParentFile().mkdirs();
 					BufferedOutputStream bos = null;
 					try {	//必须在这层包try-catch并及时关闭输出流，不然会导致输出空文件，而且解压后也无法删除文件(被占用)
 						bos = new BufferedOutputStream(new FileOutputStream(dirFile));

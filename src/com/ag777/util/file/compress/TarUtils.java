@@ -21,7 +21,7 @@ import com.ag777.util.file.compress.base.BaseApacheCompressUtils;
  * <p>
  * 	需要jar包:
  * <ul>
- * <li>commons-compress-1.16.1.jar</li>
+ * <li>commons-compress-1.17.jar</li>
  * </ul>
  * </p>
  * </p>

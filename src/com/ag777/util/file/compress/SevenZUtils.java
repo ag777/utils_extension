@@ -21,7 +21,7 @@ import com.ag777.util.lang.exception.Assert;
  * <p>
  * 	需要jar包:
  * <ul>
- * <li>commons-compress-1.16.1.jar</li>
+ * <li>commons-compress-1.17.jar</li>
  * <li>xz-1.8.jar</li>
  * </ul>
  * 缺少xz这个包在压缩有内容的文件时会报java.lang.NoClassDefFoundError: org/tukaani/xz/FilterOptions异常(反之压缩空文件和文件夹时任何毛病)

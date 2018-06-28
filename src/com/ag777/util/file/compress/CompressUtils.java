@@ -16,7 +16,7 @@ import com.ag777.util.lang.exception.Assert;
  * <p>
  * 	需要jar包:
  * <ul>
- * <li>commons-compress-1.16.1.jar</li>
+ * <li>commons-compress-1.17.jar</li>
  * <li>xz-1.8.jar</li>
  * 其中xz-1.8.jar是压缩解压7z文件夹用的
  * </ul>
