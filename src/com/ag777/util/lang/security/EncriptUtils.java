@@ -84,6 +84,9 @@ public class EncriptUtils {
     
     /**
      * md5 32位加盐,二次加密
+     * <p>
+     * 返回字符串长度为32位
+     * </p>
      * 
      * @param src
      * @return
@@ -112,6 +115,10 @@ public class EncriptUtils {
     
     /**
      * sha1加密
+     * <p>
+     * 返回字符串长度为40位
+     * </p>
+     * 
      * @param src
      * @return
      */
@@ -159,10 +166,10 @@ public class EncriptUtils {
      * 
      * @param src
      * @param key
-     * @param transformation
-     * @param algorithm
-     * @param params
-     * @param random
+     * @param transformation 用于获取Cipher,一般什么加密方法用是什么,比如"AES"
+     * @param algorithm 具体的加密算法
+     * @param params 参数,可以为向量
+     * @param random 相当于随机数生成工具
      * @return
      * @throws InvalidKeyException 一般是密匙字节数不对抛出的异常
      * @throws NoSuchAlgorithmException
@@ -392,7 +399,7 @@ public class EncriptUtils {
      */
     public static Cipher getCipher(String key, String transformation, String algorithm, int opmode, AlgorithmParameterSpec params, SecureRandom random) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException {
 		Cipher c = Cipher.getInstance(transformation);
-    	c.init(opmode, getSecretKeySpec(key, algorithm), params, random);		//用密钥和一组算法参数初始化此
+    	c.init(opmode, getSecretKeySpec(key, algorithm), params, random);		//用密钥和一组算法参数初始化
     	return c;
     }
     
@@ -538,5 +545,6 @@ public class EncriptUtils {
 						type));
 		System.out.println(md5_32("123123"));
 		System.out.println(md5ByRL(src));
+		System.out.println(sha1("sdsad").length());
 	}
 }
