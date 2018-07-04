@@ -10,7 +10,7 @@ import java.security.SecureRandom;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年06月29日,last modify at 2018年06月29日
+ * @version create on 2018年06月29日,last modify at 2018年07月04日
  */
 public class SecurityRandomUtils {
 
