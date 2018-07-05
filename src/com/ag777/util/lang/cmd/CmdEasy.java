@@ -1,18 +1,28 @@
 package com.ag777.util.lang.cmd;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import com.ag777.util.lang.StringUtils;
 import com.ag777.util.lang.SystemUtils;
+import com.ag777.util.lang.collection.ListUtils;
+import com.ag777.util.lang.collection.MapUtils;
 
 /**
  * 一些常用命令(Cmd/Shell)的执行工具类
+ * <p>
+ * 针对linux操作系统!
+ * </p>
  * 
  * @author ag777
- * @version create on 2018年07月04日,last modify at 2018年07月04日
+ * @version create on 2018年07月04日,last modify at 2018年07月05日
  */
 public class CmdEasy {
 
+	private CmdEasy() {}
+	
 	/**
 	 * 压缩文件
      * <p>
@@ -73,6 +83,66 @@ public class CmdEasy {
 				cmd.toString(), baseDir);
 	}
 	
+	
+	/**
+	 * 获取默认网关
+	 * <p>
+	 * 思路:
+	 * ①执行route -n 命令
+	 * ②匹配Destination为0.0.0.0
+	 * ③该行Gateway对应的值就是默认路由
+	 * </p>
+	 * 
+	 * @return
+	 * @throws IOException
+	 */
+	public static String gateWayDefault() throws IOException {
+		/*
+		 * Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+			192.168.167.0   0.0.0.0         255.255.255.0   U     0      0        0 eth0
+			0.0.0.0         192.168.167.1   0.0.0.0         UG    0      0        0 eth0
+		 */
+		List<String> lines = CmdUtils.getInstance().readLines("route -n", null);
+		for (String line : lines) {
+			if(line.startsWith("0.0.0.0")) {
+				String[] groups = line.split("\\s+");
+				return groups[1];
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * 获取路由表
+	 * @return
+	 * @throws IOException
+	 */
+	public static List<Map<String, Object>> routhList() throws IOException {
+		List<Map<String, Object>> routeList = ListUtils.newArrayList();
+		/*
+		 * Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+			192.168.167.0   0.0.0.0         255.255.255.0   U     0      0        0 eth0
+			0.0.0.0         192.168.167.1   0.0.0.0         UG    0      0        0 eth0
+		 */
+		List<String> lines = CmdUtils.getInstance().readLines("route -n", null);
+		
+		String [] titles =  null;
+		for (String line : lines) {
+			String[] groups = line.split("\\s+");
+			if(titles == null) {
+				titles = groups;
+			} else {
+				Map<String, Object> routeMap = MapUtils.newHashMap();
+				for (int i = 0; i < groups.length; i++) {
+					routeMap.put(titles[i], groups[i]);
+				}
+				routeList.add(routeMap);
+			}
+		}
+		return routeList;
+	}
+	
+	/*=======通用区=============*/
 	/**
 	 * 将filePath底下的所有文件打成war包
 	 * @param filePath

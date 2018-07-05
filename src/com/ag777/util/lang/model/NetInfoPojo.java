@@ -7,17 +7,18 @@ package com.ag777.util.lang.model;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年06月13日,last modify at 2018年06月13日
+ * @version create on 2018年06月13日,last modify at 2018年07月05日
  */
 public class NetInfoPojo {
 
 	private String name;				//ethxx
 	private String displayName;	//网卡名称
-	private Boolean isUp;			//是否开启
+	private Boolean isUp;			//是否已经开启并运行
 	private String mac;				//mac地址
 	private String ipV4;				//ipV4地址
 	private String ipV6;				//ipV6地址
 	private String mask;				//子网掩码
+	private Boolean isVirtual;		//是否是虚拟接口
 	
 	public String getName() {
 		return name;
@@ -60,5 +61,11 @@ public class NetInfoPojo {
 	}
 	public void setMask(String mask) {
 		this.mask = mask;
+	}
+	public Boolean getIsVirtual() {
+		return isVirtual;
+	}
+	public void setIsVirtual(Boolean isVirtual) {
+		this.isVirtual = isVirtual;
 	}
 }

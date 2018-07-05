@@ -15,7 +15,7 @@ import com.ag777.util.lang.model.NetInfoPojo;
  * 网口信息获取类
  * 
  * @author ag777
- * @version create on 2018年06月13日,last modify at 2018年06月13日
+ * @version create on 2018年06月13日,last modify at 2018年07月05日
  */
 public class NetworkInterfaceUtils {
 
@@ -35,14 +35,19 @@ public class NetworkInterfaceUtils {
 		List<NetInfoPojo> netInfoList = ListUtils.newArrayList();
 		Enumeration<NetworkInterface> allNetInterfaces = NetworkInterface.getNetworkInterfaces();
 		while (allNetInterfaces.hasMoreElements()) {
-			NetInfoPojo ni = new NetInfoPojo();
-			NetworkInterface netInterface = allNetInterfaces.nextElement();
 			
+			NetworkInterface netInterface = allNetInterfaces.nextElement();
+			String ethName = netInterface.getName();
+			if(ethName.equals("lo")) {	//略过lo也就是127.0.0.1对应的地址
+				continue;
+			}
+			NetInfoPojo ni = new NetInfoPojo();
 			String mac = getMac(netInterface);
-			ni.setName(netInterface.getName());		//ethxx
+			ni.setName(ethName);		//ethxx
 			ni.setDisplayName(netInterface.getDisplayName());	//网卡名称
 			ni.setMac(mac);
 			ni.setIsUp(netInterface.isUp());
+			ni.setIsVirtual(netInterface.isVirtual());	//是否已经开启并运行
 			/*获取ipV4,ipV6地址,和子网掩码*/
 			List<InterfaceAddress> interfaceAddresses = netInterface.getInterfaceAddresses();
 			for (InterfaceAddress interfaceAddress : interfaceAddresses) {
@@ -136,20 +141,26 @@ public class NetworkInterfaceUtils {
 	 * @return
 	 */
 	public static String getMac(byte[] mac) {
-		StringBuilder sb = new StringBuilder();
+		StringBuilder sb = null;
 		for (int i = 0; i < mac.length; i++) {
+			if(sb == null) {
+				sb = new StringBuilder();
+			} else {
+				sb.append(':');
+			}
 			byte b = mac[i];
 			int intValue = 0;
 			if (b >= 0)
 				intValue = b;
 			else
 				intValue = 256 + b;
-			sb.append(Integer.toHexString(intValue));
-			if (i != mac.length - 1) {
-				sb.append('-');
+			String hexStr = Integer.toHexString(intValue);
+			if(hexStr.length() < 2) {
+				sb.append("0");
 			}
+			sb.append(hexStr.toUpperCase());
 		}
-		return sb.toString();
+		return sb!=null?sb.toString():null;
 	}
 	
 	public static void main(String[] args) throws SocketException {
