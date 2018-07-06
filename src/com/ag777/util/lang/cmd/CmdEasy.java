@@ -17,7 +17,7 @@ import com.ag777.util.lang.collection.MapUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年07月04日,last modify at 2018年07月05日
+ * @version create on 2018年07月04日,last modify at 2018年07月06日
  */
 public class CmdEasy {
 
@@ -83,6 +83,28 @@ public class CmdEasy {
 				cmd.toString(), baseDir);
 	}
 	
+	/**
+	 * 获取cpuId
+	 * <p>
+	 * 去除id为"00 00 00 00 00 00 00 00"的行
+	 * </p>
+	 * 
+	 * @return
+	 * @throws IOException 
+	 */
+	public static List<String> getCpuIds() throws IOException {
+		String cmd = "dmidecode -t 4 | grep ID |sort -u |awk -F': ' '{print $2}'";
+		//"dmidecode -t processor |grep ID|sort -u |awk -F': ' '{print $2}'"	//效果一样
+		List<String> lines = ShellUtils.getInstance().readLines(cmd, null);
+		for (int i = lines.size() - 1; i >= 0; i--) { // 倒序遍历，为了能删除数据
+			String line = lines.get(i);
+			if ("00 00 00 00 00 00 00 00".equals(line)) {
+				lines.remove(line);
+			}
+		}
+		return lines;
+		
+	}
 	
 	/**
 	 * 获取默认网关

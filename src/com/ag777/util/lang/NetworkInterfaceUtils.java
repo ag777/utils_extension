@@ -15,7 +15,7 @@ import com.ag777.util.lang.model.NetInfoPojo;
  * 网口信息获取类
  * 
  * @author ag777
- * @version create on 2018年06月13日,last modify at 2018年07月05日
+ * @version create on 2018年06月13日,last modify at 2018年07月06日
  */
 public class NetworkInterfaceUtils {
 
@@ -66,6 +66,25 @@ public class NetworkInterfaceUtils {
 		}
 		
 		return netInfoList;
+	}
+	
+	/**
+	 * 获取mac地址列表
+	 * @return
+	 * @throws SocketException
+	 */
+	public static List<String> getMacList() throws SocketException {
+		List<String> list = ListUtils.newArrayList();
+		Enumeration<NetworkInterface> allNetInterfaces = NetworkInterface.getNetworkInterfaces();
+		while (allNetInterfaces.hasMoreElements()) {
+			NetworkInterface netInterface = allNetInterfaces.nextElement();
+			String mac = getMac(netInterface);
+			if(!StringUtils.isBlank(mac)) {
+				list.add(mac);
+			}
+			
+		}
+		return list;
 	}
 	
 	/**
