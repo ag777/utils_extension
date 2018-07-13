@@ -31,9 +31,9 @@ import org.apache.commons.codec.digest.DigestUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年06月29日,last modify at 2018年06月29日
+ * @version create on 2018年06月29日,last modify at 2018年07月10日
  */
-public class EncriptUtils {
+public class EncryptUtils {
 	
 	/*===========================加密===========================*/
 	
