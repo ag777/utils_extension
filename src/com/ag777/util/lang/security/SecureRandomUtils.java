@@ -10,9 +10,9 @@ import java.security.SecureRandom;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年06月29日,last modify at 2018年07月04日
+ * @version create on 2018年06月29日,last modify at 2018年07月18日
  */
-public class SecurityRandomUtils {
+public class SecureRandomUtils {
 
 	/**
 	 * 默认算法
@@ -25,7 +25,7 @@ public class SecurityRandomUtils {
 	
 	public static SecureRandom getSecureRandom() {
 		if(secureRandom == null) {
-			synchronized (SecurityRandomUtils.class) {
+			synchronized (SecureRandomUtils.class) {
 				if(secureRandom == null) {
 					try {
 						secureRandom = SecureRandom.getInstance(DEFAULT_ALGORITHM);

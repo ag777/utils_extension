@@ -28,6 +28,7 @@ import com.ag777.util.lang.model.Charsets;
  * <li>commons-net-xxx.jar</li>
  * </ul>
  * </p>
+ * 关于主动模式和被动模式的参考资料:https://www.cnblogs.com/xiaohh/p/4789813.html
  * </p>
  * 
  * @author ag777
@@ -114,6 +115,10 @@ public class FtpHelper implements Disposable {
 	
 	/**
 	 * 是否开启被动传输模式,默认开启
+	 * <p>
+	 *  主动FTP对FTP服务器的管理有利，但对客户端的管理不利。因为FTP服务器企图与客户端的高位随机端口建立连接，而这个端口很有可能被客户端的防火墙阻塞掉。
+	 *  被动FTP对FTP客户端的管理有利，但对服务器端的管理不利。因为客户端要与服务器端建立两个连接，其中一个连到一个高位随机端口，而这个端口很有可能被服务器端的防火墙阻塞掉。
+	 * </p>
 	 * @param localPassiveMode
 	 * @return
 	 */

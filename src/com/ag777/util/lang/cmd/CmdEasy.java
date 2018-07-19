@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import com.ag777.util.lang.ObjectUtils;
 import com.ag777.util.lang.StringUtils;
 import com.ag777.util.lang.SystemUtils;
 import com.ag777.util.lang.collection.ListUtils;
@@ -17,7 +18,7 @@ import com.ag777.util.lang.collection.MapUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年07月04日,last modify at 2018年07月06日
+ * @version create on 2018年07月04日,last modify at 2018年07月17日
  */
 public class CmdEasy {
 
@@ -164,6 +165,40 @@ public class CmdEasy {
 		return routeList;
 	}
 	
+	/**
+	 * 获取硬盘使用情况
+	 * <p>
+	 * 使用命令df -m实现
+	 * 单位为GB
+	 * 实际环境中总空间比(已用空间+可用空间)的和来的大，所以这里已用空间为总空间-可用空间
+	 * </p>
+	 * @return [硬盘总大小, 已使用大小, 可用大小]
+	 * @throws IOException
+	 */
+	public static Double[] getDiskRateGroup() throws IOException {
+		/*
+		 * Filesystem     1M-blocks  Used Available Use% Mounted on
+			/dev/sda3          38074  8499     27635  24% /
+			tmpfs               1885     0      1885   0% /dev/shm
+			/dev/sda1             93    39        49  45% /boot
+		 */
+		long total = 0;
+//		long used = 0;
+		long available = 0;
+		List<String> lines = CmdUtils.getInstance().readLines("df -m", null);
+		lines.remove(0);	//去除第一行
+		for (String line : lines) {
+			String[] groups = line.split("\\s+");
+			total += ObjectUtils.toLong(groups[1], 0);
+//			used += ObjectUtils.toLong(groups[2], 0);
+			available += ObjectUtils.toLong(groups[3], 0);
+		}
+		return new Double[]{
+				convertDiskRate(total), 
+				convertDiskRate(total-available), 
+				convertDiskRate(available)};
+	}
+	
 	/*=======通用区=============*/
 	/**
 	 * 将filePath底下的所有文件打成war包
@@ -174,5 +209,32 @@ public class CmdEasy {
 	public static boolean war(String filePath, String warPath) {
 		return CmdUtils.getInstance().exec(
    			StringUtils.concat("jar -cvf ", warPath, " *"), filePath);
+	}
+	
+	/*=======内部方法===========*/
+	/**
+	 * 根据硬盘大小(M)转化为GB
+	 * <p>
+	 * 将误差考虑在内	--by C++工程师
+	 * </p>
+	 * @param rate
+	 * @return
+	 */
+	private static double convertDiskRate(long rate) {
+		double hd_total = Math.ceil(rate*1.0/1024);
+		if(hd_total>1800 && hd_total<2000) {
+			return 2048;
+		} else if(hd_total>900 && hd_total<1000) {
+			return 1024;
+		} else if(hd_total>400 && hd_total<500) {
+			return 512;
+		} else if(hd_total>200 && hd_total <250) {
+			return 256;
+		} else if(hd_total>100 && hd_total <120) {
+			return 128;
+		} else {
+			return hd_total;
+		}
+
 	}
 }

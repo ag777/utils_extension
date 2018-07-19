@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.AlgorithmParameterSpec;
@@ -31,7 +32,7 @@ import org.apache.commons.codec.digest.DigestUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年06月29日,last modify at 2018年07月10日
+ * @version create on 2018年06月29日,last modify at 2018年07月18日
  */
 public class EncryptUtils {
 	
@@ -48,6 +49,18 @@ public class EncryptUtils {
 		 }
 		 return base64(src.getBytes(StandardCharsets.UTF_8));
 	 }
+	 
+	/**
+	 * base64编码
+	 * 
+	 * @param bytes
+	 *            待编码的byte[]
+	 * @return 编码后的base 64 code
+	 */
+	public static String base64(byte[] bytes) {
+		return Base64.encodeBase64String(bytes);
+	}
+	    
 	 
     /**
      * MD5 16位加密
@@ -202,6 +215,22 @@ public class EncryptUtils {
     }
     
     /**
+     * base64解密
+     * <p>
+     * 结果为字节数组
+     * </p>
+     * 
+     * @param src
+     * @return
+     */
+    public static byte[] deBase64_2Bytes(String src) {
+    	if(src == null) {
+    		return null;
+    	}
+        return Base64.decodeBase64(src);  
+    }
+    
+    /**
      * 解密
      * @param src
      * @param key
@@ -281,31 +310,6 @@ public class EncryptUtils {
     	return new String(bytes, StandardCharsets.UTF_8);
     }
     
-    /** 
-     * base64编码
-     * @param bytes 待编码的byte[] 
-     * @return 编码后的base 64 code 
-     */  
-    private static String base64(byte[] bytes) {
-        return Base64.encodeBase64String(bytes);  
-    }
-    
-    /**
-     * base64解密
-     * <p>
-     * 结果为字节数组
-     * </p>
-     * 
-     * @param src
-     * @return
-     */
-    public static byte[] deBase64_2Byte2(String src) {
-    	if(src == null) {
-    		return null;
-    	}
-        return Base64.decodeBase64(src);  
-    }
-    
     /**
      * 加密
      * @param src
@@ -345,7 +349,7 @@ public class EncryptUtils {
      */
     private static byte[] de2Byte(String src, String key, String transformation, String algorithm, AlgorithmParameterSpec params, SecureRandom random) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, UnsupportedEncodingException, InvalidAlgorithmParameterException {
     	return toByte(
-    			deBase64_2Byte2(convertCharset(src)), key, transformation, algorithm, Cipher.DECRYPT_MODE, params, random);
+    			deBase64_2Bytes(convertCharset(src)), key, transformation, algorithm, Cipher.DECRYPT_MODE, params, random);
     }
     /**
      * 加密或解密
@@ -398,8 +402,25 @@ public class EncryptUtils {
      * @throws InvalidAlgorithmParameterException
      */
     public static Cipher getCipher(String key, String transformation, String algorithm, int opmode, AlgorithmParameterSpec params, SecureRandom random) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException {
+    	return getCipher(getSecretKeySpec(key, algorithm), transformation, opmode, params, random);
+    }
+    
+    /**
+     * 获取密匙Cipher[saɪfɚ]
+     * @param key 秘钥，java.security.Key对象,可以是SecretKeySpec,PublicKey等等
+     * @param transformation
+     * @param opmode Cipher.ENCRYPT_MODE 或者 Cipher.DECRYPT_MODE
+     * @param params 
+     * @param random 
+     * @return
+     * @throws InvalidKeyException
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchPaddingException
+     * @throws InvalidAlgorithmParameterException
+     */
+    public static Cipher getCipher(Key key, String transformation, int opmode, AlgorithmParameterSpec params, SecureRandom random) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException {
 		Cipher c = Cipher.getInstance(transformation);
-    	c.init(opmode, getSecretKeySpec(key, algorithm), params, random);		//用密钥和一组算法参数初始化
+    	c.init(opmode, key, params, random);		//用密钥和一组算法参数初始化
     	return c;
     }
     
