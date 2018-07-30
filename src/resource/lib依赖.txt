@@ -52,3 +52,6 @@ javax.mail-1.6.1.jar(20180213)
 
 [com.ag777.util.file.qrcode.*]
 zxing-core-3.3.3.jar(20180529)
+
+[com.ag777.util.other.RamUtils]
+java-sizeof-0.0.5.jar(20150525)

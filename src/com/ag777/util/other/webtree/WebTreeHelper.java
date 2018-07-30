@@ -69,7 +69,7 @@ public class WebTreeHelper {
 			String protocol = url.getProtocol();
 			String domain = url.getHost();
 			int port = url.getPort();
-			String path = p1.matcher(url.getPath()).replaceFirst("");
+			String path = p1.matcher(url.getPath()).replaceFirst("");			//去除path开头的/
 			String baseUrl =StringUtils.concat(
 					protocol, "://", domain,  port!=-1?(':'+port):"");
 			
