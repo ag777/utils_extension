@@ -5,7 +5,7 @@ utils.jar
 gson-2.8.5.jar(20180522)
 joda-time-2.10.jar(20170530)
 okhttp-3.11.0.jar(20180713)
-okio-2.0.0-RC1.jar(20180726)
+okio-1.15.0.jar(20180719)
 
 [com.ag777.util.jsoup.JsoupUtils]
 jsoup-1.11.3.jar(20180415)
@@ -21,7 +21,7 @@ poi-ooxml-3.17.jar
 poi-ooxml-schemas-3.17.jar
 poi-scratchpad-3.17.jar
 xmlbeans-2.6.0.jar
-commons-codec-1.11.jar
+commons-codec-1.11.jar(20171017)
 commons-collections4-4.1.jar
 
 [com.ag777.util.file.csv.CsvUtils]
