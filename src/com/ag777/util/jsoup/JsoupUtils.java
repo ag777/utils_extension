@@ -28,12 +28,12 @@ import com.ag777.util.lang.collection.MapUtils;
  * <p>
  * 	需要jar包:
  * <ul>
- * <li>jsoup-1.10.2.jar</li>
+ * <li>jsoup-1.11.3.jar</li>
  * </ul>
  * </p>
  * 
  * @author ag777
- * @version create on 2017年06月05日,last modify at 2018年05月23日
+ * @version create on 2017年06月05日,last modify at 2018年08月03日
  */
 public class JsoupUtils {
 
@@ -95,6 +95,21 @@ public class JsoupUtils {
 			throw ex;
 		}
 	}
+	
+	/**
+	 * 连接目标url(post请求)
+	 * @param url
+	 * @return
+	 * @throws IOException
+	 */
+	public static JsoupUtils post(String url) throws IOException{
+		try {
+			Document doc = Jsoup.connect(url).timeout(DEFAULT_TIME_OUT).post();
+			return new JsoupUtils(doc);
+		} catch(IOException ex) {
+			throw ex;
+		}
+	}
 
 
 	/**
@@ -109,36 +124,71 @@ public class JsoupUtils {
 		if(retryTimes == null) {
 			retryTimes = 1;
 		}
-//		Whitelist whitelist = Whitelist.basicWithImages();
-//		Cleaner cleaner = new Cleaner(whitelist);
 		IOException ex = null;
 		for(int i=0;i<retryTimes;i++) {
 			try {
-				Connection conn = Jsoup.connect(url).timeout(config.timeOut() == null?DEFAULT_TIME_OUT:config.timeOut());
-				if(config.proxy() != null) {
-					conn.proxy(config.proxy().ip, config.proxy().port);
-				}
-				if(config.userAgent() != null) {
-					conn.userAgent(config.userAgent());
-				}
-				if(config.cookies() != null) {
-					conn.cookies(config.cookies());
-				}
-				if(config.headers() != null) {
-					conn.headers(config.headers());
-				}
-				if(config.ignoreContentType()) {
-					conn.ignoreContentType(true);
-				}
-				if(config.dataMap() != null) {
-					conn.data(config.dataMap());
-				}
+				Connection conn = getConn(url, config);
 				return new JsoupUtils(conn.get());
 			} catch(IOException e) {
 				ex = e;
 			}
 		}
 		throw ex;
+	}
+	
+	/**
+	 * 根据配置来做连接(post请求)
+	 * @param url
+	 * @param config
+	 * @return
+	 * @throws IOException
+	 */
+	public static JsoupUtils post(String url, JsoupBuilder config) throws IOException {
+		Integer retryTimes = config.retryTimes();
+		if(retryTimes == null) {
+			retryTimes = 1;
+		}
+		IOException ex = null;
+		for(int i=0;i<retryTimes;i++) {
+			try {
+				Connection conn = getConn(url, config);
+				return new JsoupUtils(conn.post());
+			} catch(IOException e) {
+				ex = e;
+			}
+		}
+		throw ex;
+	}
+	
+	/**
+	 * 获取connection对象
+	 * @param url
+	 * @param config
+	 * @return
+	 */
+	private static Connection getConn(String url, JsoupBuilder config) {
+//		Whitelist whitelist = Whitelist.basicWithImages();
+//		Cleaner cleaner = new Cleaner(whitelist);
+		Connection conn = Jsoup.connect(url).timeout(config.timeOut() == null?DEFAULT_TIME_OUT:config.timeOut());
+		if(config.proxy() != null) {
+			conn.proxy(config.proxy().ip, config.proxy().port);
+		}
+		if(config.userAgent() != null) {
+			conn.userAgent(config.userAgent());
+		}
+		if(config.cookies() != null) {
+			conn.cookies(config.cookies());
+		}
+		if(config.headers() != null) {
+			conn.headers(config.headers());
+		}
+		if(config.ignoreContentType()) {
+			conn.ignoreContentType(true);
+		}
+		if(config.dataMap() != null) {
+			conn.data(config.dataMap());
+		}
+		return conn;
 	}
 	
 	/*===============接口方法======================*/

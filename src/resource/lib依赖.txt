@@ -11,7 +11,7 @@ okio-1.15.0.jar(20180719)
 jsoup-1.11.3.jar(20180415)
 
 [com.ag777.util.lang.EncryptUtils]
-commons-codec-1.10.jar(20171017)
+commons-codec-1.11.jar(20171017)
 
 [com.ag777.util.file.excel.*]
 poi-3.17.jar(20170908)
