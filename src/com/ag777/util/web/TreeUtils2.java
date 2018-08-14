@@ -11,7 +11,7 @@ import com.ag777.util.lang.collection.MapUtils;
  * @author ag777
  * @version create on 2017年06月20日,last modify at 2017年06月20日
  */
-public class TreeUtils {
+public class TreeUtils2 {
 	
 	private static final String CHILDREN = "children";
 	

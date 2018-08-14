@@ -1,31 +1,36 @@
-package com.ag777.util.other.webtree.model;
+package com.ag777.util.web.tree.model;
+
+import java.util.Map;
 
 /**
- * jquery插件zTree每一项对应的java类
+ * jquery插件zTree每一项对应的java类,用于web目录树导出
  * 
  * @author ag777
- * @version create on 2017年07月26日,last modify at 2018年07月27日
+ * @version create on 2017年07月26日,last modify at 2018年08月10日
  */
 public class ZTreeItem {
 
-	private int id;			//节点编号
-	private int pId;		//父节点编号
+	private long id;			//节点编号
+	private long pId;		//父节点编号
 	private String name;	//节点名称
 	private String icon;	//图标路径,如../../../css/zTreeStyle/img/diy/3.png
 	private Boolean isParent;	//是否是父节点
 	private Boolean open;	//是否绽开
 	
-	public int getId() {
+	private Map<String, Object> extraData;	//预留额外数据的绑定
+	
+	
+	public long getId() {
 		return id;
 	}
-	public ZTreeItem setId(int id) {
+	public ZTreeItem setId(long id) {
 		this.id = id;
 		return this;
 	}
-	public int getpId() {
+	public long getpId() {
 		return pId;
 	}
-	public ZTreeItem setpId(int pId) {
+	public ZTreeItem setpId(long pId) {
 		this.pId = pId;
 		return this;
 	}
@@ -55,6 +60,14 @@ public class ZTreeItem {
 	}
 	public ZTreeItem setOpen(Boolean open) {
 		this.open = open;
+		return this;
+	}
+	
+	public Map<String, Object> getExtraData() {
+		return extraData;
+	}
+	public ZTreeItem setExtraData(Map<String, Object> extraData) {
+		this.extraData = extraData;
 		return this;
 	}
 	
