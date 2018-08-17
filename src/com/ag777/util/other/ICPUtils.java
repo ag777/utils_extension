@@ -15,7 +15,7 @@ import com.ag777.util.lang.exception.model.ValidateException;
  * 备案信息获取工具类
  * 
  * @author ag777
- * @version create on 2018年08月14日,last modify at 2018年08月14日
+ * @version create on 2018年08月14日,last modify at 2018年08月17日
  */
 public class ICPUtils {
 
@@ -83,7 +83,6 @@ public class ICPUtils {
 		}
 		try {
 			URL url = new URL(urlStr);
-			System.out.println(url.getHost());
 			return url.getHost();
 		} catch (MalformedURLException e) {
 			throw new ValidateException("解析url失败:"+e.getMessage());
