@@ -18,7 +18,7 @@ import com.ag777.util.lang.collection.MapUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年07月04日,last modify at 2018年08月16日
+ * @version create on 2018年07月04日,last modify at 2018年08月22日
  */
 public class CmdEasy {
 
@@ -42,7 +42,7 @@ public class CmdEasy {
 	 * @param baseDir	执行命令的路径名,如果传空，则参数regex要带上完整的路径
 	 * @return 压缩失败或文件不存在返回<code>Optional.empty()</code>
 	 */
-	public Optional<File> tar(String fileName, String regex, String baseDir) {
+	public static Optional<File> tar(String fileName, String regex, String baseDir) {
 		if(!fileName.endsWith(".tar.gz")) {
 			fileName += ".tar.gz";
 		}
@@ -74,7 +74,7 @@ public class CmdEasy {
 	 * @param baseDir	 命令执行目录,这个为空的哈fileName参数是要带路径的
 	 * @param targetPath	解压的目标路径,如果为null则表示解压到baseDir路径
      */
-	public boolean tarExtract(String fileName, String baseDir, String targetPath) {
+	public static boolean tarExtract(String fileName, String baseDir, String targetPath) {
 		StringBuilder cmd = new StringBuilder();
 		cmd.append("tar zxvf ").append(fileName);
 		if(targetPath != null) {

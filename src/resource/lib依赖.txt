@@ -39,7 +39,7 @@ slf4j-api-1.8.0-beta2.jar(20180321)
 dom4j-1.6.1.jar(20060210)
 
 [com.ag777.util.file.compress.*]
-commons-compress-1.17.jar(20180531)
+commons-compress-1.18.jar(20180813)
 
 [com.ag777.util.file.compress.SevenZUtils]
 xz-1.8.jar
