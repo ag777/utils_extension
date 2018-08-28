@@ -19,7 +19,7 @@ import com.ag777.util.lang.collection.MapUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年08月24日,last modify at 2018年08月24日
+ * @version create on 2018年08月24日,last modify at 2018年08月27日
  */
 public class SqlExecUtils {
 
@@ -95,7 +95,7 @@ public class SqlExecUtils {
 					flag = createTable(tableName, titleList, db);
 					break;
 				case DbErrCode.MYSQL.UNKNOWN_COLUMN:
-					flag = createColumn(db, e, tableName, titleList);
+					flag = createColumn(db, e, tableName);
 					break;
 				case DbErrCode.MYSQL.DUPLICATE_ENTRY:
 					break;
@@ -118,7 +118,7 @@ public class SqlExecUtils {
 	 * @param db
 	 * @return
 	 */
-	private static boolean createTable(String tableName, List<String> titleList, DbHelper db) {
+	private static synchronized boolean createTable(String tableName, List<String> titleList, DbHelper db) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("CREATE TABLE `").append(tableName).append("` (");
 		titleList.remove("id");
@@ -129,12 +129,15 @@ public class SqlExecUtils {
 		//多一个逗号没关系，因为还得设置主键
 		sb.append(" PRIMARY KEY (`id`) ");
 		sb.append(") ENGINE=InnoDB DEFAULT CHARSET=utf8;");
-//		System.out.println(sb.toString());
+		
 		try {
 			db.updateWithException(sb.toString());
 			Console.log(StringUtils.concat("创建表[", tableName, "]"));
 			return true;
 		} catch (SQLException ex) {
+			if(ex.getErrorCode() == DbErrCode.MYSQL.TABLE_ALREADY_EXISTS) {	//表已存在
+				return true;
+			}
 			ex.printStackTrace();
 			return false;
 		}
@@ -144,13 +147,25 @@ public class SqlExecUtils {
 	/**
 	 * 创建字段
 	 * @param db
-	 * @param e
+	 * @param e sql异常,该方法会解析并取出其中的列名
 	 * @param tableName
 	 * @param titleList
 	 * @return
 	 */
-	private static boolean createColumn(DbHelper db, SQLException e, String tableName, List<String> titleList) {
+	private static boolean createColumn(DbHelper db, SQLException e, String tableName) {
 		String columnName = RegexUtils.find(e.getMessage(), "Unknown column\\s'(.+)'\\sin 'field list'","$1");
+		return createColumn(db, columnName, tableName, null);
+	}
+	
+	/**
+	 * 创建字段
+	 * @param db 
+	 * @param columnName 列名
+	 * @param tableName
+	 * @param afterColName放在该字段后
+	 * @return
+	 */
+	private static synchronized  boolean createColumn(DbHelper db, String columnName, String tableName, String afterColName) {
 		if(columnName != null) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("ALTER TABLE `")
@@ -158,20 +173,20 @@ public class SqlExecUtils {
 				.append("` ADD COLUMN `")
 				.append(columnName)
 				.append("`  text NULL");
-			int index = titleList.indexOf(columnName);
-			if(index == 0) {
+			if(afterColName != null) {
 //				sb.append(" FIRST");
-				sb.append(" AFTER `id`");
-			} else if(index > 0) {
-				sb.append(" AFTER `").append(titleList.get(index-1)).append("`");
+				sb.append(" AFTER `").append(afterColName).append("`");
 			}
 			sb.append(';');
 			
 			try {
 				db.updateWithException(sb.toString());
-				Console.log(StringUtils.concat("表[", tableName,"增加列[",columnName,"]"));
+				Console.log(StringUtils.concat("表[", tableName,"]增加列[",columnName,"]"));
 				return true;
 			} catch (SQLException ex) {
+				if(ex.getErrorCode() == DbErrCode.MYSQL.COLUMN_ALREADY_EXISTS) {
+					return true;
+				}
 				ex.printStackTrace();
 			}
 			
