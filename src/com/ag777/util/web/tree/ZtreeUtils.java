@@ -13,7 +13,7 @@ import com.ag777.util.web.tree.model.ZTreeItem;
  * 树结构(ztree)工具类
  * 
  * @author ag777
- * @version create on 2018年08月09日,last modify at 2018年08月29日
+ * @version create on 2018年08月09日,last modify at 2018年08月30日
  */
 public class ZtreeUtils {
 
@@ -41,24 +41,24 @@ public class ZtreeUtils {
 			}
 
 			@Override
-			public List<ZTree> getChildren(ZTree item) {
+			public List<ZTree> getChildren(ZTree item, int deep) {
 				return item.getChildren();
 			}
 		});
 		
 	}
 	
-	public static <S>List<ZTree> list2Tree(List<S> itemList, long rootId, Converter<S> converter) {
+	public static <S, K>List<ZTree> list2Tree(List<S> itemList, K rootId, Converter<S, K> converter) {
 		return TreeUtils.list2Tree(itemList, rootId, 
-				new TreeUtils.ConvertorL2T<ZTree, S>() {
+				new TreeUtils.ConvertorL2T<ZTree, S, K>() {
 
 					@Override
-					public Object getId(S item) {
+					public K getId(S item) {
 						return converter.id(item);
 					}
 
 					@Override
-					public Object getPid(S item) {
+					public K getPid(S item) {
 						return converter.pid(item);
 					}
 
@@ -82,13 +82,13 @@ public class ZtreeUtils {
 	}
 	
 	/**
-	 * 项转树列表(ztree->ztree)
+	 * 项转树列表(ztreeItem->ztree)
 	 * @param itemList
 	 * @param rootId
 	 * @return
 	 */
 	public static List<ZTree> list2Tree(List<ZTreeItem> itemList, long rootId) {
-		return list2Tree(itemList, rootId, new Converter<ZTreeItem>() {
+		return list2Tree(itemList, rootId, new Converter<ZTreeItem, Long>() {
 
 			@Override
 			public String name(ZTreeItem item) {
@@ -96,12 +96,12 @@ public class ZtreeUtils {
 			}
 
 			@Override
-			public long id(ZTreeItem item) {
+			public Long id(ZTreeItem item) {
 				return item.getId();
 			}
 
 			@Override
-			public long pid(ZTreeItem item) {
+			public Long pid(ZTreeItem item) {
 				return item.getpId();
 			}
 
@@ -127,10 +127,17 @@ public class ZtreeUtils {
 		});
 	}
 	
-	public static interface Converter<S> {
+	/**
+	 * 列表结构转树接口辅助接口
+	 * @author ag777
+	 *
+	 * @param <S> 源数据类型
+	 * @param <K> id和pid的类型,推荐为long
+	 */
+	public static interface Converter<S, K> {
 		public String name(S item);
-		public long id(S item);
-		public long pid(S item);
+		public K id(S item);
+		public K pid(S item);
 		public Boolean open(S item, boolean isLeaf);
 		public Boolean isParent(S item, boolean isLeaf);
 		public String icon(S item, boolean isLeaf);

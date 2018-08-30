@@ -1,5 +1,7 @@
 package com.ag777.util.lang.security;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
@@ -32,7 +34,7 @@ import org.apache.commons.codec.digest.DigestUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年06月29日,last modify at 2018年07月18日
+ * @version create on 2018年06月29日,last modify at 2018年08月30日
  */
 public class EncryptUtils {
 	
@@ -60,8 +62,37 @@ public class EncryptUtils {
 	public static String base64(byte[] bytes) {
 		return Base64.encodeBase64String(bytes);
 	}
-	    
-	 
+	   
+	 /**
+     * MD5(从输入流) 16位加密
+     * <p>
+     * 返回字符串长度为16位
+     * </p>
+     * 
+     * @param in 输入流,可以是文件的输入流
+     * @return
+	 * @throws IOException 
+     */
+    public static String md5_16(InputStream in) throws IOException  {
+    	if(in == null) {
+    		return null;
+    	}
+    	return md5_32(in).substring(8, 24);
+    }
+	
+	/**
+	 * MD5(从输入流) 32位加密
+    * <p>
+    * 返回字符串长度为32位
+    * </p>
+    * 
+	 * @param in 输入流,可以是文件的输入流
+	 * @throws IOException
+	 */
+	public static String md5_32(InputStream in) throws IOException {
+		return DigestUtils.md5Hex(in);
+	}
+	
     /**
      * MD5 16位加密
      * <p>
@@ -70,9 +101,8 @@ public class EncryptUtils {
      * 
      * @param src
      * @return
-     * @throws NoSuchAlgorithmException
      */
-    public static String md5_16(String src) throws NoSuchAlgorithmException {
+    public static String md5_16(String src) {
     	if(src == null) {
     		return null;
     	}
