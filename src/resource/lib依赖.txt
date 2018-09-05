@@ -48,7 +48,7 @@ xz-1.8.jar
 commons-net-3.6.jar(20170211)
 
 [com.ag777.util.remote.mail.*]
-javax.mail-1.6.1.jar(20180213)
+javax.mail-1.6.2.jar(20180829)
 
 [com.ag777.util.file.qrcode.*]
 zxing-core-3.3.3.jar(20180529)

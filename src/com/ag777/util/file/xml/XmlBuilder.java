@@ -1,15 +1,19 @@
 package com.ag777.util.file.xml;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
+
 import com.ag777.util.lang.collection.ListUtils;
 import com.ag777.util.lang.collection.MapUtils;
 
@@ -21,14 +25,21 @@ import com.ag777.util.lang.collection.MapUtils;
  * <li>dom4j-1.6.1.jar</li>
  * </ul>
  * </p>
- * @author ag777
- * @version last modify at 2018年01月17日
+ * @author wanggz
+ * @version last modify at 2018年09月05日
  */
 public class XmlBuilder {
-
+	/*
+	 * XML 规范不支持的字符
+	 * 错误:xml 浏览器打开报错Input is not proper UTF-8, indicate encoding !
+	 * 参考:https://blog.csdn.net/isaisai/article/details/53899089
+	 */
+	private static final Pattern p_invalid = Pattern.compile("\\u0000|\\u0001|\\u0002|\\u0003|\\u0004|\\u0005|\\u0006|\\u0007|\\u0008|\\u0009|\\u000a|\\u000b|\\u000c|\\u000d|\\u000e|\\u000f|\\u0010|\\u0011|\\u0012|\\u0013|\\u0014|\\u0015|\\u0016|\\u0017|\\u0018|\\u0019|\\u001a|\\u001b|\\u001c|\\u001d|\\u001e|\\u001f");
+	
 	private String tag;
 	private Map<String, Object> attrMap;
 	private String value;
+	private boolean isCdata = false;
 	
 	private List<XmlBuilder> children;
 	
@@ -41,10 +52,27 @@ public class XmlBuilder {
 		this.value = value;
 	}
 	
+	public XmlBuilder(String tag, Integer value) {
+		this.tag = tag;
+		if(value != null) {
+			this.value = value.toString();
+		}
+		
+	}
+	
 	public XmlBuilder(String tag, Map<String, Object> attrMap, String value) {
 		this.tag = tag;
 		this.attrMap = attrMap;
 		this.value = value;
+	}
+	
+	/**
+	 * 将该节点设置为cdata节点
+	 * @return
+	 */
+	public XmlBuilder setCdata() {
+		this.isCdata = true;
+		return this;
 	}
 
 	public String tag() {
@@ -181,7 +209,13 @@ public class XmlBuilder {
 	 */
 	private void fillElement(Element element) {
 		if(value != null) {
-			element.setText(value);
+			value = p_invalid.matcher(value).replaceAll("");	//替换xml规范不支持的字符串为空字符串
+			if(!isCdata) {
+				element.setText(value);
+			} else {
+				element.addCDATA(value);
+			}
+			
 		}
 		if(!MapUtils.isEmpty(attrMap)) {
 			attrMap.forEach((k,v)->{
@@ -210,6 +244,7 @@ public class XmlBuilder {
 	public boolean writeFile(Document document, String filePath, OutputFormat format) {
 		XMLWriter xmlWriter = null;
 		try {
+			new File(filePath).getParentFile().mkdirs();
 			Writer fileWriter = new FileWriter(filePath);  
 			//dom4j提供了专门写入文件的对象XMLWriter 
 	        xmlWriter = new XMLWriter(fileWriter, format);  
