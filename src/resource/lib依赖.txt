@@ -55,3 +55,10 @@ zxing-core-3.3.3.jar(20180529)
 
 [com.ag777.util.other.RamUtils]
 java-sizeof-0.0.5.jar(20150525)
+
+[com.ag777.util.other.springmvc.*]
+spring-beans-4.3.6.RELEASE.jar
+spring-context-4.3.6.RELEASE.jar
+spring-core-4.3.6.RELEASE.jar
+spring-jdbc-4.3.6.RELEASE.jar
+spring-tx-4.3.6.RELEASE.jar
