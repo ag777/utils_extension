@@ -1,4 +1,4 @@
-package com.ag777.util.other.springmvc;
+package com.ag777.util.web.springmvc;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -22,7 +22,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 	[方法实现参考]<br/>
 	https://blog.csdn.net/supingemail/article/details/51183116
  *	<p>
- *	需要jar包:
+ *	需要jar包(springmvc框架):
  * <ul>
  * <li>spring-beans-4.3.6.RELEASE.jar</li>
  * <li>spring-context-4.3.6.RELEASE.jar</li>
@@ -33,7 +33,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  *	</p>
  * </p>
  * 
- * @author wanggz
+ * @author ag777
  * @version create on 2018年11月14日,last modify at 2018年11月14日
  */
 public class TransactionUtils {
