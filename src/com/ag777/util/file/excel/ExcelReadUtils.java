@@ -19,6 +19,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+
+import com.ag777.util.file.FileUtils;
 import com.ag777.util.lang.IOUtils;
 import com.ag777.util.lang.collection.CollectionAndMapUtils;
 import com.ag777.util.lang.collection.ListUtils;
@@ -41,7 +43,7 @@ import com.ag777.util.lang.exception.Assert;
  * </p>
  * 
  * @author ag777
- * @version last modify at 2018年05月22日
+ * @version last modify at 2018年11月21日
  */
 public class ExcelReadUtils {
 
@@ -80,7 +82,7 @@ public class ExcelReadUtils {
 	 */
 	public static Workbook getWorkBook(String filePath) throws IllegalArgumentException, EncryptedDocumentException, InvalidFormatException, IOException {
 		Assert.notBlank(filePath, "文件路径不能为空");
-		return WorkbookFactory.create(new File(filePath));
+		return getWorkBook(FileUtils.getInputStream(filePath));
 	}
 	
 	/**
@@ -92,7 +94,11 @@ public class ExcelReadUtils {
 	 * @throws IOException
 	 */
 	public static Workbook getWorkBook(InputStream inputStream) throws EncryptedDocumentException, InvalidFormatException, IOException {
-		return WorkbookFactory.create(inputStream);
+		try {
+			return WorkbookFactory.create(inputStream);
+		} finally {	//测试直接关闭输入流是不影响后续读取的,而且如果想保存回源文件必须先关闭输入流停止文件占用
+			IOUtils.close(inputStream);
+		}
 	}
 	
 	/**
@@ -200,60 +206,61 @@ public class ExcelReadUtils {
 	 */
 	public static List<List<Map<String, String>>> readWorkBook(Workbook workBook, String[][] sheetTitles, boolean isIgnoreFirstRow) {
 		List<List<Map<String, String>>> sheetList = new ArrayList<List<Map<String, String>>>();	//最终结果集
-		// Read the Sheet
-		for (int numSheet=0; numSheet < workBook.getNumberOfSheets(); numSheet++) {
-			if(sheetTitles.length < numSheet+1) {	//定义标题超出页数则结束遍历
-				break;
-			}
-			String[] titles = sheetTitles[numSheet];
-			List<Map<String, String>> rows = new ArrayList<Map<String,String>>();	//每个sheet中的内容
-			
-			Sheet sheet = workBook.getSheetAt(numSheet);
-			if (sheet == null) {
-				continue;
-			}
-			
-			int rowNum = 0;
-			if(isIgnoreFirstRow) {	//忽略第一行则从第二行开始读
-				rowNum = 1;
-			}
-			
-			// Read the Row
-			for (; rowNum <= sheet.getLastRowNum(); rowNum++) {
+		try {
+			// Read the Sheet
+			for (int numSheet=0; numSheet < workBook.getNumberOfSheets(); numSheet++) {
+				if(sheetTitles.length < numSheet+1) {	//定义标题超出页数则结束遍历
+					break;
+				}
+				String[] titles = sheetTitles[numSheet];
+				List<Map<String, String>> rows = new ArrayList<Map<String,String>>();	//每个sheet中的内容
 				
-				Row row = sheet.getRow(rowNum);
-				if (row != null) {	
-					Map<String, String> item = new HashMap<String, String>();	//每行中的内容
-					boolean flag = false;	//排除空行
-					int maxColNum = row.getLastCellNum();
-					for(int index=0; index<titles.length; index++) {
-						String title = titles[index];
-						if(index >= maxColNum) {	//标题项目数大于excel中当前行的列数
-							item.put(title, null);
-						}else {
-							Cell xssfCell = row.getCell(index);
-							String value = getValue(xssfCell);
-							if(value != null) {
-								value = value.trim();
-								if(!value.isEmpty()) {	//一行当中只要有一个单元格数据不为空则视为有效行(非空行)
-									flag = true;
-								}
-							}
-							item.put(title, value);
-							
-						}
-					}//每个标题(titles)或者说列(col)遍历完成
-					if(flag) {	//排除空行
-						rows.add(item);
-					}
+				Sheet sheet = workBook.getSheetAt(numSheet);
+				if (sheet == null) {
+					continue;
 				}
 				
-			}	//行(row)遍历完成
-			sheetList.add(rows);
-		}	//sheet遍历完成
-		
-		IOUtils.close(workBook);	//关闭流，防止文件被占用
-		
+				int rowNum = 0;
+				if(isIgnoreFirstRow) {	//忽略第一行则从第二行开始读
+					rowNum = 1;
+				}
+				
+				// Read the Row
+				for (; rowNum <= sheet.getLastRowNum(); rowNum++) {
+					
+					Row row = sheet.getRow(rowNum);
+					if (row != null) {	
+						Map<String, String> item = new HashMap<String, String>();	//每行中的内容
+						boolean flag = false;	//排除空行
+						int maxColNum = row.getLastCellNum();
+						for(int index=0; index<titles.length; index++) {
+							String title = titles[index];
+							if(index >= maxColNum) {	//标题项目数大于excel中当前行的列数
+								item.put(title, null);
+							}else {
+								Cell xssfCell = row.getCell(index);
+								String value = getValue(xssfCell);
+								if(value != null) {
+									value = value.trim();
+									if(!value.isEmpty()) {	//一行当中只要有一个单元格数据不为空则视为有效行(非空行)
+										flag = true;
+									}
+								}
+								item.put(title, value);
+								
+							}
+						}//每个标题(titles)或者说列(col)遍历完成
+						if(flag) {	//排除空行
+							rows.add(item);
+						}
+					}
+					
+				}	//行(row)遍历完成
+				sheetList.add(rows);
+			}	//sheet遍历完成
+		} finally {
+			IOUtils.close(workBook);	//关闭流，防止文件被占用
+		}
 		return sheetList;
 	}
 	

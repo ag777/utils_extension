@@ -37,6 +37,15 @@ public class MapTreeUtils {
 		});
 	}
 	
+	/**
+	 * 列表结构转树结构
+	 * @param itemList
+	 * @param rootId
+	 * @param idKey
+	 * @param pidKey
+	 * @param childrenKey
+	 * @return
+	 */
 	public static <K>List<Map<String, Object>> list2Tree(List<Map<String, Object>> itemList, K rootId, String idKey, String pidKey, String childrenKey) {
 		return TreeUtils.list2Tree(itemList, rootId, new TreeUtils.ConvertorL2T<Map<String, Object>, Map<String, Object>, K>() {
 
