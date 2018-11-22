@@ -9,7 +9,7 @@ import com.ag777.util.lang.collection.MapUtils;
  * JsoupUtils配套的配置类
  * 
  * @author ag777
- * @version create on 2017年10月17日,last modify at 2018年05月14日
+ * @version create on 2017年10月17日,last modify at 2018年11月22日
  */
 public class JsoupBuilder {
 
@@ -65,7 +65,7 @@ public class JsoupBuilder {
 		if(cookieMap == null) {
 			synchronized (JsoupBuilder.class) {
 				if(cookieMap == null) {
-					cookieMap = MapUtils.newHashTable();
+					cookieMap = MapUtils.newHashMap();
 				}
 			}
 		}
@@ -97,7 +97,7 @@ public class JsoupBuilder {
 		if(headerMap == null) {
 			synchronized (JsoupBuilder.class) {
 				if(headerMap == null) {
-					headerMap = MapUtils.newHashTable();
+					headerMap = MapUtils.newHashMap();
 				}
 			}
 		}
@@ -126,7 +126,7 @@ public class JsoupBuilder {
 		if(dataMap == null) {
 			synchronized (JsoupBuilder.class) {
 				if(dataMap == null) {
-					dataMap = MapUtils.newHashTable();
+					dataMap = MapUtils.newHashMap();
 				}
 			}
 		}
