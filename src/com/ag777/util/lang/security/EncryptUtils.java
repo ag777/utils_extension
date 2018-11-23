@@ -34,7 +34,7 @@ import org.apache.commons.codec.digest.DigestUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年06月29日,last modify at 2018年08月30日
+ * @version create on 2018年06月29日,last modify at 2018年11月23日
  */
 public class EncryptUtils {
 	
@@ -210,7 +210,7 @@ public class EncryptUtils {
      * @param src
      * @param key
      * @param transformation 用于获取Cipher,一般什么加密方法用是什么,比如"AES"
-     * @param algorithm 具体的加密算法
+     * @param algorithm 美 [ˈælɡəˌrɪðəm] 具体的加密算法
      * @param params 参数,可以为向量
      * @param random 相当于随机数生成工具
      * @return
@@ -227,6 +227,29 @@ public class EncryptUtils {
     	}
     	return base64(
         		en2Byte(src, key, transformation, algorithm, params, random));
+    }
+    
+    /**
+     * 加密
+     * @param src
+     * @param key
+     * @param transformation 用于获取Cipher,一般什么加密方法用是什么,比如"AES"
+     * @param algorithm 美 [ˈælɡəˌrɪðəm] 具体的加密算法
+     * @param params 参数,可以为向量
+     * @param random 相当于随机数生成工具
+     * @return
+     * @throws InvalidKeyException
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchPaddingException
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException
+     * @throws InvalidAlgorithmParameterException
+     */
+    public static byte[] en(byte[] src, byte[] key, String transformation, String algorithm, AlgorithmParameterSpec params, SecureRandom random) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
+    	if(src == null) {
+    		return null;
+    	}
+    	return toByte(src, key, transformation, algorithm, Cipher.ENCRYPT_MODE, params, random);
     }
     
     /*===========================解密===========================*/
@@ -287,6 +310,30 @@ public class EncryptUtils {
     
     /**
      * 解密
+     * @param src
+     * @param key
+     * @param transformation 用于获取Cipher,一般什么加密方法用是什么,比如"AES"
+     * @param algorithm 美 [ˈælɡəˌrɪðəm] 具体的加密算法
+     * @param params 参数,可以为向量
+     * @param random 相当于随机数生成工具
+     * @return
+     * @throws InvalidKeyException
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchPaddingException
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException
+     * @throws UnsupportedEncodingException
+     * @throws InvalidAlgorithmParameterException
+     */
+    public static byte[] decrypt(byte[] src, byte[] key, String transformation, String algorithm, AlgorithmParameterSpec params, SecureRandom random) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, UnsupportedEncodingException, InvalidAlgorithmParameterException {
+    	if(src == null) {
+    		return null;
+    	}
+    	return toByte(src, key, transformation, algorithm, Cipher.DECRYPT_MODE, params, random);
+    }
+    
+    /**
+     * 解密
      * <p>
      * 基本流程:
      * ①先把需要解密的字符串转换为utf-8格式new String(src.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8)
@@ -300,10 +347,10 @@ public class EncryptUtils {
      * 
      * @param src
      * @param key
-     * @param transformation
-     * @param algorithm
-     * @param params
-     * @param random
+     * @param transformation 用于获取Cipher,一般什么加密方法用是什么,比如"AES"
+     * @param algorithm 美 [ˈælɡəˌrɪðəm] 具体的加密算法
+     * @param params 参数,可以为向量
+     * @param random 相当于随机数生成工具
      * @return
      * @throws InvalidKeyException 一般是密匙字节数不对抛出的异常
      * @throws NoSuchAlgorithmException
@@ -357,7 +404,7 @@ public class EncryptUtils {
      * @throws InvalidAlgorithmParameterException
      */
     private static byte[] en2Byte(String src, String key, String transformation, String algorithm, AlgorithmParameterSpec params, SecureRandom random) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
-    	return toByte(src.getBytes(StandardCharsets.UTF_8), key, transformation, algorithm, Cipher.ENCRYPT_MODE, params, random);
+    	return toByte(src.getBytes(StandardCharsets.UTF_8), key.getBytes(), transformation, algorithm, Cipher.ENCRYPT_MODE, params, random);
     }
     
     /**
@@ -379,7 +426,7 @@ public class EncryptUtils {
      */
     private static byte[] de2Byte(String src, String key, String transformation, String algorithm, AlgorithmParameterSpec params, SecureRandom random) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, UnsupportedEncodingException, InvalidAlgorithmParameterException {
     	return toByte(
-    			deBase64_2Bytes(convertCharset(src)), key, transformation, algorithm, Cipher.DECRYPT_MODE, params, random);
+    			deBase64_2Bytes(convertCharset(src)), key.getBytes(), transformation, algorithm, Cipher.DECRYPT_MODE, params, random);
     }
     /**
      * 加密或解密
@@ -398,7 +445,7 @@ public class EncryptUtils {
      * @throws BadPaddingException
      * @throws InvalidAlgorithmParameterException
      */
-    private static byte[] toByte(byte[] bytes, String key, String transformation, String algorithm, int opmode, AlgorithmParameterSpec params, SecureRandom random) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
+    private static byte[] toByte(byte[] bytes, byte[] key, String transformation, String algorithm, int opmode, AlgorithmParameterSpec params, SecureRandom random) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
     	return toByte(bytes, getCipher(key, transformation, algorithm, opmode, params, random));
     }
 	
@@ -431,7 +478,7 @@ public class EncryptUtils {
      * @throws NoSuchPaddingException
      * @throws InvalidAlgorithmParameterException
      */
-    public static Cipher getCipher(String key, String transformation, String algorithm, int opmode, AlgorithmParameterSpec params, SecureRandom random) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException {
+    public static Cipher getCipher(byte[] key, String transformation, String algorithm, int opmode, AlgorithmParameterSpec params, SecureRandom random) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException {
     	return getCipher(getSecretKeySpec(key, algorithm), transformation, opmode, params, random);
     }
     
@@ -454,8 +501,8 @@ public class EncryptUtils {
     	return c;
     }
     
-	private static  SecretKeySpec getSecretKeySpec(String key, String algorithm) {
-    	return new SecretKeySpec(key.getBytes(), algorithm);
+	private static  SecretKeySpec getSecretKeySpec(byte[] key, String algorithm) {
+    	return new SecretKeySpec(key, algorithm);
     }
 	
 	/*===================枚举================*/
@@ -509,6 +556,20 @@ public class EncryptUtils {
 			@Override
 			public String transformation() {
 				return "DES";
+			}
+			@Override
+			public String algorithm() {
+				return "DES";
+			}
+		},
+		DES_ECB_NoPadding {
+			@Override
+			public Integer keyLength() {
+				return 8;
+			}
+			@Override
+			public String transformation() {
+				return "DES/ECB/NoPadding";
 			}
 			@Override
 			public String algorithm() {
