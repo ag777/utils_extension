@@ -22,6 +22,7 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 import com.ag777.util.file.FileUtils;
 import com.ag777.util.lang.IOUtils;
+import com.ag777.util.lang.StringUtils;
 import com.ag777.util.lang.collection.CollectionAndMapUtils;
 import com.ag777.util.lang.collection.ListUtils;
 import com.ag777.util.lang.exception.Assert;
@@ -43,7 +44,7 @@ import com.ag777.util.lang.exception.Assert;
  * </p>
  * 
  * @author ag777
- * @version last modify at 2018年11月21日
+ * @version last modify at 2018年11月27日
  */
 public class ExcelReadUtils {
 
@@ -294,18 +295,21 @@ public class ExcelReadUtils {
 	public static String getValue(Cell cell) {
 		if(cell == null){
 			return null;
-		}	
+		}
+		String result = null;
 		if (cell.getCellTypeEnum() == CellType.BOOLEAN) {
-			return String.valueOf(cell.getBooleanCellValue());
+			result =  String.valueOf(cell.getBooleanCellValue());
 		} else if (cell.getCellTypeEnum() == CellType.NUMERIC) {
 			Double num = cell.getNumericCellValue();
 			if(num.longValue() == num){
-				return String.valueOf(num.longValue());
+				result = String.valueOf(num.longValue());
+			} else {
+				result = String.valueOf(num);
 			}
-			return String.valueOf(num);
 		} else {
-			return String.valueOf(cell.getStringCellValue());
+			result =  cell.getStringCellValue();
 		}
+		return !StringUtils.isEmpty(result)?result:null;
 	}
 	
 	/** 
