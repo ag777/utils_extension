@@ -1,5 +1,6 @@
 package com.ag777.util.remote.ssh;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -8,7 +9,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.List;
-import java.util.Optional;
 import java.util.Vector;
 import com.ag777.util.file.FileUtils;
 import com.ag777.util.lang.Console;
@@ -36,9 +36,9 @@ import com.jcraft.jsch.SftpException;
  * </p>
  * 
  * @author ag777
- * @version last modify at 2018年04月28日
+ * @version last modify at 2018年11月29日
  */
-public class SSHHelper implements Disposable {
+public class SSHHelper implements Disposable, Closeable {
 
 	private static Charset DEFAULT_CHARSET = Charsets.UTF_8;
 	private static int TIMEOUT_CONNECT = 10000;	//超时时间
@@ -54,14 +54,6 @@ public class SSHHelper implements Disposable {
 		return session;
 	}
 	
-	@Override
-	public void dispose() {
-		if(session != null) {
-			session.disconnect();
-			session = null;
-		}
-		
-	}
 	
 	public static SSHHelper connect(String ip, int port, String user, String password) throws JSchException {
         return connect(ip, port, user, password, TIMEOUT_CONNECT);
@@ -142,16 +134,11 @@ public class SSHHelper implements Disposable {
 	 */
 	public static void uploadFile(File localFile, String targetPath, ChannelSftp ftp) throws IOException, SftpException {
 		try {
-			
 			//上传文件
 			OutputStream out = ftp.put(targetPath);  
 			InputStream in = new FileInputStream(localFile);  
             IOUtils.write(in, out, 1024);	//附带关闭流
-		} catch (IOException ex) {
-			throw ex;
-		} catch (SftpException ex) {
-			throw ex;
-		} finally {
+		}  finally {
 		}
 	}
     
@@ -159,25 +146,21 @@ public class SSHHelper implements Disposable {
 	 * 删除文件或目录
 	 * @param filePath
 	 * @return
+	 * @throws SftpException 
+	 * @throws JSchException 
 	 */
-	public boolean deleteFile(String filePath) {
+	public void deleteFile(String filePath) throws SftpException, JSchException {
 		ChannelSftp ftp = null;
 		try {
 			//设置通道
 			ftp = getChannelFtp();
 			ftp.connect();
 			deleteFile(filePath, ftp);
-            return true;
-		} catch(JSchException ex) {
-			Console.err(ex);
-		} catch (SftpException ex) {
-			Console.err(ex);
 		} finally {
 			if(ftp != null) {
 				ftp.disconnect();
 			}
 		}
-		return false;
 	}
 	
 	/**
@@ -189,8 +172,10 @@ public class SSHHelper implements Disposable {
 	 * @param command
 	 * @param basePath
 	 * @return
+	 * @throws IOException 
+	 * @throws JSchException 
 	 */
-	public Optional<List<String>> readLinesExec(String command, String basePath) {
+	public List<String> readLinesExec(String command, String basePath) throws IOException, JSchException {
 		
 		ChannelExec channel = null;
 		try {
@@ -211,21 +196,16 @@ public class SSHHelper implements Disposable {
 	        // Get the output of remote command.  
             List<String> lines = IOUtils.readLines(in, DEFAULT_CHARSET);
             
-            return Optional.of(lines);
-		} catch(JSchException ex) {
-			Console.err(ex);
-		} catch (IOException ex) {
-			Console.err(ex);
-		} finally {
+            return lines;
+		}  finally {
 			if(channel != null) {
 				 // Disconnect the channel and session.  
 	            channel.disconnect();
 			}
 		}
-		return Optional.empty();
 	}
 	
-	public boolean execShell(String command, String basePath) {
+	public boolean execShell(String command, String basePath) throws JSchException, IOException {
 		ChannelShell channel = null;
 		try {
 			channel  = getChannelShell();
@@ -246,12 +226,7 @@ public class SSHHelper implements Disposable {
 	        
 	        Thread.sleep(TIME_WAIT);
             return true;
-		} catch(JSchException ex) {
-			Console.err(ex);
-		} catch (IOException ex) {
-			Console.err(ex);
 		} catch (InterruptedException e) {
-			
 		} finally {
 			if(channel != null) {
 				 // Disconnect the channel and session.  
@@ -310,8 +285,11 @@ public class SSHHelper implements Disposable {
 	 * @param basePath
 	 * @param fileRename
 	 * @return
+	 * @throws JSchException 
+	 * @throws SftpException 
+	 * @throws IOException 
 	 */
-	public boolean uploadFile(File localFile, String targetPath) {
+	public void uploadFile(File localFile, String targetPath) throws JSchException, IOException, SftpException {
 		ChannelSftp ftp = null;
 		try {
 			//设置通道
@@ -319,20 +297,11 @@ public class SSHHelper implements Disposable {
 			ftp.connect();
 			
 			uploadFile(localFile, targetPath, ftp);
-            
-            return true;
-		} catch(JSchException ex) {
-			Console.err(ex);
-		} catch (IOException ex) {
-			Console.err(ex);
-		} catch (SftpException ex) {
-			Console.err(ex);
-		} finally {
+		}  finally {
 			if(ftp != null) {
 				ftp.disconnect();
 			}
 		}
-		return false;
 	}
 	
 	/**
@@ -340,34 +309,33 @@ public class SSHHelper implements Disposable {
 	 * @param targetPath 目标文件路径
 	 * @param localFilePath	本地文件路径
 	 * @return
+	 * @throws JSchException 
+	 * @throws SftpException 
+	 * @throws FileNotFoundException 
 	 */
-	public boolean downLoadFile(String targetPath, String localFilePath) {
+	public void downLoadFile(String targetPath, String localFilePath) throws JSchException, FileNotFoundException, SftpException {
 		ChannelSftp ftp = null;
 		try {
 			//设置通道
 			ftp = getChannelFtp();
 			ftp.connect();
-			
 			downloadFile(targetPath, localFilePath, ftp);
-            
-            return true;
-		} catch(JSchException ex) {
-			Console.err(ex);
-		} catch (IOException ex) {
-			Console.err(ex);
-		} catch (SftpException ex) {
-			Console.err(ex);
-		} finally {
+		}  finally {
 			if(ftp != null) {
 				ftp.disconnect();
 			}
 		}
-		return false;
 	}
 	
-	
+	/**
+	 * 查询一个文件夹下的所有文件
+	 * @param basePath
+	 * @return
+	 * @throws JSchException 
+	 * @throws FileNotFoundException
+	 */
 	@SuppressWarnings("unchecked")
-	public Optional<List<String>> ls(String basePath) {
+	public List<String> ls(String basePath) throws JSchException, FileNotFoundException {
 		ChannelSftp channel = null;
 		try {
 			//设置通道
@@ -388,17 +356,14 @@ public class SSHHelper implements Disposable {
 				fileNameList.add(fileName); 
 			}
 
-			return Optional.of(fileNameList); 
-		} catch(JSchException ex) {
-			Console.err(ex);
-		} catch (SftpException ex) {
-			Console.err(ex);
+			return fileNameList; 
+		}  catch (SftpException ex) {
+			throw new FileNotFoundException(ex.getMessage());
 		} finally {
 			if(channel != null) {
 				channel.disconnect();
 			}
 		}
-		return Optional.empty();
 	}
 	
 	private ChannelExec getChannelExec() throws JSchException {
@@ -419,7 +384,20 @@ public class SSHHelper implements Disposable {
 //		System.out.println(ssh.uploadFile(new File("E:\\a.txt"), "/usr/local/",null));	
 //		ssh.deleteFile("/usr/local/a.txt");
 
-		ssh.dispose();
+		ssh.close();
 		
+	}
+
+	@Override
+	public void close() throws IOException {
+		dispose();
+	}
+
+	@Override
+	public void dispose() {
+		if(session != null) {
+			session.disconnect();
+			session = null;
+		}
 	}
 }
