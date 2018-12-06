@@ -6,7 +6,7 @@ import com.ag777.util.lang.StringUtils;
  * 有关 进制转换 工具类
  * 
  * @author ag777
- * @version create on 2018年11月23日,last modify at 2018年11月23日
+ * @version create on 2018年11月23日,last modify at 2018年12月05日
  */
 public class BHDConvertUtils {
 
@@ -56,7 +56,7 @@ public class BHDConvertUtils {
 	 * @param bytes
 	 * @return
 	 */
-	public static StringBuilder bytes2Hex(byte[] bytes) {
+	public static String bytes2Hex(byte[] bytes) {
 		if(bytes == null) {
 			return null;
 		}
@@ -68,7 +68,7 @@ public class BHDConvertUtils {
 			}
 			sb.append(hex.toUpperCase());
 		}
-		return sb;
+		return sb.toString();
 	}
 	
 	/**

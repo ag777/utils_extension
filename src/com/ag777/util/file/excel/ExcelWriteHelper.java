@@ -46,7 +46,7 @@ import com.ag777.util.lang.interf.Disposable;
  * </p>
  * 
  * @author ag777
- * @version last modify at 2018年05月22日
+ * @version last modify at 2018年12月06日
  */
 public class ExcelWriteHelper implements Disposable {
 	
@@ -57,7 +57,22 @@ public class ExcelWriteHelper implements Disposable {
 	
 	private int index;
 	
+	/**
+	 * 获取当前工作环境(用于构造表格样式)
+	 * @return
+	 */
+	public Workbook workBook() {
+		return workBook;
+	}
 	
+	/**
+	 * 获取当前sheet
+	 * @return
+	 */
+	public Sheet curSheet() {
+		return curSheet;
+	}
+
 	public ExcelWriteHelper() {
 		workBook = new HSSFWorkbook();
 		createSheet();

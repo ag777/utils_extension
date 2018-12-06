@@ -16,6 +16,7 @@ import com.ag777.util.lang.IOUtils;
 import com.ag777.util.lang.StringUtils;
 import com.ag777.util.lang.collection.ListUtils;
 import com.ag777.util.lang.interf.Disposable;
+import com.ag777.util.lang.interf.ProgressListener;
 import com.ag777.util.lang.model.Charsets;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.ChannelSftp;
@@ -36,7 +37,7 @@ import com.jcraft.jsch.SftpException;
  * </p>
  * 
  * @author ag777
- * @version last modify at 2018年11月29日
+ * @version last modify at 2018年11月30日
  */
 public class SSHHelper implements Disposable, Closeable {
 
@@ -138,6 +139,25 @@ public class SSHHelper implements Disposable, Closeable {
 			OutputStream out = ftp.put(targetPath);  
 			InputStream in = new FileInputStream(localFile);  
             IOUtils.write(in, out, 1024);	//附带关闭流
+		}  finally {
+		}
+	}
+	
+	/**
+	 * 上传文件(带进度监听)
+	 * @param localFile 本地文件
+	 * @param targetPath 目标路径
+	 * @param ftp
+	 * @param listener
+	 * @throws IOException
+	 * @throws SftpException
+	 */
+	public static void uploadFile(File localFile, String targetPath, ChannelSftp ftp, ProgressListener listener) throws IOException, SftpException {
+		try {
+			//上传文件
+			OutputStream out = ftp.put(targetPath);  
+			InputStream in = new FileInputStream(localFile);  
+            IOUtils.write(in, out, 1024, listener);	//附带关闭流
 		}  finally {
 		}
 	}
@@ -297,6 +317,30 @@ public class SSHHelper implements Disposable, Closeable {
 			ftp.connect();
 			
 			uploadFile(localFile, targetPath, ftp);
+		}  finally {
+			if(ftp != null) {
+				ftp.disconnect();
+			}
+		}
+	}
+	
+	/**
+	 * 上传文件(带进度监听)
+	 * @param localFile
+	 * @param targetPath
+	 * @param listener
+	 * @throws JSchException
+	 * @throws IOException
+	 * @throws SftpException
+	 */
+	public void uploadFile(File localFile, String targetPath, ProgressListener listener) throws JSchException, IOException, SftpException {
+		ChannelSftp ftp = null;
+		try {
+			//设置通道
+			ftp = getChannelFtp();
+			ftp.connect();
+			
+			uploadFile(localFile, targetPath, ftp, listener);
 		}  finally {
 			if(ftp != null) {
 				ftp.disconnect();
