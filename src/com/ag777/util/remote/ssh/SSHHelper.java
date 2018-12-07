@@ -37,7 +37,7 @@ import com.jcraft.jsch.SftpException;
  * </p>
  * 
  * @author ag777
- * @version last modify at 2018年11月30日
+ * @version last modify at 2018年12月07日
  */
 public class SSHHelper implements Disposable, Closeable {
 
@@ -103,6 +103,50 @@ public class SSHHelper implements Disposable, Closeable {
     }  
     
     /**
+     * 创建文件夹
+     * <p>
+     * 支持递归创建
+     * </p>
+     * @param filePath
+     * @param sftp
+     * @throws SftpException
+     */
+    public static void mkdirs(String filePath, final ChannelSftp sftp) throws SftpException { 
+    	File file = new File(filePath);
+    	mkdirs(file, sftp);
+    }
+    
+    /**
+     * 递归创建文件夹
+     * @param file
+     * @param sftp
+     * @throws SftpException
+     */
+    private static void mkdirs(File file, final ChannelSftp sftp) throws SftpException { 
+    	if(file != null) {
+    		String path = file.getPath().replace("\\", "/");
+    		try {
+    			sftp.mkdir(path);
+    		} catch(SftpException ex) {
+    			mkdirs(file.getParentFile(), sftp);
+    			sftp.mkdir(path);
+    		}
+    		
+    	}
+    }
+    
+    /**
+     * 重命名文件
+     * @param srcPath
+     * @param destPath
+     * @param sftp
+     * @throws SftpException
+     */
+    public static void rename(String srcPath, String destPath, final ChannelSftp sftp) throws SftpException {  
+    	sftp.rename(srcPath, destPath);
+    }
+    
+    /**
 	 * 下载文件
 	 * @param targetPath
 	 * @param localFilePath
@@ -163,6 +207,29 @@ public class SSHHelper implements Disposable, Closeable {
 	}
     
 	/**
+	 * 创建文件
+	 * <p>
+	 * 支持递归创建(也就是说上级不存在时会先创建上级文件夹)
+	 * </p>
+	 * @param filePath
+	 * @throws SftpException
+	 * @throws JSchException
+	 */
+	public void mkdirs(String filePath) throws SftpException, JSchException {
+		ChannelSftp ftp = null;
+		try {
+			//设置通道
+			ftp = getChannelFtp();
+			ftp.connect();
+			mkdirs(filePath, ftp);
+		} finally {
+			if(ftp != null) {
+				ftp.disconnect();
+			}
+		}
+	}
+	
+	/**
 	 * 删除文件或目录
 	 * @param filePath
 	 * @return
@@ -176,6 +243,27 @@ public class SSHHelper implements Disposable, Closeable {
 			ftp = getChannelFtp();
 			ftp.connect();
 			deleteFile(filePath, ftp);
+		} finally {
+			if(ftp != null) {
+				ftp.disconnect();
+			}
+		}
+	}
+	
+	/**
+	 * 重命名文件
+	 * @param srcPath
+	 * @param destPath
+	 * @throws SftpException
+	 * @throws JSchException
+	 */
+	public void rename(String srcPath, String destPath) throws SftpException, JSchException {
+		ChannelSftp ftp = null;
+		try {
+			//设置通道
+			ftp = getChannelFtp();
+			ftp.connect();
+			rename(srcPath, destPath, ftp);
 		} finally {
 			if(ftp != null) {
 				ftp.disconnect();
@@ -424,12 +512,13 @@ public class SSHHelper implements Disposable, Closeable {
 	
 	public static void main(String[] args) throws Exception {
 		SSHHelper ssh = SSHHelper.connect("192.168.162.100", 22, "root", "111111");
-		
-//		System.out.println(ssh.uploadFile(new File("E:\\a.txt"), "/usr/local/",null));	
-//		ssh.deleteFile("/usr/local/a.txt");
-
-		ssh.close();
-		
+		try {
+			ssh.uploadFile(new File("E:\\a.txt"), "/usr/local/");	
+			ssh.deleteFile("/usr/local/a.txt");
+			ssh.close();
+		} finally{
+			ssh.dispose();
+		}
 	}
 
 	@Override
