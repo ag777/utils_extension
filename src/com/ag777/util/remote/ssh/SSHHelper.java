@@ -32,8 +32,9 @@ import com.jcraft.jsch.SftpException;
  * <p>
  * 	需要jar包:
  * <ul>
- * <li>jsch-0.1.54.jar</li>
+ * <li>jsch-0.1.55.jar</li>
  * </ul>
+ * 更新日志:http://www.jcraft.com/jsch/ChangeLog
  * </p>
  * 
  * @author ag777

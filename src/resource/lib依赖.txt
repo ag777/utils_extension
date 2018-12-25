@@ -4,7 +4,7 @@ utils.jar
 [utils.jar]
 gson-2.8.5.jar(20180522)
 joda-time-2.10.1.jar(20171027)
-okhttp-3.12.0.jar(20181117)
+okhttp-3.12.1.jar(20181223)
 okio-1.15.0.jar(20180719)
 
 [com.ag777.util.jsoup.JsoupUtils]
@@ -28,7 +28,7 @@ commons-collections4-4.1.jar
 javacsv.jar(20080220)
 
 [com.ag777.util.remote.ssh.SSHHelper]
-jsch-0.1.54.jar(20160903)
+jsch-0.1.55.jar(20181126)
 
 [com.ag777.util.db.bonecp.BonecpHelper]
 bonecp-0.8.0.RELEASE.jar

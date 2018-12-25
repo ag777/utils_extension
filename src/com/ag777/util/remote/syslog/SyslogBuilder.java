@@ -11,7 +11,7 @@ import com.ag777.util.remote.syslog.model.SyslogException;
 /**
  * java发送syslog的构建工具类
  * <p>
- * 依赖于Syslog.java
+ * 依赖于SyslogUtils.java
  * </p>
  * 
  * @author ag777
