@@ -21,20 +21,9 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 	</p>
 	[方法实现参考]<br/>
 	https://blog.csdn.net/supingemail/article/details/51183116
- *	<p>
- *	需要jar包(springmvc框架):
- * <ul>
- * <li>spring-beans-4.3.6.RELEASE.jar</li>
- * <li>spring-context-4.3.6.RELEASE.jar</li>
- * <li>spring-core-4.3.6.RELEASE.jar</li>
- * <li>spring-jdbc-4.3.6.RELEASE.jar</li>
- * <li>spring-tx-4.3.6.RELEASE.jar</li>
- * </ul>
- *	</p>
  * </p>
- * 
  * @author ag777
- * @version create on 2018年11月14日,last modify at 2018年11月14日
+ * @version create on 2018年11月14日,last modify at 2018年12月27日
  */
 public class TransactionUtils {
 
@@ -53,8 +42,9 @@ public class TransactionUtils {
 	 * @param ctx
 	 * @param transaction
 	 * @return
+	 * @throws Throwable 
 	 */
-	public static <T>T tx(ApplicationContext ctx, Transaction<T> transaction) {
+	public static <T>T tx(ApplicationContext ctx, Transaction<T> transaction) throws Throwable {
 		DataSourceTransactionManager txManager = (DataSourceTransactionManager) ctx
 				.getBean("txManager");
 		TransactionStatus status = txManager.getTransaction(getDef()); // 获得事务状态
@@ -77,7 +67,7 @@ public class TransactionUtils {
 	 * @param transaction
 	 * @return
 	 */
-	public static <T>T tx(DataSourceTransactionManager txManager, Transaction<T> transaction) {
+	public static <T>T tx(DataSourceTransactionManager txManager, Transaction<T> transaction) throws Throwable{
 		TransactionStatus status = txManager.getTransaction(getDef()); // 获得事务状态
 		try {
 			T result = transaction.tx();
@@ -106,6 +96,6 @@ public class TransactionUtils {
 	 * @param <T>
 	 */
 	public static interface Transaction<T> {
-		public T tx();
+		public T tx() throws Throwable;
 	}
 }
