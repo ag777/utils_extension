@@ -68,3 +68,9 @@ servlet-api.jar
 
 [com.ag777.util.web.jfinal.*]
 jfinal-3.2-bin-with-src.jar
+
+[com.ag777.util.remote.svn.*]
+svnkit-1.9.3.jar(20180605)
+sequence-library-1.0.3.jar(20141225)
+sqljet-1.1.11.jar(20180210)
+antlr-runtime-3.5.2.jar(20140325)

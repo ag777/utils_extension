@@ -61,7 +61,12 @@ public class TransactionUtils {
 	/**
 	 * 创建并执行事务
 	 * <p>
-	 * 没有 ApplicationContext 的情况下
+	 * 没有 ApplicationContext 的情况下<br>
+	 * DataSourceTransactionManager可以直接通过Spring的注释引入,如:<br>
+	 * <code>
+	 * 	@Autowired
+		private DataSourceTransactionManager txManager;	//写数据库事务用的
+	 * </code>
 	 * </p>
 	 * @param txManager
 	 * @param transaction
