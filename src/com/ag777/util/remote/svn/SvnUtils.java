@@ -19,10 +19,12 @@ import org.tmatesoft.svn.core.internal.wc.DefaultSVNOptions;
 import org.tmatesoft.svn.core.io.SVNRepository;
 import org.tmatesoft.svn.core.io.SVNRepositoryFactory;
 import org.tmatesoft.svn.core.wc.ISVNOptions;
+import org.tmatesoft.svn.core.wc.SVNChangelistClient;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNRevision;
 import org.tmatesoft.svn.core.wc.SVNUpdateClient;
 import org.tmatesoft.svn.core.wc.SVNWCUtil;
+import org.tmatesoft.svn.core.wc.admin.SVNAdminClient;
 
 import com.ag777.util.file.FileNioUtils;
 import com.ag777.util.lang.collection.ListUtils;
@@ -41,9 +43,10 @@ import com.ag777.util.remote.svn.model.BasicWithCertificateTrustedAuthentication
  * <li>antlr-runtime-3.5.2.jar</li>
  * </ul>
  * </p>
+ * 各种client的基本操作可以参考dalao的文章:https://www.cnblogs.com/douJiangYouTiao888/p/6142300.html
  * 
  * @author ag777
- * @version create on 2018年12月28日,last modify at 2018年12月28日
+ * @version create on 2018年12月28日,last modify at 2018年12月29日
  */
 public class SvnUtils {
 	
@@ -142,6 +145,34 @@ public class SvnUtils {
 		return getVersionList(logEntries);
 	}
 	
+	
+	/**
+	 * 测试svn连接
+	 * @param url
+	 * @throws SVNException
+	 */
+	public static void testConnect(String url) throws SVNException {
+		testConnect(getSvnUrl(url));
+	}
+	
+	/**
+	 * 测试svn连接
+	 * @param url
+	 * @param account
+	 * @param password
+	 * @throws SVNException
+	 */
+	public static void testConnect(SVNURL url) throws SVNException {
+		SVNRepository r = connect(url, "", "");
+		try{
+			r.testConnection();
+		} finally {
+			r.closeSession();
+			r = null;
+		}
+		
+	}
+	
 	/**
 	 * 检出某个版本的单个svn文件
 	 * @param version 版本
@@ -178,6 +209,60 @@ public class SvnUtils {
 	}
 	
 	/**
+	 * 获取clientManger
+	 * @param account
+	 * @param password
+	 * @return
+	 */
+	public static SVNClientManager getClientManager(String account, String password) {
+		ISVNOptions options = SVNWCUtil.createDefaultOptions(true);
+		//实例化客户端管理类
+		return SVNClientManager.newInstance((DefaultSVNOptions) options, account, password);
+	}
+	
+	/**
+	 * 获取updateClient
+	 * <p>
+	 * 可以执行检出(checkout)，切换(switch)，导出(export)，更新(update)等操作
+	 * </p>
+	 * @param account
+	 * @param password
+	 * @return
+	 */
+	public static SVNUpdateClient getUpdateClient(String account, String password) {
+		//实例化客户端管理类
+		SVNClientManager ourClientManager = getClientManager(account, password);
+		return ourClientManager.getUpdateClient();
+	}
+	
+	/**
+	 * 获取adminClient
+	 * <p>
+	 * 可以执行创建仓库(createRepository)等操作
+	 * </p>
+	 * @param account
+	 * @param password
+	 * @return
+	 */
+	public static SVNAdminClient getAdminClient(String account, String password) {
+		//实例化客户端管理类
+		SVNClientManager ourClientManager = getClientManager(account, password);
+		return ourClientManager.getAdminClient();
+	}
+	
+	/**
+	 * 获取changelistClient
+	 * @param account
+	 * @param password
+	 * @return
+	 */
+	public static SVNChangelistClient getChangelistClient(String account, String password) {
+		//实例化客户端管理类
+		SVNClientManager ourClientManager = getClientManager(account, password);
+		return ourClientManager.getChangelistClient();
+	}
+	
+	/**
 	 * checkout最新版本
 	 * @param url
 	 * @param account
@@ -187,14 +272,11 @@ public class SvnUtils {
 	 * @throws SVNException
 	 */
 	public static long checkout(String url, String account, String password, String workPath) throws SVNException {
-		ISVNOptions options = SVNWCUtil.createDefaultOptions(true);
-		//实例化客户端管理类
-		SVNClientManager ourClientManager = SVNClientManager.newInstance((DefaultSVNOptions) options, account, password);
 		//要把版本库的内容check out到的目录
 		//FIle wcDir = new File("d:/test")
 		File wcDir = new File(workPath);
 		//通过客户端管理类获得updateClient类的实例。
-		SVNUpdateClient updateClient = ourClientManager.getUpdateClient();
+		SVNUpdateClient updateClient = getUpdateClient(account, password);
 		 //sets externals not to be ignored during the checkout
 		updateClient.setIgnoreExternals(false);
 		//执行check out 操作，返回工作副本的版本号。
