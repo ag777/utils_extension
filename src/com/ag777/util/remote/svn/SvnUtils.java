@@ -46,7 +46,7 @@ import com.ag777.util.remote.svn.model.BasicWithCertificateTrustedAuthentication
  * 各种client的基本操作可以参考dalao的文章:https://www.cnblogs.com/douJiangYouTiao888/p/6142300.html
  * 
  * @author ag777
- * @version create on 2018年12月28日,last modify at 2018年12月29日
+ * @version create on 2018年12月28日,last modify at 2019年01月02日
  */
 public class SvnUtils {
 	
@@ -281,6 +281,28 @@ public class SvnUtils {
 		updateClient.setIgnoreExternals(false);
 		//执行check out 操作，返回工作副本的版本号。
 		return updateClient.doCheckout(getSvnUrl(url), wcDir, SVNRevision.HEAD, SVNRevision.HEAD, SVNDepth.INFINITY,false);
+	}
+	
+	/**
+	 * 更新本地仓库到某个版本
+	 * @param updateClient
+	 * @param wcPath
+	 * @param updateToRevision
+	 * @return
+	 * @throws SVNException
+	 */
+	public static long update(SVNUpdateClient updateClient, String wcPath,
+			SVNRevision updateToRevision) throws SVNException {
+ 
+		/*
+		 * sets externals not to be ignored during the update
+		 */
+		updateClient.setIgnoreExternals(false);
+ 
+		/*
+		 * returns the number of the revision wcPath was updated to
+		 */
+		return updateClient.doUpdate(new File(wcPath), updateToRevision, SVNDepth.INFINITY, false, false);
 	}
 	
 	

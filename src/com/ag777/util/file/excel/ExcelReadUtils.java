@@ -43,6 +43,14 @@ import com.ag777.util.lang.exception.Assert;
  * </p>
  * </p>
  * 
+ * <p>
+ * 当我们只要使用xls格式时、只要导入poi-version-yyyymmdd.jar就可以了。<br>
+	当我们还要使用xlsx格式、还要导入poi-ooxml-version-yyyymmdd.jar。<br>
+	至于poi-ooxml-schemas-version-yyyymmdd.jar这个jar基本不太会用到的。<br>
+	当我们需要操作word、ppt、viso、outlook等时需要用到poi-scratchpad-version-yyyymmdd.jar。<br>
+	参考:https://www.cnblogs.com/zhangchengbing/p/6340036.html
+ * </p>
+ * 
  * @author ag777
  * @version last modify at 2018年11月27日
  */
