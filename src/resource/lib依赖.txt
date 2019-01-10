@@ -74,3 +74,6 @@ svnkit-1.9.3.jar(20180605)
 sequence-library-1.0.3.jar(20141225)
 sqljet-1.1.11.jar(20180210)
 antlr-runtime-3.5.2.jar(20140325)
+
+[com.ag777.util.file.img.GifUtils]
+animated-gif-lib-1.4.jar(20170706)
