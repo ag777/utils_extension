@@ -10,6 +10,9 @@ import com.ag777.util.lang.calculate.CalculateHelper;
  */
 public class UnitConvertUtils {
 
+	/*
+	 * 为什么需要参数system?是由于硬盘系统进制有的是1000有的是1024
+	 */
 	public enum Size {
 		B {
 			@Override

@@ -19,8 +19,8 @@ import sun.net.util.IPAddressUtil;
  */
 public class IpValidator {
 
-	public static Pattern PATTERN_IP;	//单ip验证,不包含网段(严格版)
-	public static Pattern PATTERN_IPRANGE;	//ip验证，包含网段(严格版)
+	public final static Pattern PATTERN_IP;	//单ip验证,不包含网段(严格版)
+	public final static Pattern PATTERN_IPRANGE;	//ip验证，包含网段(严格版)
 	
 	static {
 		PATTERN_IP = Pattern.compile(
@@ -52,8 +52,8 @@ public class IpValidator {
 		192.168.0.0/16：192.168.0.0～192.168.255.255
 	 *  </p>
 	 *  
-	 * @param src
-	 * @return
+	 * @param src ip
+	 * @return 是否是内网地址
 	 */
 	public static boolean isLan(String src) {
 		if(StringUtils.isBlank(src)) {
@@ -94,8 +94,8 @@ public class IpValidator {
 	
 	/**
 	 * 是否为ip
-	 * @param src
-	 * @return
+	 * @param src ip
+	 * @return 是否为ip
 	 */
 	public static boolean isIp(String src) {
 		if(StringUtils.isBlank(src)) {
@@ -134,8 +134,8 @@ public class IpValidator {
 			System.out.println(StringUtils.concat(ip, ":", isIpRange(ip)));
 		}
 	 * </p>
-	 * @param src
-	 * @return
+	 * @param src ip
+	 * @return 是否为网段
 	 */
 	public static boolean isIpRange(String src) {
 		return PATTERN_IPRANGE.matcher(src).matches();
@@ -147,8 +147,8 @@ public class IpValidator {
 	 * 	先将*替换为各网段,1-3节的*替换为1-255,第四节替换为1-154
 	 * 逐节拆分网段为一个个ip并进行拼接
 	 * </p>
-	 * @param ip
-	 * @return
+	 * @param ip ip
+	 * @return ip列表
 	 */
 	public static List<String> splitNetSegment(String ip) {
 		String[] group = ip.split("\\.");
@@ -169,8 +169,8 @@ public class IpValidator {
 	 * <p>
 	 * 比如拆分1-10,得到{1,2,3,4,5,6,7,8,9,10}
 	 * </p>
-	 * @param groups
-	 * @param index
+	 * @param groups ip用逗号拆分出的组
+	 * @param index 初始数值
 	 * @param header
 	 * @return
 	 */

@@ -38,27 +38,46 @@ import com.jcraft.jsch.SftpException;
  * </p>
  * 
  * @author ag777
- * @version last modify at 2018年12月07日
+ * @version last modify at 2019年04月18日
  */
 public class SSHHelper implements Disposable, Closeable {
 
 	private static Charset DEFAULT_CHARSET = Charsets.UTF_8;
-	private static int TIMEOUT_CONNECT = 10000;	//超时时间
 	private static int TIME_WAIT = 1000;	//执行完命令后等待一段时间再关闭通道
+	private int timeoutConnect;	//连接超时时间
 	
 	private Session session;
 	
 	public SSHHelper(Session session) {
 		this.session = session;
+		timeoutConnect = 10000;
+	}
+	
+	public SSHHelper(Session session, int timeoutConnect) {
+		this.session = session;
+		this.timeoutConnect = timeoutConnect;
 	}
 	
 	public Session getSession() {
 		return session;
 	}
 	
+	public SSHHelper setConnectTimeout(int timeout) {
+		this.timeoutConnect = timeout;
+		return this;
+	}
 	
+	/**
+	 * 默认连接超时时间为10秒
+	 * @param ip
+	 * @param port
+	 * @param user
+	 * @param password
+	 * @return
+	 * @throws JSchException
+	 */
 	public static SSHHelper connect(String ip, int port, String user, String password) throws JSchException {
-        return connect(ip, port, user, password, TIMEOUT_CONNECT);
+        return connect(ip, port, user, password, 10000);
 	}
 	
 	public static SSHHelper connect(String ip, int port, String user, String password, int timeout) throws JSchException {
@@ -71,7 +90,7 @@ public class SSHHelper implements Disposable, Closeable {
         session.setConfig("StrictHostKeyChecking", "no");
         //设置登陆超时时间
         session.connect(timeout); 
-        return new SSHHelper(session);
+        return new SSHHelper(session, timeout);
 	}
 	
 	 /** 
@@ -299,7 +318,7 @@ public class SSHHelper implements Disposable, Closeable {
 	        channel.setInputStream(null);  
 	        InputStream in = channel  
 	                .getInputStream();  
-	        channel.connect(TIME_WAIT);
+	        channel.connect(timeoutConnect);
 	        
 	        
 	        // Get the output of remote command.  
@@ -327,7 +346,7 @@ public class SSHHelper implements Disposable, Closeable {
 	        OutputStream outputStream = channelShell.getOutputStream();
 	        channelShell.setOutputStream(null);
 
-	        channelShell.connect( TIME_WAIT );  
+	        channelShell.connect( timeoutConnect );  
 	        //写命令
 	        outputStream.write((command + "\n\n").getBytes(DEFAULT_CHARSET));
 	        outputStream.flush();
@@ -365,7 +384,7 @@ public class SSHHelper implements Disposable, Closeable {
 	        OutputStream outputStream = channelShell.getOutputStream();
 	        channelShell.setOutputStream(System.out);
 
-	        channelShell.connect( TIME_WAIT );  
+	        channelShell.connect( timeoutConnect );  
 	        //写命令
 	        outputStream.write((command + "\n\n").getBytes(DEFAULT_CHARSET));
 	        outputStream.flush();

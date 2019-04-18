@@ -3,6 +3,7 @@ package com.ag777.util.remote.ftp;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.SocketException;
 import java.nio.charset.Charset;
 import javax.naming.AuthenticationException;
@@ -32,7 +33,7 @@ import com.ag777.util.lang.model.Charsets;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年04月13日,last modify at 2018年05月04日
+ * @version create on 2018年04月13日,last modify at 2019年03月05日
  */
 public class FtpHelper implements Disposable {
 
@@ -195,6 +196,24 @@ public class FtpHelper implements Disposable {
 		}
 	}
 	
+	/** 
+     * 下载文件
+     * @param remoteFileName 
+     * @param locaFileName 
+	 * @throws IOException 
+     */  
+    public void download(String targetFilePath,  
+            String locaFilePath) throws IOException {  
+    	Assert.notNull(client, "该ftpClient已经被释放");
+    	
+        OutputStream out=null;
+        try {
+	        out = FileUtils.getOutputStream(targetFilePath);  
+	        client.retrieveFile(locaFilePath, out);   
+        } finally {
+        	 IOUtils.close(out);
+        }
+    }  
 	
 	/**
 	 * 读取文件
