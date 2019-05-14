@@ -10,17 +10,18 @@ import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.AlgorithmParameterSpec;
-import java.util.regex.Pattern;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
+
+import com.ag777.util.lang.security.model.AES_CBC_NOPADDING;
+import com.ag777.util.lang.security.model.AlgorithmType;
 
 /**
  * 有关加解密的工具类
@@ -34,7 +35,7 @@ import org.apache.commons.codec.digest.DigestUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年06月29日,last modify at 2018年11月23日
+ * @version create on 2018年06月29日,last modify at 2019年05月14日
  */
 public class EncryptUtils {
 	
@@ -368,6 +369,28 @@ public class EncryptUtils {
     			de2Byte(src, key, transformation, algorithm, params, random));
     }
 	
+    /**
+	 * 将字符串填充\0, 直到byte长度为16的倍数,可以用于在noPadding的基础上模拟ZeroPadding
+	 * <p>
+	 * 如:padding("123",16),则就是填充16-3个\0
+	 * </p>
+	 * @param src 源字符串
+	 * @param blockLength 单位长度
+	 * @return
+	 */
+	public static String padding(String src, int blockLength) {
+		StringBuilder sb = new StringBuilder(src).append("\0");
+		//字符串补到blockLength的整数倍
+		int start = sb.toString().getBytes().length%blockLength;
+		if(start != 0) {
+			int last = blockLength-start;
+			for(int i=0;i<last;i++) {
+				sb.append("\0");
+			}
+		}
+		return sb.toString();
+	}
+    
 	/*=============内部方法==================*/
 	/**
 	 * 字符串编码转换iso_8859_1=>utf-8
@@ -505,148 +528,9 @@ public class EncryptUtils {
     	return new SecretKeySpec(key, algorithm);
     }
 	
-	/*===================枚举================*/
-	/**
-	 * 加密算法类型
-	 * @author ag777
-	 *
-	 */
-	public enum AlgorithmType {
-		AES {
-			private Pattern p = Pattern.compile("\0.*$");
-			@Override
-			public Integer keyLength() {
-				return 16;
-			}
-			@Override
-			public String transformation() {
-				return "AES/CBC/NoPadding";
-			}
-			@Override
-			public String algorithm() {
-				return "AES";
-			}
-			@Override
-			public String preEn(String src) {
-				StringBuilder sb = new StringBuilder(src).append("\0");
-				//字符串补到16的整数倍
-				int start = sb.toString().getBytes().length%16;
-				if(start != 0) {
-					int last = 16-start;
-					for(int i=0;i<last;i++) {
-						sb.append("\0");
-					}
-				}
-				return sb.toString();
-			}
-			@Override
-			public String afterDe(String result) {
-				return p.matcher(result).replaceFirst("");
-			}
-			@Override
-			public AlgorithmParameterSpec params() {
-				return new IvParameterSpec(new byte[]{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
-			}
-		},
-		DES {
-			@Override
-			public Integer keyLength() {
-				return 8;
-			}
-			@Override
-			public String transformation() {
-				return "DES";
-			}
-			@Override
-			public String algorithm() {
-				return "DES";
-			}
-		},
-		DES_ECB_NoPadding {
-			@Override
-			public Integer keyLength() {
-				return 8;
-			}
-			@Override
-			public String transformation() {
-				return "DES/ECB/NoPadding";
-			}
-			@Override
-			public String algorithm() {
-				return "DES";
-			}
-		},
-		THREEDES {
-			@Override
-			public Integer keyLength() {
-				return 24;
-			}
-			@Override
-			public String transformation() {
-				return "DESede";
-			}
-			@Override
-			public String algorithm() {
-				return "DESede";
-			}
-		};
-		/**
-		 * 密码字节限制
-		 * @return
-		 */
-		public Integer keyLength() {
-			return null;
-		}
-		/**
-		 * 使用算法
-		 * @return
-		 */
-		public String transformation() {
-			return null;
-		}
-		/**
-		 * 实例化Cipher的参数
-		 * @return
-		 */
-		public String algorithm() {
-			return null;
-		}
-		/**
-		 * 算法参数,可以是向量
-		 * @return
-		 */
-		public AlgorithmParameterSpec params() {
-			return null;
-		}
-		/**
-		 * 一个随机源,参与加密
-		 * @return
-		 */
-		public SecureRandom random() {
-			return null;
-		}
-		
-		/**
-		 * 加密前执行
-		 * @param src 需要加密的串
-		 * @return
-		 */
-		public String preEn(String src) {
-			return src;
-		}
-		/**
-		 * 解密后执行
-		 * @param result 解密后的串
-		 * @return
-		 */
-		public String afterDe(String result) {
-			return result;
-		}
-	}
-	
 	
 	public static void main(String[] args) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, UnsupportedEncodingException, InvalidAlgorithmParameterException {
-		AlgorithmType type = AlgorithmType.AES;
+		AlgorithmType type = new AES_CBC_NOPADDING();
 		String key = "ssssaaa|ssssaaa|";
 		String src = "哈哈嗝~233";
 		
