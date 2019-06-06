@@ -2,7 +2,6 @@ package com.ag777.util.lang.string.ip;
 
 import java.util.List;
 import java.util.regex.Pattern;
-
 import com.ag777.util.lang.StringUtils;
 import com.ag777.util.lang.collection.ListUtils;
 
@@ -15,12 +14,16 @@ import sun.net.util.IPAddressUtil;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年02月27日,last modify at 2018年04月17日
+ * @version create on 2018年02月27日,last modify at 2018年05月23日
  */
 public class IpValidator {
 
 	public final static Pattern PATTERN_IP;	//单ip验证,不包含网段(严格版)
 	public final static Pattern PATTERN_IPRANGE;	//ip验证，包含网段(严格版)
+	
+	public final static Pattern P_IPV6_SINGLE;		//afb8:afb8:afb8:afb8:afb8:afb8:afb:abcd
+	public final static Pattern P_IPV6_ASTERISK;         //afb8:afb8:afb8:afb8:afb8:afb8:afb:*
+	public final static Pattern P_IPV6_SEGMENT;    	//afb8:afb8:afb8:afb8:afb8:afb8:1234-2500
 	
 	static {
 		PATTERN_IP = Pattern.compile(
@@ -36,6 +39,39 @@ public class IpValidator {
 					+ "(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]\\d|[0-9])\\."	//不带-不为*的情况,可以为0
 					+ "((25[0-4]|2[0-4]\\d|1\\d{2}|[1-9]\\d|[1-9])(-(25[0-4]|2[0-4]\\d|1\\d{2}|[1-9]\\d|[1-9]))?|\\*)"	//第四节不能为0,也不能为255,最后一位255是留给广播地址用的.0的话是网段的意思.
 				+ ")$");	
+		
+		P_IPV6_SINGLE = Pattern.compile("("+
+			"(([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|"+
+			"(([0-9A-Fa-f]{1,4}:){6}(((:[0-9A-Fa-f]{1,4}){1,2})|:))|"+
+			"(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,3})|:))|"+
+			"(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,4})|:))|"+
+			"(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,5})|:))|"+
+			"(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,6})|:))|"+
+			"(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,7})|:))|"+
+			"(:(((:[0-9A-Fa-f]{1,4}){1,7})|:))"+
+			")");		//afb8:afb8:afb8:afb8:afb8:afb8:afb:abcd
+		
+		P_IPV6_ASTERISK = Pattern.compile("("+
+			"(([0-9A-Fa-f]{1,4}:){7}([*]))|"+
+			"(([0-9A-Fa-f]{1,4}:){6}(:)[*])|"+
+			"(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}):)|:)[*])|"+
+			"(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,2}:)|:)[*])|"+
+			"(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,3}:)|:)[*])|"+
+			"(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,4}:)|:)[*])|"+
+			"(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,5}:)|:)[*])|"+
+			"(:(((:[0-9A-Fa-f]{1,4}){1,6}:)|:)[*])"+
+			")");         //afb8:afb8:afb8:afb8:afb8:afb8:afb:*
+		
+		P_IPV6_SEGMENT = Pattern.compile("("+
+			"(([0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4}-[0-9A-Fa-f]{1,4})|"+
+			"(([0-9A-Fa-f]{1,4}:){6}(((:[0-9A-Fa-f]{1,4})))-[0-9A-Fa-f]{1,4})|"+
+			"(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2}))-[0-9A-Fa-f]{1,4})|"+
+			"(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3}))-[0-9A-Fa-f]{1,4})|"+
+			"(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4}))-[0-9A-Fa-f]{1,4})|"+
+			"(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5}))-[0-9A-Fa-f]{1,4})|"+
+			"(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6}))-[0-9A-Fa-f]{1,4})|"+
+			"(:(((:[0-9A-Fa-f]{1,4}){1,6}:)|:)((([0-9A-Fa-f]{1,4})))-[0-9A-Fa-f]{1,4})"+
+			")");   	//afb8:afb8:afb8:afb8:afb8:afb8::1234-2500
 	}
 	
 	private IpValidator() {
@@ -137,8 +173,39 @@ public class IpValidator {
 	 * @param src ip
 	 * @return 是否为网段
 	 */
-	public static boolean isIpRange(String src) {
+	public static boolean isIpOrRange(String src) {
 		return PATTERN_IPRANGE.matcher(src).matches();
+	}
+	
+	public static boolean isIpV6(String src) {
+		return P_IPV6_SINGLE.matcher(src).matches();
+	}
+
+	/**
+	 * 是否是ipV6网段格式xx-xx
+	 * @param src
+	 * @return
+	 */
+	public static boolean isIpV6Segment(String src) {
+		return P_IPV6_SEGMENT.matcher(src).matches();
+	}
+	
+	/**
+	 * 是否是ipV6带星号
+	 * @param src
+	 * @return
+	 */
+	public static boolean isIpV6Asterisk(String src) {
+		return P_IPV6_ASTERISK.matcher(src).matches();
+	}
+	
+	/**
+	 * 是否是ipV6单个或网段形式,不论是xx-xx形式还是星号形式
+	 * @param src
+	 * @return
+	 */
+	public static boolean isIpV6OrRange(String src) {
+		return isIpV6(src) || isIpV6Segment(src) || isIpV6Asterisk(src);
 	}
 	
 	/**
@@ -146,22 +213,55 @@ public class IpValidator {
 	 * <p>
 	 * 	先将*替换为各网段,1-3节的*替换为1-255,第四节替换为1-154
 	 * 逐节拆分网段为一个个ip并进行拼接
+	 * ipV6目前不支持包含ipV4的形式(如xx:xx:192.168.1.3-4)，网段位也只支持最后一个冒号后面(如支持xx:xx:*,但不支持xx:*:xx)
+	 * 所有不支持拆分的网段均返回本身构成的列表,参数传null返回空列表
 	 * </p>
 	 * @param ip ip
 	 * @return ip列表
 	 */
 	public static List<String> splitNetSegment(String ip) {
-		String[] group = ip.split("\\.");
-		for(int i=0;i<group.length;i++) {
-			if("*".equals(group[i])) {
-				if(i<group.length-1) {
-					group[i] = "1-255";
-				} else {
-					group[i] = "1-254";
+		if(ip == null) {
+			return ListUtils.newArrayList();
+		}
+		if(! (isIpOrRange(ip) || isIpV6OrRange(ip)) || isIp(ip) || isIpV6(ip)) { //非ip格式或者为单个ip格式
+			return ListUtils.of(ip);
+		}
+		String prefix = null;
+		if(ip.contains(":")) {
+			int index = ip.lastIndexOf(":");
+			prefix = ip.substring(0, index+1);	//带冒号
+			ip = ip.substring(index+1);
+		}
+		if(ip.contains(".")) {	//ipV4地址
+			String[] group = ip.split("\\.");
+			for(int i=0;i<group.length;i++) {
+				if("*".equals(group[i])) {
+					if(i<group.length-1) {
+						group[i] = "1-255";
+					} else {	//最后一位
+						group[i] = "1-255";//"1-254";
+					}
 				}
 			}
+			List<String> resultList = splitItem(group, 0, null);
+			if(prefix != null) {	//ipV6地址补充前缀
+				for (int i = 0; i < resultList.size(); i++) {
+					resultList.set(i, prefix+resultList.get(i));
+				}
+			}
+			return resultList;
+		} else {	//ipV6地址
+			List<String> resultList = ListUtils.newArrayList();
+			ip = ip.replace("*", "0000-ffff");
+			String[] group = ip.split("-");
+			int start = Integer.parseInt(group[0], 16);
+			int end = Integer.parseInt(group[1], 16);
+			for (;start <= end; start++) {
+				resultList.add(prefix+Integer.toHexString(start));
+			}
+			return resultList;
 		}
-		return splitItem(group, 0, null);
+		
 	}
 	
 	/**
@@ -212,11 +312,22 @@ public class IpValidator {
 	}
 	
 	public static void main(String[] args) {
-//		List<String> list = splitNetSegment("192.168.1-3.*");
+//		List<String> list = splitNetSegment("2001::1:1-2");//fe80:0000:0000:0000:0204:61ff:192.168.2-4.1
+//		System.out.println(isIpV6OrRange("2001::1:0000-2"));
 //		System.out.println(isIpRange("192.168.1-3.*"));
+//		System.out.println(list.size());
 //		for (String item : list) {
 //			System.out.println(item);
 //		}
-		System.out.println(isLan("172.32.0.1"));
+//		System.out.println(isLan("172.32.0.1"));
+		
+		String[] ips = {
+				"2001::1:*",
+				"2001::1:0000-aaaa",
+				"2001::1:1"
+		};
+		for (String ip : ips) {
+			System.out.println(splitNetSegment(ip).size());
+		}
 	}
 }

@@ -3,15 +3,15 @@ utils.jar
 
 [utils.jar]
 gson-2.8.5.jar(20180522)
-joda-time-2.10.1.jar(20171027)
-okhttp-3.13.1.jar(20190205)
-okio-1.17.3.jar(20190128)
+joda-time-2.10.2.jar(20190509)
+okhttp-3.14.2.jar(20190519)
+okio-1.17.4.jar(20190430)
 
 [com.ag777.util.jsoup.JsoupUtils]
-jsoup-1.11.3.jar(20180415)
+jsoup-1.12.1.jar(20190513)
 
-[com.ag777.util.lang.EncryptUtils]
-commons-codec-1.11.jar(20171017)
+[com.ag777.util.lang.security.EncryptUtils]
+commons-codec-1.12.jar(20190213)
 
 [com.ag777.util.file.excel.*]
 poi-3.17.jar(20170908)
@@ -51,7 +51,7 @@ commons-net-3.6.jar(20170211)
 javax.mail-1.6.2.jar(20180829)
 
 [com.ag777.util.file.qrcode.*]
-zxing-core-3.3.3.jar(20180529)
+zxing-core-3.4.0.jar(20190519)
 
 [com.ag777.util.other.RamUtils]
 java-sizeof-0.0.5.jar(20150525)

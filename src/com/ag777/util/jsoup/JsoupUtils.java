@@ -30,6 +30,9 @@ import com.ag777.util.lang.collection.MapUtils;
  * <ul>
  * <li>jsoup-1.11.3.jar</li>
  * </ul>
+ * <ul>
+ * <li>更新日志:https://github.com/jhy/jsoup/blob/master/CHANGES</li>
+ * </ul>
  * </p>
  * 
  * @author ag777
