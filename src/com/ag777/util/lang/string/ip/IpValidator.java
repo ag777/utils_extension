@@ -14,7 +14,7 @@ import sun.net.util.IPAddressUtil;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年02月27日,last modify at 2018年05月23日
+ * @version create on 2018年02月27日,last modify at 2019年06月10日
  */
 public class IpValidator {
 
@@ -200,12 +200,21 @@ public class IpValidator {
 	}
 	
 	/**
+	 * 是否是ipB6网段
+	 * @param src
+	 * @return
+	 */
+	public static boolean isIpV6Range(String src) {
+		return isIpV6Segment(src) || isIpV6Asterisk(src);
+	}
+	
+	/**
 	 * 是否是ipV6单个或网段形式,不论是xx-xx形式还是星号形式
 	 * @param src
 	 * @return
 	 */
 	public static boolean isIpV6OrRange(String src) {
-		return isIpV6(src) || isIpV6Segment(src) || isIpV6Asterisk(src);
+		return isIpV6(src) || isIpV6Range(src);
 	}
 	
 	/**
