@@ -2,11 +2,11 @@ package com.ag777.util.remote.mail;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 import java.util.Properties;
 
 import javax.activation.DataHandler;
 import javax.activation.FileDataSource;
-import javax.mail.Address;
 import javax.mail.AuthenticationFailedException;
 import javax.mail.Authenticator;
 import javax.mail.BodyPart;
@@ -39,7 +39,7 @@ import com.sun.mail.util.MailConnectException;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年04月16日,last modify at 2018年04月17日
+ * @version create on 2018年04月16日,last modify at 2019年06月24日
  */
 public class MailUtils {
 
@@ -110,7 +110,7 @@ public class MailUtils {
 	 * @param password 发件邮箱密码
 	 * @param from 发件邮箱
 	 * @param fromDisplay 邮件显示的发件人
-	 * @param to 收件邮箱
+	 * @param toList 收件邮箱列表
 	 * @param subject 主题
 	 * @param content 邮件内容
 	 * @param attachments n.（用电子邮件发送的）附件( attachment的名词复数 )
@@ -123,14 +123,14 @@ public class MailUtils {
 			String password,
 			String from,
 			String fromDisplay,
-			String to,
+			List<String> toList,
 			String subject,
 			String content,
 			File[] attachments,
 			boolean useCache) throws IllegalArgumentException {
 		Assert.notBlank(smtpHost, "邮件服务器地址不能为空");
 		try {
-			sendWithException(smtpHost, user, password, from, fromDisplay, to, subject, content, attachments, useCache);
+			sendWithException(smtpHost, user, password, from, fromDisplay, toList, subject, content, attachments, useCache);
 			return true;
 		} catch (UnsupportedEncodingException | MessagingException ex) {
 //			ex.printStackTrace();
@@ -150,7 +150,7 @@ public class MailUtils {
 	 * @param password
 	 * @param from
 	 * @param fromDisplay
-	 * @param to
+	 * @param toList
 	 * @param subject
 	 * @param content
 	 * @param attachments
@@ -167,7 +167,7 @@ public class MailUtils {
 			String password,
 			String from,
 			String fromDisplay,
-			String to,
+			List<String> toList,
 			String subject,
 			String content,
 			File[] attachments,
@@ -176,7 +176,12 @@ public class MailUtils {
 		/*参数验证*/
 		Assert.notBlank(smtpHost, "邮件服务器地址不能为空");
 		Assert.notBlank(from, "发件邮箱不能为空");
-		Assert.notBlank(to, "收件邮箱不能为空");
+		Assert.notEmpty(toList, "收件邮箱不能为空");
+		for (String address : toList) {
+			Assert.notBlank(address, "收件邮箱不能为空串");
+		}
+		String to = ListUtils.toString(toList, ",");	//实际发送地址用逗号分隔
+		
 		if(fromDisplay == null) {	//发送人默认为邮箱
 			fromDisplay = from;
 		}
@@ -236,8 +241,7 @@ public class MailUtils {
 			// 发送邮件
 			transport = mailSession.getTransport();
 			transport.connect(smtpHost, 25, user, password);
-			transport.sendMessage(msg, new Address[] { new InternetAddress(
-					to) });
+			transport.sendMessage(msg, msg.getAllRecipients());
 			
 		} catch(MailConnectException ex) { //连接失败
 			throw ex;
@@ -313,7 +317,7 @@ public class MailUtils {
 		try {
 			sendWithException(
 					"xx", 
-					"xx", "xxxx", "test@test.com", null, "test@test.com", null, null, null, false);
+					"xx", "xxxx", "test@test.com", null, ListUtils.of("test@test.com"), null, null, null, false);
 			System.out.println("成功");
 		} catch (IllegalArgumentException e) {
 			System.out.println("参数异常");

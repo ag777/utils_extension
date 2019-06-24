@@ -16,14 +16,14 @@ import com.ag777.util.lang.collection.ListUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年04月16日,last modify at 2018年04月17日
+ * @version create on 2018年04月16日,last modify at 2019年06月24日
  */
 public class MailBuilder {
 
 	private String smtpHost;
 	private String from;
 	private String fromDisplay;
-	private String to;
+	private List<String> toList;
 	private String user;
 	private String pwd;
 	private String subject;
@@ -42,6 +42,7 @@ public class MailBuilder {
 		this.smtpHost = smtpHost;
 		this.user = user;
 		this.pwd = pwd;
+		toList = ListUtils.newArrayList();
 		attachmentList = ListUtils.newArrayList();	//懒代码，直接避免空指针
 		useCache = false;	//默认为不使用缓存
 	}
@@ -74,11 +75,11 @@ public class MailBuilder {
 	
 	/**
 	 * 设置接受者
-	 * @param to 发送到的邮箱
+	 * @param address 发送到的邮箱
 	 * @return
 	 */
-	public MailBuilder to(String to) {
-		this.to = to;
+	public MailBuilder to(String address) {
+		this.toList.add(address);
 		return this;
 	}
 	
@@ -145,7 +146,7 @@ public class MailBuilder {
 				pwd,
 				from,
 				fromDisplay,
-				to,
+				toList,
 				subject,
 				content,
 				attachments,

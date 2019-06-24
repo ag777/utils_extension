@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
+
 import com.ag777.util.lang.ObjectUtils;
 import com.ag777.util.lang.StringUtils;
 import com.ag777.util.lang.SystemUtils;
@@ -18,7 +20,7 @@ import com.ag777.util.lang.collection.MapUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年07月04日,last modify at 2018年08月22日
+ * @version create on 2018年07月04日,last modify at 2019年06月20日
  */
 public class CmdEasy {
 
@@ -202,6 +204,37 @@ public class CmdEasy {
 				availabled};
 	}
 	
+	
+	/**
+	 * 执行ps命令，查找关键词，杀死对应进程
+	 * @param searchKey 关键词 执行{@code ps -ef|grep #{searchKey} }方法查询数据
+	 * @param predicate 匹配对应的行，如果test方法返回true则杀死对应
+	 * @throws IOException IO异常
+	 */
+    public static void kill9ByPsBySearch(String searchKey, Predicate<String> predicate) throws IOException {
+        StringBuilder command = new StringBuilder("ps -ef");
+        if(searchKey != null) {
+            command.append("|grep ").append("'").append(searchKey).append("'");
+        }
+        List<String> lines = CmdUtils.getInstance().readLines(command.toString(), null);
+        for (String line:
+                lines) {
+           if(predicate.test(line)) {
+        	   String id = line.split("\\s+")[1];
+        	   kill9(id);
+           }
+        }
+    }
+	
+	/**
+     * 杀死进程
+     * @param id 进程编号
+     * @throws IOException 异常信息
+     */
+    public static void kill9(String id) throws IOException {
+        CmdUtils.getInstance().exec("kill -9 "+id, null);
+    }
+	
 	/*=======通用区=============*/
 	/**
 	 * 将filePath底下的所有文件打成war包
@@ -240,4 +273,5 @@ public class CmdEasy {
 		}
 
 	}
+    
 }
