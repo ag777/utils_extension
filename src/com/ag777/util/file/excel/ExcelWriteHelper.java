@@ -46,7 +46,7 @@ import com.ag777.util.lang.interf.Disposable;
  * </p>
  * 
  * @author ag777
- * @version last modify at 2018年12月06日
+ * @version last modify at 2019年07月04日
  */
 public class ExcelWriteHelper implements Disposable {
 	
@@ -137,11 +137,20 @@ public class ExcelWriteHelper implements Disposable {
 		} else {
 			curSheet = workBook.createSheet(curSheetName);
 		}
-		
 		drawing = curSheet.createDrawingPatriarch();
 		initIndex();		//游标一开始指向第一行
 		return this;
 	}
+	
+	public ExcelWriteHelper autoColunWith(int maxColNum) {
+		for (int i = 0; i < maxColNum; i++) {
+			curSheet.autoSizeColumn(i);
+			// 解决自动设置列宽中文失效的问题
+			curSheet.setColumnWidth(i, curSheet.getColumnWidth(i) * 17 / 10);
+		}
+		return this;
+	}
+		
 	
 	/**
 	 * 设置列宽
@@ -225,7 +234,10 @@ public class ExcelWriteHelper implements Disposable {
 					for (int j = 0, length = keys.length; j < length; j++) {
 						Cell cell = row.createCell(j);
 						
-						CellStyle contentStyle = (j<contentStyles.length)?contentStyles[j]:contentStyles[contentStyles.length-1];
+						CellStyle contentStyle = null;
+						if(contentStyles != null) {
+							contentStyle = (j<contentStyles.length)?contentStyles[j]:contentStyles[contentStyles.length-1];
+						}
 						
 						if(contentStyle != null) {
 							cell.setCellStyle(contentStyle);
@@ -246,8 +258,6 @@ public class ExcelWriteHelper implements Disposable {
 		createTableBorder(rowNumStart, rowNumLast, 0, colNumLast);
 		return this;
 	}
-	
-	
 	
 	/**
 	 * 横表(仅一条数据行)
@@ -724,7 +734,7 @@ public class ExcelWriteHelper implements Disposable {
 	 * @return 
 	 */
 	public Row createRow() {
-		return createRow(curSheet, index);
+		return createRow(curSheet, index++);
 	}
 	
 	
