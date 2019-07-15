@@ -20,7 +20,7 @@ import com.ag777.util.lang.collection.MapUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年07月04日,last modify at 2019年06月20日
+ * @version create on 2018年07月04日,last modify at 2019年07月15日
  */
 public class CmdEasy {
 
@@ -191,6 +191,9 @@ public class CmdEasy {
 		lines.remove(0);	//去除第一行
 		for (String line : lines) {
 			String[] groups = line.split("\\s+");
+			if(groups.length<4) {		//命令行中可能因为第一列太长导致换行,该行就应该忽略不计
+				continue;
+			}
 			total += ObjectUtils.toLong(groups[1], 0);
 //			used += ObjectUtils.toLong(groups[2], 0);
 			available += ObjectUtils.toLong(groups[3], 0);
