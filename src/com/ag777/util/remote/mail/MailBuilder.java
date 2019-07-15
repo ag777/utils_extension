@@ -16,7 +16,7 @@ import com.ag777.util.lang.collection.ListUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年04月16日,last modify at 2019年06月24日
+ * @version create on 2018年04月16日,last modify at 2019年07月11日
  */
 public class MailBuilder {
 
@@ -30,7 +30,11 @@ public class MailBuilder {
 	private String content;
 	private List<File> attachmentList;
 	
+	private Integer timeoutConnect;
+	private Integer timeoutWrite;
+	
 	private boolean useCache;	//是否使用缓存
+	private boolean debug;	//是否开启debug模式
 	
 	/**
 	 * 构造函数,写上一些连接的必要信息
@@ -45,6 +49,7 @@ public class MailBuilder {
 		toList = ListUtils.newArrayList();
 		attachmentList = ListUtils.newArrayList();	//懒代码，直接避免空指针
 		useCache = false;	//默认为不使用缓存
+		debug = false;	//默认不开启debug模式
 	}
 
 	/**
@@ -118,6 +123,24 @@ public class MailBuilder {
 	}
 	
 	/**
+	 * 设置连接超时,默认是无限等待
+	 * @param timeoutConnect
+	 */
+	public MailBuilder timeoutConnect(Integer timeoutConnect) {
+		this.timeoutConnect = timeoutConnect;
+		return this;
+	}
+
+	/**
+	 * 设置写出超时,默认是无限等待
+	 * @param timeoutWrite
+	 */
+	public MailBuilder timeoutWrite(Integer timeoutWrite) {
+		this.timeoutWrite = timeoutWrite;
+		return this;
+	}
+
+	/**
 	 * 设置是否使用缓存,默认为不使用
 	 * <p>
 	 * 具体效用见MailUtils类send()方法的注释说明
@@ -128,6 +151,16 @@ public class MailBuilder {
 	 */
 	public MailBuilder useCache(boolean useCache) {
 		this.useCache = useCache;
+		return this;
+	}
+	
+	/**
+	 * 是否开启debug模式,默认为不开启
+	 * @param debug
+	 * @return
+	 */
+	public MailBuilder debug(boolean debug) {
+		this.debug = debug;
 		return this;
 	}
 	
@@ -150,7 +183,10 @@ public class MailBuilder {
 				subject,
 				content,
 				attachments,
-				useCache);
+				timeoutConnect,
+				timeoutWrite,
+				useCache,
+				debug);
 	}
 	
 	public static void main(String[] args) {

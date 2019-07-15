@@ -39,7 +39,7 @@ import com.sun.mail.util.MailConnectException;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年04月16日,last modify at 2019年06月24日
+ * @version create on 2018年04月16日,last modify at 2019年07月11日
  */
 public class MailUtils {
 
@@ -50,12 +50,16 @@ public class MailUtils {
 	 * @param smtpHost
 	 * @param user
 	 * @param password
+	 * @param timeoutConnect
+	 * @param debug
 	 * @return
 	 */
 	public static boolean testConnect(
 			String smtpHost,
 			String user,
-			String password) {
+			String password,
+			Integer timeoutConnect,
+			Boolean debug) {
 		Transport transport = null;
 		Session mailSession = null;
 		try {
@@ -63,6 +67,9 @@ public class MailUtils {
 			properties.setProperty("mail.smtp.auth", "true");// 提供验证
 			properties.setProperty("mail.transport.protocol", "smtp");// 使用的协议					
 			properties.setProperty("mail.smtp.host", smtpHost);	// 这里是smtp协议
+			if(timeoutConnect != null) {
+				properties.put("mail.smtp.connectiontimeout", timeoutConnect);	//连接超时
+			}
 			// 设置发送验证机制
 			Authenticator auth = new Authenticator() {
 				public PasswordAuthentication getPasswordAuthentication() {
@@ -70,6 +77,9 @@ public class MailUtils {
 				}
 			};
 			mailSession = Session.getInstance(properties, auth);
+			if(debug != null) {
+				mailSession.setDebug(debug);
+			}
 			transport = mailSession.getTransport();
 			transport.connect(smtpHost, 25, user, password);
 			return true;
@@ -114,7 +124,10 @@ public class MailUtils {
 	 * @param subject 主题
 	 * @param content 邮件内容
 	 * @param attachments n.（用电子邮件发送的）附件( attachment的名词复数 )
+	 * @param timeoutConnect 连接超时
+	 * @param timeoutWrite 写出超时
 	 * @param useCache 是否使用缓存
+	 * @param debug 是否开启debug模式
 	 * @return
 	 */
 	public static boolean send(
@@ -127,10 +140,13 @@ public class MailUtils {
 			String subject,
 			String content,
 			File[] attachments,
-			boolean useCache) throws IllegalArgumentException {
+			Integer timeoutConnect,
+			Integer timeoutWrite,
+			boolean useCache,
+			boolean debug) throws IllegalArgumentException {
 		Assert.notBlank(smtpHost, "邮件服务器地址不能为空");
 		try {
-			sendWithException(smtpHost, user, password, from, fromDisplay, toList, subject, content, attachments, useCache);
+			sendWithException(smtpHost, user, password, from, fromDisplay, toList, subject, content, attachments, timeoutConnect, timeoutWrite, useCache, debug);
 			return true;
 		} catch (UnsupportedEncodingException | MessagingException ex) {
 //			ex.printStackTrace();
@@ -154,7 +170,10 @@ public class MailUtils {
 	 * @param subject
 	 * @param content
 	 * @param attachments
+	 * @param timeoutConnect 连接超时
+	 * @param timeoutWrite 写出超时
 	 * @param useCache
+	 * @param debug 是否开启debug模式
 	 * @throws IllegalArgumentException 参数验证异常
 	 * @throws MailConnectException 连接失败
 	 * @throws AuthenticationFailedException 账号密码错误
@@ -171,7 +190,10 @@ public class MailUtils {
 			String subject,
 			String content,
 			File[] attachments,
-			boolean useCache) throws IllegalArgumentException, MailConnectException, AuthenticationFailedException, MessagingException, UnsupportedEncodingException {
+			Integer timeoutConnect,
+			Integer timeoutWrite,
+			boolean useCache,
+			boolean debug) throws IllegalArgumentException, MailConnectException, AuthenticationFailedException, MessagingException, UnsupportedEncodingException {
 		
 		/*参数验证*/
 		Assert.notBlank(smtpHost, "邮件服务器地址不能为空");
@@ -205,6 +227,14 @@ public class MailUtils {
 			properties.setProperty("mail.smtp.auth", "true");// 提供验证
 			properties.setProperty("mail.transport.protocol", "smtp");// 使用的协议					
 			properties.setProperty("mail.smtp.host", smtpHost);	// 这里是smtp协议
+			if(timeoutConnect != null) {
+				properties.put("mail.smtp.connectiontimeout", timeoutConnect);	//连接超时
+			}
+			if(timeoutWrite != null) {
+				properties.put("mail.smtp.writetimeout", timeoutWrite);	//写出超时
+			}
+//			properties.put("mail.smtp.timeout", timeoutWrite);	//读取超时(据说)
+			
 			// 设置发送验证机制
 			Authenticator auth = new Authenticator() {
 				public PasswordAuthentication getPasswordAuthentication() {
@@ -217,6 +247,8 @@ public class MailUtils {
 			} else {	//不使用缓存
 				mailSession = Session.getInstance(properties, auth);
 			}
+			
+			mailSession.setDebug(debug);
 			
 			MimeMessage msg = new MimeMessage(mailSession); // 创建MIME邮件对象
 			MimeMultipart mp = new MimeMultipart();
@@ -317,7 +349,7 @@ public class MailUtils {
 		try {
 			sendWithException(
 					"xx", 
-					"xx", "xxxx", "test@test.com", null, ListUtils.of("test@test.com"), null, null, null, false);
+					"xx", "xxxx", "test@test.com", null, ListUtils.of("test@test.com"), null, null, null, 30*1000,5*60*1000,false, false);
 			System.out.println("成功");
 		} catch (IllegalArgumentException e) {
 			System.out.println("参数异常");
