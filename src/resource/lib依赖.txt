@@ -77,3 +77,6 @@ antlr-runtime-3.5.2.jar(20140325)
 
 [com.ag777.util.file.img.GifUtils]
 animated-gif-lib-1.4.jar(20170706)
+
+[other]
+mlinks.jar{改写https://github.com/DmitriiShamrikov/mslinks,支持中文}
