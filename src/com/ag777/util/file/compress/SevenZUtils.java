@@ -28,7 +28,7 @@ import com.ag777.util.lang.exception.Assert;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年04月16日,last modify at 2018年04月16日
+ * @version create on 2018年04月16日,last modify at 2019年07月30日
  */
 public class SevenZUtils {
 	
@@ -172,7 +172,7 @@ public class SevenZUtils {
 	            os.write(buffer, 0 , read);
 	        }
     	} catch(Exception ex) {
-    		
+    		throw ex;
     	} finally {
     		IOUtils.close(bis);
     		os.closeArchiveEntry();//这里必须写，否则会失败
