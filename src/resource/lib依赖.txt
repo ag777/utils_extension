@@ -41,6 +41,9 @@ dom4j-1.6.1.jar(20060210)
 [com.ag777.util.file.compress.*]
 commons-compress-1.18.jar(20180813)
 
+[com.ag777.util.file.compress.zip4jUtils]
+zip4j-2.1.1.jar(20190714)
+
 [com.ag777.util.file.compress.SevenZUtils]
 xz-1.8.jar
 
