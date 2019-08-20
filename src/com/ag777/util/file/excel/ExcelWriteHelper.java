@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+
 import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.hssf.usermodel.HSSFRichTextString;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -26,7 +28,6 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.RegionUtil;
-
 import com.ag777.util.lang.IOUtils;
 import com.ag777.util.lang.interf.Disposable;
 
@@ -46,7 +47,7 @@ import com.ag777.util.lang.interf.Disposable;
  * </p>
  * 
  * @author ag777
- * @version last modify at 2019年07月04日
+ * @version last modify at 2019年08月19日
  */
 public class ExcelWriteHelper implements Disposable {
 	
@@ -129,13 +130,14 @@ public class ExcelWriteHelper implements Disposable {
 
 	/**
 	 * 创建新页面
-	 * @param curSheetName 页面名称(显示在左下角)
+	 * <p>会将: \/*:?[]转化为下划线
+	 * @param curSheetName 页面名称(显示在左下角,长度超过31个字符会被截断)
 	 */
 	public ExcelWriteHelper createSheet(String curSheetName) {
 		if(curSheetName == null) {
 			curSheet = workBook.createSheet();
 		} else {
-			curSheet = workBook.createSheet(curSheetName);
+			curSheet = workBook.createSheet(filterUnsupportedSheetName(curSheetName));
 		}
 		drawing = curSheet.createDrawingPatriarch();
 		initIndex();		//游标一开始指向第一行
@@ -143,10 +145,13 @@ public class ExcelWriteHelper implements Disposable {
 	}
 	
 	public ExcelWriteHelper autoColunWith(int maxColNum) {
+		int maxWitdh = 255*256;
 		for (int i = 0; i < maxColNum; i++) {
 			curSheet.autoSizeColumn(i);
 			// 解决自动设置列宽中文失效的问题
-			curSheet.setColumnWidth(i, curSheet.getColumnWidth(i) * 17 / 10);
+			int colWidth = curSheet.getColumnWidth(i) * 17 / 10;
+			// 解决宽度设置不得大于254的问题java.lang.IllegalArgumentException: The maximum column width for an individual cell is 255 characters.
+			curSheet.setColumnWidth(i, colWidth<maxWitdh?colWidth:maxWitdh);
 		}
 		return this;
 	}
@@ -840,6 +845,23 @@ public class ExcelWriteHelper implements Disposable {
 //		RegionUtil.setBorderBottom(BorderStyle.THIN, cellRangeAddress, curSheet);  
 	}
 	
-	
+	/**
+	 * 重命名sheetNamem将sheet不支持的字符转化为下划线
+	 * <p>The following characters are considered invalid in Excel sheet names: \/*:?[]
+	 * {@code
+	 * 如果包含非法字符,会报如下错误
+	 * java.lang.IllegalArgumentException: Invalid char (:) found at index (19) in sheet name 
+	 * }
+	 * 
+	 * @param sheetName 原sheet名称
+	 * @return
+	 */
+	private String filterUnsupportedSheetName(String sheetName) {
+		if(sheetName == null) {
+			return "";
+		}
+		Pattern sheetPattern = Pattern.compile("[\\\\/*:?\\[\\]]");  
+	    return sheetPattern.matcher(sheetName.replaceAll("://", "_")).replaceAll("_");  
+	}
 	
 }
