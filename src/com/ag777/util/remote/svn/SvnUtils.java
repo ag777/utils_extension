@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import org.tmatesoft.svn.core.SVNCommitInfo;
 import org.tmatesoft.svn.core.SVNDepth;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNLogEntry;
@@ -46,7 +47,7 @@ import com.ag777.util.remote.svn.model.BasicWithCertificateTrustedAuthentication
  * 各种client的基本操作可以参考dalao的文章:https://www.cnblogs.com/douJiangYouTiao888/p/6142300.html
  * 
  * @author ag777
- * @version create on 2018年12月28日,last modify at 2019年01月02日
+ * @version create on 2018年12月28日,last modify at 2019年09月04日
  */
 public class SvnUtils {
 	
@@ -74,8 +75,8 @@ public class SvnUtils {
 	 */
 	public static SVNRepository connect(SVNURL url, String account, String password) throws SVNException {
 		DAVRepositoryFactory.setup(); // 初始化
-		ISVNAuthenticationManager authManager = new BasicWithCertificateTrustedAuthenticationManager("wanggaozhan",
-				"Gzyz-2016-192912-82186691"); // 提供认证
+		ISVNAuthenticationManager authManager = new BasicWithCertificateTrustedAuthenticationManager(account,
+				password); // 提供认证
 		SVNRepository repos = SVNRepositoryFactory.create(url);
 		repos.setAuthenticationManager(authManager); // 设置认证
 		return repos;
@@ -305,6 +306,25 @@ public class SvnUtils {
 		return updateClient.doUpdate(new File(wcPath), updateToRevision, SVNDepth.INFINITY, false, false);
 	}
 	
+	
+	/**
+	 * Commit work copy's change to svn
+	 * @param clientManager
+	 * @param wcPath 
+	 *			working copy paths which changes are to be committed
+	 * @param keepLocks
+	 *			whether to unlock or not files in the repository
+	 * @param commitMessage
+	 *			commit log message
+	 * @return
+	 * @throws SVNException
+	 */
+	public static SVNCommitInfo commit(SVNClientManager clientManager,
+		File wcPath, boolean keepLocks, String commitMessage) throws SVNException {
+		return clientManager.getCommitClient().doCommit(
+				new File[] { wcPath }, keepLocks, commitMessage, null,
+				null, false, false, SVNDepth.fromRecurse(true));
+	}
 	
 	public static void main(String[] args) throws SVNException {
 		String url = "";
