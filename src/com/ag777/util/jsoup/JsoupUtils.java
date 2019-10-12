@@ -36,7 +36,7 @@ import com.ag777.util.lang.collection.MapUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2017年06月05日,last modify at 2018年08月03日
+ * @version create on 2017年06月05日,last modify at 2018年10月12日
  */
 public class JsoupUtils {
 
@@ -92,7 +92,7 @@ public class JsoupUtils {
 	 */
 	public static JsoupUtils connect(String url) throws IOException{
 		try {
-			Document doc = Jsoup.connect(url).timeout(DEFAULT_TIME_OUT).get();
+			Document doc = c(url).get();
 			return new JsoupUtils(doc);
 		} catch(IOException ex) {
 			throw ex;
@@ -107,13 +107,18 @@ public class JsoupUtils {
 	 */
 	public static JsoupUtils post(String url) throws IOException{
 		try {
-			Document doc = Jsoup.connect(url).timeout(DEFAULT_TIME_OUT).post();
+			Document doc = c(url).post();
 			return new JsoupUtils(doc);
 		} catch(IOException ex) {
 			throw ex;
 		}
 	}
 
+	private static Connection c(String url) {
+		return Jsoup.connect(url)
+				.timeout(DEFAULT_TIME_OUT)
+				.maxBodySize(0);	//解决爬取页面不完整的bug
+	}
 
 	/**
 	 * 根据配置来做连接
@@ -191,6 +196,10 @@ public class JsoupUtils {
 		if(config.dataMap() != null) {
 			conn.data(config.dataMap());
 		}
+		if(config.maxBodySize() != null) {
+			conn.maxBodySize(config.maxBodySize());
+		}
+		
 		return conn;
 	}
 	

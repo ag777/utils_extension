@@ -9,7 +9,7 @@ import com.ag777.util.lang.collection.MapUtils;
  * JsoupUtils配套的配置类
  * 
  * @author ag777
- * @version create on 2017年10月17日,last modify at 2018年11月22日
+ * @version create on 2017年10月17日,last modify at 2019年10月12日
  */
 public class JsoupBuilder {
 
@@ -21,6 +21,7 @@ public class JsoupBuilder {
 	private Map<String, String> headerMap;
 	private Map<String, String> cookieMap;
 	private Map<String, String> dataMap;
+	private Integer maxBodySize;	//设置为0可以解决爬取页面不完整的bug
 	
 	private JsoupBuilder() {
 		ignoreContentType = false;
@@ -156,6 +157,11 @@ public class JsoupBuilder {
 		return this;
 	}
 	
+	public JsoupBuilder maxBodySize(Integer maxBodySize) {
+		this.maxBodySize = maxBodySize;
+		return this;
+	}
+	
 	//--get
 	public Integer timeOut() {
 		return timeOut;
@@ -185,12 +191,17 @@ public class JsoupBuilder {
 		return dataMap;
 	}
 	
+	public boolean ignoreContentType() {
+		return ignoreContentType;
+	}
+	
+	public Integer maxBodySize() {
+		return maxBodySize;
+	}
+	
+	
 	public class Proxy {
 		String ip;
 		int port;
-	}
-	
-	public boolean ignoreContentType() {
-		return ignoreContentType;
 	}
 }
