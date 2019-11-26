@@ -21,6 +21,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 import com.ag777.util.file.FileUtils;
+import com.ag777.util.file.excel.model.ExcelLineReader;
 import com.ag777.util.lang.IOUtils;
 import com.ag777.util.lang.StringUtils;
 import com.ag777.util.lang.collection.CollectionAndMapUtils;
@@ -52,7 +53,7 @@ import com.ag777.util.lang.exception.Assert;
  * </p>
  * 
  * @author ag777
- * @version last modify at 2018年11月27日
+ * @version last modify at 2019年11月20日
  */
 public class ExcelReadUtils {
 
@@ -142,6 +143,79 @@ public class ExcelReadUtils {
 					getRowList(sheet, isIgnoreFirstRow));
 		}
 		return sheetMap;
+	}
+	
+	/**
+	 * 逐行读取excel文件
+	 * @param filePath 文件路径
+	 * @param reader 读取工具
+	 * @throws IllegalArgumentException
+	 * @throws EncryptedDocumentException
+	 * @throws InvalidFormatException
+	 * @throws IOException
+	 */
+	public static void readSheetLines(String filePath, ExcelLineReader reader) throws IllegalArgumentException, EncryptedDocumentException, InvalidFormatException, IOException {
+		Assert.notEmpty(filePath, "参数文件路径不能为空");
+		Workbook workBook = getWorkBook(filePath);
+		readLines(workBook, reader);
+	}
+	
+	/**
+	 * 逐行读取excel文件的第一个sheet
+	 * @param filePath 文件路径
+	 * @param reader 读取工具
+	 * @throws IllegalArgumentException
+	 * @throws EncryptedDocumentException
+	 * @throws InvalidFormatException
+	 * @throws IOException
+	 */
+	public static void readLinesForFirstSheet(String filePath, ExcelLineReader reader) throws IllegalArgumentException, EncryptedDocumentException, InvalidFormatException, IOException {
+		Assert.notEmpty(filePath, "参数文件路径不能为空");
+		Workbook workBook = getWorkBook(filePath);
+		if(workBook.getNumberOfSheets() > 0) {
+			Sheet sheet = workBook.getSheetAt(0);
+			readLines(sheet, 0, reader);
+		}
+		
+	}
+	
+	/**
+	 * 逐行读取
+	 * @param workBook excel表格
+	 * @param reader 读取工具
+	 */
+	public static void readLines(Workbook workBook, ExcelLineReader reader) {
+		Iterator<Sheet> itorSheet = workBook.sheetIterator();
+		int sheetNo = 0;
+		while(itorSheet.hasNext()) {
+			Sheet sheet = itorSheet.next();
+			readLines(sheet, sheetNo, reader);
+			sheetNo++;
+		}
+	}
+	
+	/**
+	 * 逐行读取
+	 * @param sheet sheet
+	 * @param sheetNo sheet角标
+	 * @param reader
+	 */
+	public static void readLines(Sheet sheet, int sheetNo, ExcelLineReader reader) {
+		int rowNo = 0;
+		Iterator<Row> itorRow = sheet.rowIterator();
+		while(itorRow.hasNext()) {
+			Row row = itorRow.next();
+			List<String> colList = CollectionAndMapUtils.newArrayList();
+			Iterator<Cell> itorCell = row.cellIterator();
+			while(itorCell.hasNext()) {
+				Cell cell = itorCell.next();
+				String value = getValue(cell);
+				colList.add(value);
+			}
+			
+			reader.readLine(sheet, sheetNo, row, rowNo, colList);
+			rowNo++;
+		}
 	}
 	
 	/**

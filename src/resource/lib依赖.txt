@@ -2,9 +2,9 @@
 utils.jar
 
 [utils.jar]
-gson-2.8.5.jar(20180522)
-joda-time-2.10.3.jar(20190704)
-okhttp-3.14.2.jar(20190519)
+gson-2.8.6.jar(20191004)
+joda-time-2.10.5.jar(20191024)
+okhttp-3.14.4.jar(20190929)
 okio-1.17.4.jar(20190430)
 
 [com.ag777.util.jsoup.JsoupUtils]
@@ -39,7 +39,7 @@ slf4j-api-1.8.0-beta2.jar(20180321)
 dom4j-1.6.1.jar(20060210)
 
 [com.ag777.util.file.compress.*]
-commons-compress-1.18.jar(20180813)
+commons-compress-1.19.jar(20190827)
 
 [com.ag777.util.file.compress.zip4jUtils]
 zip4j-2.1.1.jar(20190714)
