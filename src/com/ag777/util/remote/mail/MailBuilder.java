@@ -1,9 +1,14 @@
 package com.ag777.util.remote.mail;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 
+import javax.mail.AuthenticationFailedException;
+import javax.mail.MessagingException;
+
 import com.ag777.util.lang.collection.ListUtils;
+import com.sun.mail.util.MailConnectException;
 
 /**
  * 邮件辅助构建类
@@ -16,7 +21,7 @@ import com.ag777.util.lang.collection.ListUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年04月16日,last modify at 2019年07月11日
+ * @version create on 2018年04月16日,last modify at 2020年01月06日
  */
 public class MailBuilder {
 
@@ -33,6 +38,8 @@ public class MailBuilder {
 	private Integer timeoutConnect;
 	private Integer timeoutWrite;
 	
+	private boolean skipFailure;	//是否忽视发送失败的邮箱
+	
 	private boolean useCache;	//是否使用缓存
 	private boolean debug;	//是否开启debug模式
 	
@@ -48,6 +55,7 @@ public class MailBuilder {
 		this.pwd = pwd;
 		toList = ListUtils.newArrayList();
 		attachmentList = ListUtils.newArrayList();	//懒代码，直接避免空指针
+		skipFailure=false;	//默认不跳过发送失败的邮件
 		useCache = false;	//默认为不使用缓存
 		debug = false;	//默认不开启debug模式
 	}
@@ -140,6 +148,15 @@ public class MailBuilder {
 		return this;
 	}
 
+	public boolean skipFailure() {
+		return skipFailure;
+	}
+
+	public MailBuilder skipFailure(boolean skipFailure) {
+		this.skipFailure = skipFailure;
+		return this;
+	}
+
 	/**
 	 * 设置是否使用缓存,默认为不使用
 	 * <p>
@@ -164,6 +181,10 @@ public class MailBuilder {
 		return this;
 	}
 	
+	/**
+	 * 发送邮件
+	 * @return 成功返回true
+	 */
 	public boolean send() {
 		File[] attachments = null;
 		if(!ListUtils.isEmpty(attachmentList)) {
@@ -185,6 +206,41 @@ public class MailBuilder {
 				attachments,
 				timeoutConnect,
 				timeoutWrite,
+				skipFailure,
+				useCache,
+				debug);
+	}
+	
+	/**
+	 * 发送邮件，失败抛出异常信息
+	 * @throws IllegalArgumentException
+	 * @throws MailConnectException
+	 * @throws AuthenticationFailedException
+	 * @throws UnsupportedEncodingException
+	 * @throws MessagingException
+	 */
+	public void sendWithException() throws IllegalArgumentException, MailConnectException, AuthenticationFailedException, UnsupportedEncodingException, MessagingException {
+		File[] attachments = null;
+		if(!ListUtils.isEmpty(attachmentList)) {
+			attachments = new File[attachmentList.size()];
+			for(int i=0;i<attachmentList.size();i++) {
+				attachments[i] = attachmentList.get(i);
+			}
+		}
+		
+		MailUtils.sendWithException(
+				smtpHost, 
+				user,
+				pwd,
+				from,
+				fromDisplay,
+				toList,
+				subject,
+				content,
+				attachments,
+				timeoutConnect,
+				timeoutWrite,
+				skipFailure,
 				useCache,
 				debug);
 	}

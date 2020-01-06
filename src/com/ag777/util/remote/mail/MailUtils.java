@@ -39,7 +39,7 @@ import com.sun.mail.util.MailConnectException;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年04月16日,last modify at 2019年07月11日
+ * @version create on 2018年04月16日,last modify at 2020年01月06日
  */
 public class MailUtils {
 
@@ -126,6 +126,7 @@ public class MailUtils {
 	 * @param attachments n.（用电子邮件发送的）附件( attachment的名词复数 )
 	 * @param timeoutConnect 连接超时
 	 * @param timeoutWrite 写出超时
+	 * @param skipFailure 是否跳过发送失败的邮件，开启这个时目标邮箱列表中一个或多个发送失败不影响其它地址的发送,并且不抛出发送失败的异常
 	 * @param useCache 是否使用缓存
 	 * @param debug 是否开启debug模式
 	 * @return
@@ -142,11 +143,12 @@ public class MailUtils {
 			File[] attachments,
 			Integer timeoutConnect,
 			Integer timeoutWrite,
+			boolean skipFailure,
 			boolean useCache,
 			boolean debug) throws IllegalArgumentException {
 		Assert.notBlank(smtpHost, "邮件服务器地址不能为空");
 		try {
-			sendWithException(smtpHost, user, password, from, fromDisplay, toList, subject, content, attachments, timeoutConnect, timeoutWrite, useCache, debug);
+			sendWithException(smtpHost, user, password, from, fromDisplay, toList, subject, content, attachments, timeoutConnect, timeoutWrite, skipFailure, useCache, debug);
 			return true;
 		} catch (UnsupportedEncodingException | MessagingException ex) {
 //			ex.printStackTrace();
@@ -156,7 +158,7 @@ public class MailUtils {
 	}
 	
 	/**
-	 * 发送邮件(伴随异常返回)
+	 * 发送邮件(伴随异常返回),如果是忽略失败邮箱的模式，会返回失败邮箱的列表
 	 * <p>
 	 * 详见send()方法
 	 * </p>
@@ -172,15 +174,17 @@ public class MailUtils {
 	 * @param attachments
 	 * @param timeoutConnect 连接超时
 	 * @param timeoutWrite 写出超时
-	 * @param useCache
+	 * @param skipFailure 是否跳过发送失败的邮件，开启这个时目标邮箱列表中一个或多个发送失败不影响其它地址的发送,并且不抛出发送失败的异常
+	 * @param useCache 是否使用缓存
 	 * @param debug 是否开启debug模式
+	 * @return 发送失败的邮箱地址列表
 	 * @throws IllegalArgumentException 参数验证异常
 	 * @throws MailConnectException 连接失败
 	 * @throws AuthenticationFailedException 账号密码错误
-	 * @throws MessagingException 其他异常
+	 * @throws MessagingException 其他异常,包含很多子类，比如:SMTPAddressFailedException-一般表示发送邮件失败,可能是对方邮箱地址有问题(访问不了或其它)
 	 * @throws UnsupportedEncodingException InternetAddress转换失败(发件箱，收件箱)
 	 */
-	public static void sendWithException(
+	public static List<String> sendWithException(
 			String smtpHost,
 			String user,
 			String password,
@@ -193,6 +197,7 @@ public class MailUtils {
 			Integer timeoutConnect,
 			Integer timeoutWrite,
 			boolean useCache,
+			boolean skipFailure,
 			boolean debug) throws IllegalArgumentException, MailConnectException, AuthenticationFailedException, MessagingException, UnsupportedEncodingException {
 		
 		/*参数验证*/
@@ -255,9 +260,9 @@ public class MailUtils {
 
 			msg.setFrom(new InternetAddress(from, fromDisplay));
 
-			// 设置收件者地址
-			msg.setRecipients(Message.RecipientType.TO,
-					InternetAddress.parse(to));
+			//发送地址数组
+			InternetAddress[] addresses = InternetAddress.parse(to);
+			
 			msg.setSubject(MimeUtility.encodeText(StringUtils.emptyIfNull(subject), "gb2312",
 					"B"));// 设置邮件的标题
 
@@ -273,7 +278,27 @@ public class MailUtils {
 			// 发送邮件
 			transport = mailSession.getTransport();
 			transport.connect(smtpHost, 25, user, password);
-			transport.sendMessage(msg, msg.getAllRecipients());
+			if(skipFailure) {
+				List<String> failureList = ListUtils.newArrayList();
+				for (InternetAddress address : addresses) {
+					try {
+						// 设置收件者地址
+						msg.setRecipient(Message.RecipientType.TO,
+								address);
+						transport.sendMessage(msg, msg.getAllRecipients());
+					} catch(Exception ex) {
+//						System.err.println("发送失败:"+address);
+						failureList.add(address.toString());
+					}
+				}
+				return failureList;
+			} else {	//直接群发
+				msg.setRecipients(Message.RecipientType.TO,
+						addresses);
+				transport.sendMessage(msg, msg.getAllRecipients());
+			}
+			return ListUtils.newArrayList();
+			//发送完成
 			
 		} catch(MailConnectException ex) { //连接失败
 			throw ex;
@@ -349,7 +374,7 @@ public class MailUtils {
 		try {
 			sendWithException(
 					"xx", 
-					"xx", "xxxx", "test@test.com", null, ListUtils.of("test@test.com"), null, null, null, 30*1000,5*60*1000,false, false);
+					"xx", "xxxx", "test@test.com", null, ListUtils.of("test@test.com"), null, null, null, 30*1000,5*60*1000, false, false, false);
 			System.out.println("成功");
 		} catch (IllegalArgumentException e) {
 			System.out.println("参数异常");
