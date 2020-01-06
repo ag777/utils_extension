@@ -264,14 +264,14 @@ public class MailUtils {
 			
 			//连接发送邮箱
 			transport = mailSession.getTransport();
-			transport.connect(smtpHost, 25, user, password);
+			connect(transport,smtpHost, user, password);
 			// 发送邮件
 			if(skipFailure) {	//跳过错误邮箱,需要对收件邮箱逐一进行发送
 				List<String> failureList = ListUtils.newArrayList();
 				for (InternetAddress address : addresses) {
 					try {
 						if(!transport.isConnected()) {	//如果之前失败过会断开连接,这里需要重新连接一下
-							transport.connect(smtpHost, 25, user, password);
+							connect(transport,smtpHost, user, password);
 						}
 						// 设置收件者地址
 						msg.setRecipient(Message.RecipientType.TO,
@@ -311,7 +311,28 @@ public class MailUtils {
 		}
 	}
 	
+	/**
+	 * 连接发件地址
+	 * @param transport transport
+	 * @param smtpHost 发件服务地址
+	 * @param user 发件服务账号
+	 * @param password 发件服务密码
+	 * @throws MessagingException
+	 */
+	private static void connect(Transport transport, String smtpHost, String user, String password) throws MessagingException {
+		transport.connect(smtpHost, 25, user, password);
+	}
 	
+	/**
+	 * 构建邮件
+	 * @param mailSession
+	 * @param subject 邮件标题
+	 * @param content 邮件内容
+	 * @param attachments 附件,可以为null
+	 * @return
+	 * @throws UnsupportedEncodingException
+	 * @throws MessagingException
+	 */
 	private static MimeMessage getMessage(
 			Session mailSession,
 			String subject,
@@ -335,6 +356,8 @@ public class MailUtils {
 		msg.saveChanges();
 		return msg;
 	}
+	
+	
 	
 	/**
 	 * 往邮件里添加邮件内容
