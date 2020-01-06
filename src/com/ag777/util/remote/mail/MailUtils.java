@@ -196,8 +196,8 @@ public class MailUtils {
 			File[] attachments,
 			Integer timeoutConnect,
 			Integer timeoutWrite,
-			boolean useCache,
 			boolean skipFailure,
+			boolean useCache,
 			boolean debug) throws IllegalArgumentException, MailConnectException, AuthenticationFailedException, MessagingException, UnsupportedEncodingException {
 		
 		/*参数验证*/
@@ -255,33 +255,24 @@ public class MailUtils {
 			
 			mailSession.setDebug(debug);
 			
-			MimeMessage msg = new MimeMessage(mailSession); // 创建MIME邮件对象
-			MimeMultipart mp = new MimeMultipart();
-
+			MimeMessage msg = getMessage(mailSession, subject, content, attachments); // 创建MIME邮件对象
+			
+			//发送方邮箱
 			msg.setFrom(new InternetAddress(from, fromDisplay));
-
 			//发送地址数组
 			InternetAddress[] addresses = InternetAddress.parse(to);
 			
-			msg.setSubject(MimeUtility.encodeText(StringUtils.emptyIfNull(subject), "gb2312",
-					"B"));// 设置邮件的标题
-
-			// 设置并处理信息内容格式转为text/html
-			addContent(StringUtils.emptyIfNull(content), mp);
-			// 设置邮件附件
-			if (!ListUtils.isEmpty(attachments)) {
-				addAttchments(attachments, mp);
-			}
-
-			msg.setContent(mp);
-			msg.saveChanges();
-			// 发送邮件
+			//连接发送邮箱
 			transport = mailSession.getTransport();
 			transport.connect(smtpHost, 25, user, password);
-			if(skipFailure) {
+			// 发送邮件
+			if(skipFailure) {	//跳过错误邮箱,需要对收件邮箱逐一进行发送
 				List<String> failureList = ListUtils.newArrayList();
 				for (InternetAddress address : addresses) {
 					try {
+						if(!transport.isConnected()) {	//如果之前失败过会断开连接,这里需要重新连接一下
+							transport.connect(smtpHost, 25, user, password);
+						}
 						// 设置收件者地址
 						msg.setRecipient(Message.RecipientType.TO,
 								address);
@@ -318,6 +309,31 @@ public class MailUtils {
 				transport = null;
 			}
 		}
+	}
+	
+	
+	private static MimeMessage getMessage(
+			Session mailSession,
+			String subject,
+			String content,
+			File[] attachments) throws UnsupportedEncodingException, MessagingException {
+		MimeMessage msg = new MimeMessage(mailSession); // 创建MIME邮件对象
+		MimeMultipart mp = new MimeMultipart();
+		
+		msg.setSubject(MimeUtility.encodeText(StringUtils.emptyIfNull(subject), "gb2312",
+				"B"));// 设置邮件的标题
+
+		// 设置并处理信息内容格式转为text/html
+		addContent(StringUtils.emptyIfNull(content), mp);
+		// 设置邮件附件
+		if (!ListUtils.isEmpty(attachments)) {
+			addAttchments(attachments, mp);
+		}
+
+		msg.setContent(mp);
+		// 保存并生成最终的邮件内容,这步不知道能否去掉
+		msg.saveChanges();
+		return msg;
 	}
 	
 	/**
