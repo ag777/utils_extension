@@ -4,14 +4,14 @@ utils.jar
 [utils.jar]
 gson-2.8.6.jar(20191004)
 joda-time-2.10.5.jar(20191024)
-okhttp-3.14.4.jar(20190929)
-okio-1.17.4.jar(20190430)
+okhttp-3.14.6.jar(20200112)
+okio-1.17.5.jar(20191211)
 
 [com.ag777.util.jsoup.JsoupUtils]
-jsoup-1.12.1.jar(20190513)
+jsoup-1.12.2.jar(20200209)
 
 [com.ag777.util.lang.security.EncryptUtils]
-commons-codec-1.13.jar(20190723)
+commons-codec-1.14.jar(20191231)
 
 [com.ag777.util.file.excel.*]
 poi-3.17.jar(20170908)
@@ -21,7 +21,7 @@ poi-ooxml-3.17.jar
 poi-ooxml-schemas-3.17.jar
 poi-scratchpad-3.17.jar
 xmlbeans-2.6.0.jar
-commons-codec-1.13.jar(20190723)
+commons-codec-1.14.jar(20191231)
 commons-collections4-4.1.jar
 
 [com.ag777.util.file.csv.CsvUtils]
@@ -39,7 +39,7 @@ slf4j-api-1.8.0-beta2.jar(20180321)
 dom4j-1.6.1.jar(20060210)
 
 [com.ag777.util.file.compress.*]
-commons-compress-1.19.jar(20190827)
+commons-compress-1.20.jar(20200208)
 
 [com.ag777.util.file.compress.zip4jUtils]
 zip4j-2.1.1.jar(20190714)
