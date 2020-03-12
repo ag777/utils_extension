@@ -9,7 +9,7 @@ import com.ag777.util.lang.collection.MapUtils;
  * JsoupUtils配套的配置类
  * 
  * @author ag777
- * @version create on 2017年10月17日,last modify at 2019年10月12日
+ * @version create on 2017年10月17日,last modify at 2020年03月12日
  */
 public class JsoupBuilder {
 
@@ -18,6 +18,7 @@ public class JsoupBuilder {
 	private Proxy proxy;
 	private String userAgent;
 	private boolean ignoreContentType;
+	private boolean ignoreHttpErrors;
 	private Map<String, String> headerMap;
 	private Map<String, String> cookieMap;
 	private Map<String, String> dataMap;
@@ -25,6 +26,7 @@ public class JsoupBuilder {
 	
 	private JsoupBuilder() {
 		ignoreContentType = false;
+		ignoreHttpErrors= false;
 	}
 	
 	public static JsoupBuilder newInstance() {
@@ -157,6 +159,11 @@ public class JsoupBuilder {
 		return this;
 	}
 	
+	public JsoupBuilder ignoreHttpErrors(boolean ignoreHttpErrors) {
+		this.ignoreHttpErrors = ignoreHttpErrors;
+		return this;
+	}
+	
 	public JsoupBuilder maxBodySize(Integer maxBodySize) {
 		this.maxBodySize = maxBodySize;
 		return this;
@@ -193,6 +200,10 @@ public class JsoupBuilder {
 	
 	public boolean ignoreContentType() {
 		return ignoreContentType;
+	}
+	
+	public boolean ignoreHttpErrors() {
+		return ignoreHttpErrors;
 	}
 	
 	public Integer maxBodySize() {

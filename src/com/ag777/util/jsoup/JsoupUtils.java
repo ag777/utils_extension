@@ -36,7 +36,7 @@ import com.ag777.util.lang.collection.MapUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2017年06月05日,last modify at 2018年10月12日
+ * @version create on 2017年06月05日,last modify at 2020年03月12日
  */
 public class JsoupUtils {
 
@@ -192,6 +192,9 @@ public class JsoupUtils {
 		}
 		if(config.ignoreContentType()) {
 			conn.ignoreContentType(true);
+		}
+		if(config.ignoreHttpErrors()) {
+			conn.ignoreHttpErrors(true);
 		}
 		if(config.dataMap() != null) {
 			conn.data(config.dataMap());
