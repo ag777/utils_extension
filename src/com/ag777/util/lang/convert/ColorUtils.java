@@ -5,7 +5,7 @@ import java.awt.Color;
 /**
  * 
  * @author ag777
- * @version create on 2018年11月07日,last modify at 2018年11月07日
+ * @version create on 2018年11月07日,last modify at 2020年03月25日
  */
 public class ColorUtils {
 
@@ -31,7 +31,7 @@ public class ColorUtils {
 		int r = color.getRed();
 		int g = color.getGreen();
 		int b = color.getBlue();
-		return Integer.toHexString(r)+Integer.toHexString(g)+Integer.toHexString(b);
+		return toHexString(r)+toHexString(g)+toHexString(b);
 	}
 	
 	/**
@@ -42,6 +42,19 @@ public class ColorUtils {
 	public static int getInt(Color color) {
 		String rgb = getHex(color);
 		return Integer.parseInt(rgb, 16);
+	}
+	
+	/**
+	 * 转化rgb 到16进制(固定两位)
+	 * @param r r 或 g 或 b
+	 * @return 16进制字符串
+	 */
+	private static String toHexString(int r) {
+		String hex = Integer.toHexString(r);
+		if(hex.length()<2) {
+			return "0"+hex;
+		}
+		return hex;
 	}
 	
 }
