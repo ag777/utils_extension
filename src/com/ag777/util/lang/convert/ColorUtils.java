@@ -5,7 +5,7 @@ import java.awt.Color;
 /**
  * 
  * @author ag777
- * @version create on 2018年11月07日,last modify at 2020年03月25日
+ * @version create on 2018年11月07日,last modify at 2020年03月26日
  */
 public class ColorUtils {
 
