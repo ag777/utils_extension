@@ -17,9 +17,29 @@ public class ColorUtils {
 	 * @return
 	 * @throws NumberFormatException
 	 */
-	public static Color getByHex(String hexStr) throws NumberFormatException {
-		int rgb = Integer.parseInt(hexStr, 16);
+	public static Color toColor(String hexStr) throws NumberFormatException {
+		int rgb = toInt(hexStr);
+		return toColor(rgb);
+	}
+	
+	/**
+	 * int型色值转化为color
+	 * @param rgb int型色值
+	 * @return
+	 */
+	public static Color toColor(int rgb) {
 		return new Color(rgb);
+	}
+	
+	/**
+	 * 将rgb转化为颜色
+	 * @param r red
+	 * @param g green
+	 * @param b blue
+	 * @return
+	 */
+	public static Color toColor(int r, int g, int b) {
+		return new Color(r, g, b);
 	}
 	
 	/**
@@ -27,21 +47,81 @@ public class ColorUtils {
 	 * @param color
 	 * @return
 	 */
-	public static String getHex(Color color) {
+	public static String toHex(Color color) {
 		int r = color.getRed();
 		int g = color.getGreen();
 		int b = color.getBlue();
+		return toHex(r, g, b);
+	}
+	
+	/**
+	 * 将rgb转化为16进制色值
+	 * @param r red
+	 * @param g green
+	 * @param b blue
+	 * @return
+	 */
+	public static String toHex(int r, int g, int b) {
 		return toHexString(r)+toHexString(g)+toHexString(b);
+	}
+	
+	/**
+	 * 将int型色值转化为16进制色值(实际上就是10进制转16进制)
+	 * @param rgb int型色值
+	 * @return
+	 */
+	public static String toHex(int rgb) {
+		return Integer.toHexString(rgb);
 	}
 	
 	/**
 	 * 从一个颜色中取出10进制的int型色值
 	 * @param color
 	 * @return
+	 * @throws NumberFormatException
 	 */
-	public static int getInt(Color color) {
-		String rgb = getHex(color);
-		return Integer.parseInt(rgb, 16);
+	public static int toInt(Color color) throws NumberFormatException {
+		String hexStr = toHex(color);
+		return toInt(hexStr);
+	}
+	
+	/**
+	 * 将16进制的色值转化为int色值
+	 * @param hexStr 16进制色值
+	 * @return
+	 * @throws NumberFormatException
+	 */
+	public static int toInt(String hexStr) throws NumberFormatException {
+		if(hexStr.startsWith("#")) {	//如果是#开头则删除第一个字符(#)，否则影响转化
+			hexStr = hexStr.substring(1);
+		}
+		return Integer.parseInt(hexStr, 16);
+	}
+	
+	/**
+	 * 获取rgb
+	 * @param rgb int型色值
+	 * @return
+	 */
+	public static int[] toRGB(int rgb) {
+		int R = (rgb & 0xff0000) >> 16;
+		int G = (rgb & 0xff00) >> 8;
+		int B = (rgb & 0xff);
+		return new int[] {R, G, B};
+	}
+	
+	/**
+	 * 获取rgb
+	 * @param hexStr 16进制色值
+	 * @return
+	 */
+	public static int[] toRGB(String hexStr) {
+		int[] rgb = new int[3];
+		for(int i=0,j=0;i<6;i+=2,j++) {
+			String temp = hexStr.substring(i, i+2);
+			rgb[j] = Integer.parseInt(temp, 16);
+		}
+		return rgb;
 	}
 	
 	/**
