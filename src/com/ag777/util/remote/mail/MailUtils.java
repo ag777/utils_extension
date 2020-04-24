@@ -39,7 +39,7 @@ import com.sun.mail.util.MailConnectException;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年04月16日,last modify at 2020年01月06日
+ * @version create on 2018年04月16日,last modify at 2020年04月24日
  */
 public class MailUtils {
 
@@ -60,6 +60,33 @@ public class MailUtils {
 			String password,
 			Integer timeoutConnect,
 			Boolean debug) {
+		try {
+			return testWithException(smtpHost, user, password, timeoutConnect, debug);
+		} catch (MessagingException | IllegalArgumentException | UnsupportedEncodingException e) {
+			return false;
+		}
+	}
+	
+	/**
+	 * 测试连接(抛出异常)
+	 * @param smtpHost
+	 * @param user
+	 * @param password
+	 * @param timeoutConnect
+	 * @param debug
+	 * @return
+	 * @throws IllegalArgumentException 参数验证异常
+	 * @throws MailConnectException 连接失败
+	 * @throws AuthenticationFailedException 账号密码错误
+	 * @throws MessagingException 其他异常,包含很多子类，比如:SMTPAddressFailedException-一般表示发送邮件失败,可能是对方邮箱地址有问题(访问不了或其它)
+	 * @throws UnsupportedEncodingException InternetAddress转换失败(发件箱，收件箱)
+	 */
+	public static boolean testWithException(
+			String smtpHost,
+			String user,
+			String password,
+			Integer timeoutConnect,
+			Boolean debug) throws IllegalArgumentException, MailConnectException, AuthenticationFailedException, MessagingException, UnsupportedEncodingException {
 		Transport transport = null;
 		Session mailSession = null;
 		try {
@@ -84,11 +111,11 @@ public class MailUtils {
 			transport.connect(smtpHost, 25, user, password);
 			return true;
 		} catch(MailConnectException ex) { //连接失败
-//			ex.printStackTrace();
+			throw ex;
 		} catch(AuthenticationFailedException ex) {	//账号密码错误
-//			ex.printStackTrace();
+			throw ex;
 		} catch (MessagingException ex) {	//其他异常
-//			ex.printStackTrace();
+			throw ex;
 		} finally {
 			mailSession = null;
 			if(transport != null) {
@@ -99,7 +126,6 @@ public class MailUtils {
 				transport = null;
 			}
 		}
-		return false;
 	}
 	
 	/**
@@ -145,12 +171,12 @@ public class MailUtils {
 			Integer timeoutWrite,
 			boolean skipFailure,
 			boolean useCache,
-			boolean debug) throws IllegalArgumentException {
-		Assert.notBlank(smtpHost, "邮件服务器地址不能为空");
+			boolean debug) {
 		try {
+			Assert.notBlank(smtpHost, "邮件服务器地址不能为空");
 			sendWithException(smtpHost, user, password, from, fromDisplay, toList, subject, content, attachments, timeoutConnect, timeoutWrite, skipFailure, useCache, debug);
 			return true;
-		} catch (UnsupportedEncodingException | MessagingException ex) {
+		} catch (UnsupportedEncodingException | IllegalArgumentException | MessagingException ex) {
 //			ex.printStackTrace();
 		}
 
@@ -207,6 +233,15 @@ public class MailUtils {
 		for (String address : toList) {
 			Assert.notBlank(address, "收件邮箱不能为空串");
 		}
+		
+		/*
+		 * bug:邮件附件名字过长时，收件会得到一个名字奇怪的附件,通过修改系统属性能够解决这个问题
+		 * <p>
+		 * 参考资料:https://blog.csdn.net/baidu_35962462/article/details/81062629
+		 * </p>
+		 */
+		System.getProperties().setProperty("mail.mime.splitlongparameters", "false");
+		
 		String to = ListUtils.toString(toList, ",");	//实际发送地址用逗号分隔
 		
 		if(fromDisplay == null) {	//发送人默认为邮箱
