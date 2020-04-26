@@ -33,7 +33,7 @@ import com.ag777.util.lang.model.Charsets;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年04月13日,last modify at 2019年03月05日
+ * @version create on 2018年04月13日,last modify at 2020年04月26日
  */
 public class FtpHelper implements Disposable {
 
@@ -59,7 +59,7 @@ public class FtpHelper implements Disposable {
 	 */
 	@Override
 	public void dispose() {
-		if(client == null && client.isConnected()) {
+		if(client != null && client.isConnected()) {
 			try {
 				client.logout();
 				client.disconnect();

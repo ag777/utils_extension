@@ -3,8 +3,8 @@ utils.jar
 
 [utils.jar]
 gson-2.8.6.jar(20191004)
-joda-time-2.10.6.jar(20200424)
-okhttp-3.14.7.jar(20200225)
+joda-time-2.10.5.jar(20191024)
+okhttp-3.14.6.jar(20200112)
 okio-1.17.5.jar(20191211)
 
 [com.ag777.util.jsoup.JsoupUtils]
