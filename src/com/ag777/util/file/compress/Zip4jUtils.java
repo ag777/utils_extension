@@ -29,7 +29,7 @@ import net.lingala.zip4j.model.enums.EncryptionMethod;
  * <p>项目路径:https://github.com/srikanth-lingala/zip4j
  * 
  * @author ag777
- * @version create on 2019年08月01日,last modify at 2019年08月01日
+ * @version create on 2019年08月01日,last modify at 2020年08月07日
  */
 public class Zip4jUtils {
 	
@@ -42,6 +42,7 @@ public class Zip4jUtils {
 	 * @throws ZipException
 	 */
 	public static File zip(List<File> fileList, String zipPath, String password) throws ZipException {
+		new File(zipPath).delete();	//并不完全覆盖，如果原文件存在会保持原来的,参考:https://www.jb51.net/article/125808.htm
 		ZipTemp temp = getZipTemp(zipPath, password);
 		ZipFile zipFile = temp.zipFile;
 		ZipParameters zipParameters = temp.zipParameters;
@@ -68,6 +69,7 @@ public class Zip4jUtils {
 	 * @throws ZipException
 	 */
 	public static ZipFile split(List<File> fileList, String zipPath, Integer limitSize, String password) throws ZipException {
+		new File(zipPath).delete();	//并不完全覆盖，如果原文件存在会保持原来的,参考:https://www.jb51.net/article/125808.htm
 		ZipTemp temp = getZipTemp(zipPath, password);
 		ZipFile zipFile = temp.zipFile;
 		ZipParameters zipParameters = temp.zipParameters;
@@ -86,6 +88,7 @@ public class Zip4jUtils {
 	 * @throws ZipException
 	 */
 	public static ZipFile split(File folder, String zipPath, Integer limitSize, String password) throws ZipException {
+		new File(zipPath).delete();	//并不完全覆盖，如果原文件存在会保持原来的,参考:https://www.jb51.net/article/125808.htm
 		ZipTemp temp = getZipTemp(zipPath, password);
 		ZipFile zipFile = temp.zipFile;
 		ZipParameters zipParameters = temp.zipParameters;
@@ -108,6 +111,18 @@ public class Zip4jUtils {
 		}
 		
 		zipFile.extractAll(destinationDir);
+	}
+	
+	/**
+	 * 解压到目标文件夹
+	 * @param file 文件
+	 * @param destinationDir 目标文件夹路径
+	 * @param password 密码
+	 * @throws ZipException
+	 */
+	public static void unZip(File file, String destinationDir, String password) throws ZipException {
+		ZipFile zipFile = getZipTemp(file.getAbsolutePath(), password).zipFile;
+		unZip(zipFile, destinationDir);
 	}
 	
 	/**
@@ -212,7 +227,6 @@ public class Zip4jUtils {
 	 * @return
 	 */
 	private static ZipTemp getZipTemp(String zipPath, String password) {
-		new File(zipPath).delete();	//并不完全覆盖，如果原文件存在会保持原来的,参考:https://www.jb51.net/article/125808.htm
 		ZipParameters zipParameters = new ZipParameters();
 		ZipFile zipFile = null;
 		
