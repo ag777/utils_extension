@@ -2,6 +2,7 @@ package com.ag777.util.remote.mail;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.security.Security;
 import java.util.List;
 import java.util.Properties;
 
@@ -39,15 +40,21 @@ import com.sun.mail.util.MailConnectException;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年04月16日,last modify at 2020年04月24日
+ * @version create on 2018年04月16日,last modify at 2020年08月14日
  */
 public class MailUtils {
 
+	private  static final String SSL_FACTORY = "javax.net.ssl.SSLSocketFactory";
+	private static final int PORT_NORMAL = 25;
+	private static final int PORT_SSL = 465;
+	
+	
 	private MailUtils() {}
 	
 	/**
 	 * 测试连接
 	 * @param smtpHost
+	 * @param port 端口号，不传为默认25(ssl下为465)
 	 * @param user
 	 * @param password
 	 * @param timeoutConnect
@@ -56,12 +63,14 @@ public class MailUtils {
 	 */
 	public static boolean testConnect(
 			String smtpHost,
+			Integer port,
 			String user,
 			String password,
 			Integer timeoutConnect,
+			boolean isSsl,
 			Boolean debug) {
 		try {
-			return testWithException(smtpHost, user, password, timeoutConnect, debug);
+			return testWithException(smtpHost, port, user, password, timeoutConnect, isSsl, debug);
 		} catch (MessagingException | IllegalArgumentException | UnsupportedEncodingException e) {
 			return false;
 		}
@@ -70,9 +79,11 @@ public class MailUtils {
 	/**
 	 * 测试连接(抛出异常)
 	 * @param smtpHost
+	 * @param port 端口号，不传为默认25(ssl下为465)
 	 * @param user
 	 * @param password
 	 * @param timeoutConnect
+	 * @param isSsl 是否开启ssl
 	 * @param debug
 	 * @return
 	 * @throws IllegalArgumentException 参数验证异常
@@ -83,9 +94,11 @@ public class MailUtils {
 	 */
 	public static boolean testWithException(
 			String smtpHost,
+			Integer port,
 			String user,
 			String password,
 			Integer timeoutConnect,
+			boolean isSsl,
 			Boolean debug) throws IllegalArgumentException, MailConnectException, AuthenticationFailedException, MessagingException, UnsupportedEncodingException {
 		Transport transport = null;
 		Session mailSession = null;
@@ -94,6 +107,15 @@ public class MailUtils {
 			properties.setProperty("mail.smtp.auth", "true");// 提供验证
 			properties.setProperty("mail.transport.protocol", "smtp");// 使用的协议					
 			properties.setProperty("mail.smtp.host", smtpHost);	// 这里是smtp协议
+//			properties.setProperty("mail.smtp.starttls.enable", "true");	//这个不清楚
+			if(isSsl) {	
+				Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider());
+				properties.setProperty("mail.smtp.socketFactory", SSL_FACTORY);
+				properties.setProperty("mail.smtp.socketFactory.fallback", "false");	// 只处理SSL的连接,对于非SSL的连接不做处理
+//				properties.setProperty("mail.smtp.port", "465");
+//				properties.setProperty("mail.smtp.socketFactory.port", "465");
+				properties.setProperty("mail.smtp.ssl.enable", "true");
+			}
 			if(timeoutConnect != null) {
 				properties.put("mail.smtp.connectiontimeout", timeoutConnect);	//连接超时
 			}
@@ -108,7 +130,12 @@ public class MailUtils {
 				mailSession.setDebug(debug);
 			}
 			transport = mailSession.getTransport();
-			transport.connect(smtpHost, 25, user, password);
+			//端口号
+			if(port == null) {
+				port = isSsl?PORT_SSL:PORT_NORMAL;
+			}
+			connect(transport,smtpHost, port, user, password);
+			transport.connect(smtpHost, port, user, password);
 			return true;
 		} catch(MailConnectException ex) { //连接失败
 			throw ex;
@@ -142,6 +169,7 @@ public class MailUtils {
 	 * </p>
 	 * 
 	 * @param smtpHost 邮件服务器地址
+	 * @param port 端口号，不传为默认25(ssl下为465)
 	 * @param user 发件邮箱账号
 	 * @param password 发件邮箱密码
 	 * @param from 发件邮箱
@@ -152,6 +180,7 @@ public class MailUtils {
 	 * @param attachments n.（用电子邮件发送的）附件( attachment的名词复数 )
 	 * @param timeoutConnect 连接超时
 	 * @param timeoutWrite 写出超时
+	 * @param isSsl 是否开启ssl
 	 * @param skipFailure 是否跳过发送失败的邮件，开启这个时目标邮箱列表中一个或多个发送失败不影响其它地址的发送,并且不抛出发送失败的异常
 	 * @param useCache 是否使用缓存
 	 * @param debug 是否开启debug模式
@@ -159,6 +188,7 @@ public class MailUtils {
 	 */
 	public static boolean send(
 			String smtpHost,
+			Integer port,
 			String user,
 			String password,
 			String from,
@@ -169,12 +199,13 @@ public class MailUtils {
 			File[] attachments,
 			Integer timeoutConnect,
 			Integer timeoutWrite,
+			boolean isSsl,
 			boolean skipFailure,
 			boolean useCache,
 			boolean debug) {
 		try {
 			Assert.notBlank(smtpHost, "邮件服务器地址不能为空");
-			sendWithException(smtpHost, user, password, from, fromDisplay, toList, subject, content, attachments, timeoutConnect, timeoutWrite, skipFailure, useCache, debug);
+			sendWithException(smtpHost, port, user, password, from, fromDisplay, toList, subject, content, attachments, timeoutConnect, timeoutWrite, isSsl, skipFailure, useCache, debug);
 			return true;
 		} catch (UnsupportedEncodingException | IllegalArgumentException | MessagingException ex) {
 //			ex.printStackTrace();
@@ -190,6 +221,7 @@ public class MailUtils {
 	 * </p>
 	 * 
 	 * @param smtpHost
+	 * @param port 端口号，不传为默认25(ssl下为465)
 	 * @param user
 	 * @param password
 	 * @param from
@@ -200,6 +232,7 @@ public class MailUtils {
 	 * @param attachments
 	 * @param timeoutConnect 连接超时
 	 * @param timeoutWrite 写出超时
+	 * @param isSsl 是否开启ssl
 	 * @param skipFailure 是否跳过发送失败的邮件，开启这个时目标邮箱列表中一个或多个发送失败不影响其它地址的发送,并且不抛出发送失败的异常
 	 * @param useCache 是否使用缓存
 	 * @param debug 是否开启debug模式
@@ -212,6 +245,7 @@ public class MailUtils {
 	 */
 	public static List<String> sendWithException(
 			String smtpHost,
+			Integer port,
 			String user,
 			String password,
 			String from,
@@ -222,6 +256,7 @@ public class MailUtils {
 			File[] attachments,
 			Integer timeoutConnect,
 			Integer timeoutWrite,
+			boolean isSsl,
 			boolean skipFailure,
 			boolean useCache,
 			boolean debug) throws IllegalArgumentException, MailConnectException, AuthenticationFailedException, MessagingException, UnsupportedEncodingException {
@@ -265,8 +300,18 @@ public class MailUtils {
 			// 设置java mail属性，并添入数据源
 			Properties properties = new Properties();
 			properties.setProperty("mail.smtp.auth", "true");// 提供验证
-			properties.setProperty("mail.transport.protocol", "smtp");// 使用的协议					
+			properties.setProperty("mail.transport.protocol", "smtp");// 使用的协议	
 			properties.setProperty("mail.smtp.host", smtpHost);	// 这里是smtp协议
+//			properties.setProperty("mail.smtp.starttls.enable", "true");	//这个不清楚
+			if(isSsl) {	
+				Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider());
+				properties.setProperty("mail.smtp.socketFactory", SSL_FACTORY);
+				properties.setProperty("mail.smtp.socketFactory.fallback", "false");	// 只处理SSL的连接,对于非SSL的连接不做处理
+//				properties.setProperty("mail.smtp.port", "465");
+//				properties.setProperty("mail.smtp.socketFactory.port", "465");
+				properties.setProperty("mail.smtp.ssl.enable", "true");
+			}
+			
 			if(timeoutConnect != null) {
 				properties.put("mail.smtp.connectiontimeout", timeoutConnect);	//连接超时
 			}
@@ -299,14 +344,18 @@ public class MailUtils {
 			
 			//连接发送邮箱
 			transport = mailSession.getTransport();
-			connect(transport,smtpHost, user, password);
+			//端口号
+			if(port == null) {
+				port = isSsl?PORT_SSL:PORT_NORMAL;
+			}
+			connect(transport,smtpHost, port, user, password);
 			// 发送邮件
 			if(skipFailure) {	//跳过错误邮箱,需要对收件邮箱逐一进行发送
 				List<String> failureList = ListUtils.newArrayList();
 				for (InternetAddress address : addresses) {
 					try {
 						if(!transport.isConnected()) {	//如果之前失败过会断开连接,这里需要重新连接一下
-							connect(transport,smtpHost, user, password);
+							connect(transport,smtpHost, isSsl?PORT_SSL:PORT_NORMAL, user, password);
 						}
 						// 设置收件者地址
 						msg.setRecipient(Message.RecipientType.TO,
@@ -350,12 +399,13 @@ public class MailUtils {
 	 * 连接发件地址
 	 * @param transport transport
 	 * @param smtpHost 发件服务地址
+	 * @param port 端口号
 	 * @param user 发件服务账号
 	 * @param password 发件服务密码
 	 * @throws MessagingException
 	 */
-	private static void connect(Transport transport, String smtpHost, String user, String password) throws MessagingException {
-		transport.connect(smtpHost, 25, user, password);
+	private static void connect(Transport transport, String smtpHost, int port, String user, String password) throws MessagingException {
+		transport.connect(smtpHost, port, user, password);
 	}
 	
 	/**
@@ -447,8 +497,9 @@ public class MailUtils {
 		
 		try {
 			sendWithException(
-					"xx", 
-					"xx", "xxxx", "test@test.com", null, ListUtils.of("test@test.com"), null, null, null, 30*1000,5*60*1000, false, false, false);
+					"192.168.161.106", 
+					null,
+					"test", "123456", "test@test.com", null, ListUtils.of("test@test.com"), "标题", "内容", null, 30*1000,5*60*1000, false, false, false, true);
 			System.out.println("成功");
 		} catch (IllegalArgumentException e) {
 			System.out.println("参数异常");

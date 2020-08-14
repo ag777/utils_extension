@@ -21,11 +21,12 @@ import com.sun.mail.util.MailConnectException;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年04月16日,last modify at 2020年01月06日
+ * @version create on 2018年04月16日,last modify at 2020年08月14日
  */
 public class MailBuilder {
 
 	private String smtpHost;
+	private Integer port;
 	private String from;
 	private String fromDisplay;
 	private List<String> toList;
@@ -37,6 +38,8 @@ public class MailBuilder {
 	
 	private Integer timeoutConnect;
 	private Integer timeoutWrite;
+	
+	private boolean isSsl;	//是否开启ssl模式
 	
 	private boolean skipFailure;	//是否忽视发送失败的邮箱
 	
@@ -55,11 +58,17 @@ public class MailBuilder {
 		this.pwd = pwd;
 		toList = ListUtils.newArrayList();
 		attachmentList = ListUtils.newArrayList();	//懒代码，直接避免空指针
+		isSsl = false;
 		skipFailure=false;	//默认不跳过发送失败的邮件
 		useCache = false;	//默认为不使用缓存
 		debug = false;	//默认不开启debug模式
 	}
 
+	public MailBuilder port(int port) {
+		this.port = port;
+		return this;
+	}
+	
 	/**
 	 * 设置发件邮箱
 	 * @param from 发件邮箱
@@ -148,6 +157,11 @@ public class MailBuilder {
 		return this;
 	}
 
+	public MailBuilder setSsl() {
+		this.isSsl = true;
+		return this;
+	}
+	
 	public boolean skipFailure() {
 		return skipFailure;
 	}
@@ -196,6 +210,7 @@ public class MailBuilder {
 		
 		return MailUtils.send(
 				smtpHost, 
+				port,
 				user,
 				pwd,
 				from,
@@ -206,6 +221,7 @@ public class MailBuilder {
 				attachments,
 				timeoutConnect,
 				timeoutWrite,
+				isSsl,
 				skipFailure,
 				useCache,
 				debug);
@@ -230,6 +246,7 @@ public class MailBuilder {
 		
 		MailUtils.sendWithException(
 				smtpHost, 
+				port,
 				user,
 				pwd,
 				from,
@@ -240,6 +257,7 @@ public class MailBuilder {
 				attachments,
 				timeoutConnect,
 				timeoutWrite,
+				isSsl,
 				skipFailure,
 				useCache,
 				debug);
