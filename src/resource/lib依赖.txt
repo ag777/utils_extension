@@ -47,6 +47,9 @@ zip4j-2.1.1.jar(20190714)
 [com.ag777.util.file.compress.SevenZUtils]
 xz-1.8.jar
 
+[com.ag777.util.file.xml.*]
+snakeyaml-1.26.jar(20200228)
+
 [com.ag777.util.remote.ftp.FtpHelper]
 commons-net-3.6.jar(20170211)
 
