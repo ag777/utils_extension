@@ -84,5 +84,9 @@ antlr-runtime-3.5.2.jar(20140325)
 [com.ag777.util.file.img.GifUtils]
 animated-gif-lib-1.4.jar(20170706)
 
+[com.ag777.util.lang.reflection.ProxyUtils]
+cglib-3.3.0.jar(20190812)
+asm-9.0.jar(20200921)
+
 [other]
 mslinks.jar{改写https://github.com/DmitriiShamrikov/mslinks,支持中文}
