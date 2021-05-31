@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Vector;
@@ -309,7 +310,7 @@ public class SSHHelper implements Disposable, Closeable {
 		try {
 			channel  = getChannelExec();
 			// Create and connect channel.  
-	        channel.setCommand(command);  
+	        channel.setCommand(command.getBytes(DEFAULT_CHARSET));
 	        
 	        if(!StringUtils.isBlank(basePath)) {
 	        	command = StringUtils.concatFilePathBySeparator("/", basePath, "/")+command;
@@ -493,7 +494,21 @@ public class SSHHelper implements Disposable, Closeable {
 			//设置通道
 			channel = getChannelFtp();
 			channel.connect();
-		
+
+			// 抛异常 The encoding can not be changed for this sftp server.
+//            channel.setFilenameEncoding(DEFAULT_CHARSET.toString());
+			try {
+				//解决无法设置服务端文件编码为gbk
+				// https://blog.csdn.net/liqiang458473/article/details/80834092
+				Class<ChannelSftp> cl = ChannelSftp.class;
+				Field f1 =cl.getDeclaredField("server_version");
+				f1.setAccessible(true);
+				f1.set(channel, 2);
+				channel.setFilenameEncoding(DEFAULT_CHARSET.toString());
+			} catch (NoSuchFieldException | IllegalAccessException e) {
+				e.printStackTrace();
+			}
+
 			List<String> fileNameList = ListUtils.newArrayList();
 
 			Vector<LsEntry> fileList = channel.ls(basePath); 
