@@ -70,12 +70,12 @@ public class SSHHelper implements Disposable, Closeable {
 	
 	/**
 	 * 默认连接超时时间为10秒
-	 * @param ip
-	 * @param port
-	 * @param user
-	 * @param password
-	 * @return
-	 * @throws JSchException
+	 * @param ip ip
+	 * @param port 端口号
+	 * @param user 账号
+	 * @param password 密码
+	 * @return SSHHelper
+	 * @throws JSchException JSchException
 	 */
 	public static SSHHelper connect(String ip, int port, String user, String password) throws JSchException {
         return connect(ip, port, user, password, 10000);
@@ -96,9 +96,9 @@ public class SSHHelper implements Disposable, Closeable {
 	
 	 /** 
      * 递归删除执行. 
-     * @param pathString 文件路径 
+     * @param filePath 文件路径
      * @param sftp sftp连接 
-     * @throws SftpException 
+     * @throws SftpException SftpException
      */  
     private static void deleteFile(final String filePath, final ChannelSftp sftp) throws SftpException {  
         @SuppressWarnings("unchecked")  
@@ -139,9 +139,9 @@ public class SSHHelper implements Disposable, Closeable {
     
     /**
      * 递归创建文件夹
-     * @param file
-     * @param sftp
-     * @throws SftpException
+     * @param file 文件
+     * @param sftp sftp
+     * @throws SftpException SftpException
      */
     private static void mkdirs(File file, final ChannelSftp sftp) throws SftpException { 
     	if(file != null) {
@@ -158,10 +158,10 @@ public class SSHHelper implements Disposable, Closeable {
     
     /**
      * 重命名文件
-     * @param srcPath
-     * @param destPath
-     * @param sftp
-     * @throws SftpException
+     * @param srcPath 源路径
+     * @param destPath 目标路径
+     * @param sftp sftp
+     * @throws SftpException SftpException
      */
     public static void rename(String srcPath, String destPath, final ChannelSftp sftp) throws SftpException {  
     	sftp.rename(srcPath, destPath);
@@ -169,11 +169,11 @@ public class SSHHelper implements Disposable, Closeable {
     
     /**
 	 * 下载文件
-	 * @param targetPath
-	 * @param localFilePath
-	 * @param ftp
-     * @throws SftpException 
-     * @throws FileNotFoundException 
+	 * @param targetPath 目标路径
+	 * @param localFilePath 本地文件路径
+	 * @param ftp ftp
+     * @throws SftpException SftpException
+     * @throws FileNotFoundException FileNotFoundException
 	 */
     public static void downloadFile(String targetPath, String localFilePath, final ChannelSftp ftp) throws SftpException, FileNotFoundException {  
     	OutputStream os = null;
@@ -192,11 +192,11 @@ public class SSHHelper implements Disposable, Closeable {
     
     /**
 	 * 上传文件
-	 * @param loacalFile	本地文件
-	 * @param basePath	目标路径
-	 * @return
-     * @throws IOException 
-     * @throws SftpException 
+	 * @param localFile	本地文件
+	 * @param targetPath	目标路径
+	 * @param ftp ftp
+     * @throws IOException  io异常
+     * @throws SftpException 远程操作异常
 	 */
 	public static void uploadFile(File localFile, String targetPath, ChannelSftp ftp) throws IOException, SftpException {
 		try {
@@ -370,8 +370,7 @@ public class SSHHelper implements Disposable, Closeable {
 	 * <p>
 	 * 	请不要用该方法
 	 * </p>
-	 * @param command
-	 * @param basePath
+	 * @param command 命令
 	 */
 	@Deprecated
 	public void consoleShell(String command) {
@@ -410,13 +409,11 @@ public class SSHHelper implements Disposable, Closeable {
 	
 	/**
 	 * 
-	 * @param localFile
-	 * @param basePath
-	 * @param fileRename
-	 * @return
-	 * @throws JSchException 
-	 * @throws SftpException 
-	 * @throws IOException 
+	 * @param localFile 本地文件路径
+	 * @param targetPath 目标路径
+	 * @throws JSchException JSchException
+	 * @throws SftpException SftpException
+	 * @throws IOException io异常
 	 */
 	public void uploadFile(File localFile, String targetPath) throws JSchException, IOException, SftpException {
 		ChannelSftp ftp = null;
@@ -482,8 +479,8 @@ public class SSHHelper implements Disposable, Closeable {
 	
 	/**
 	 * 查询一个文件夹下的所有文件
-	 * @param basePath
-	 * @return
+	 * @param basePath 目标路径
+	 * @return 文件名列表, 目录名称后面会跟上/
 	 * @throws JSchException 
 	 * @throws FileNotFoundException
 	 */
