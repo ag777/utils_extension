@@ -85,10 +85,10 @@ public interface ExcelModifyHelper {
 		}	
 		if (cell.getCellTypeEnum() == CellType.BOOLEAN) {
 			return cell.getBooleanCellValue();
-		} else if (cell.getCellTypeEnum() == CellType.NUMERIC) {
-			Double num = cell.getNumericCellValue();
-			if(num.longValue() == num){
-				num.longValue();
+		} else if (cell.getCellTypeEnum() == CellType.NUMERIC || cell.getCellTypeEnum() == CellType.FORMULA) {
+			double num = cell.getNumericCellValue();
+			if((long)num == num){
+				return (long)num;
 			}
 			return num;
 		} else {

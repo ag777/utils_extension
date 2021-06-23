@@ -381,7 +381,7 @@ public class ExcelReadUtils {
 		String result = null;
 		if (cell.getCellTypeEnum() == CellType.BOOLEAN) {
 			result =  String.valueOf(cell.getBooleanCellValue());
-		} else if (cell.getCellTypeEnum() == CellType.NUMERIC) {
+		} else if (cell.getCellTypeEnum() == CellType.NUMERIC || cell.getCellTypeEnum() == CellType.FORMULA) {
 			Double num = cell.getNumericCellValue();
 			if(num.longValue() == num){
 				result = String.valueOf(num.longValue());
