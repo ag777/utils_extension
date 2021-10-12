@@ -35,11 +35,11 @@ public class Zip4jUtils {
 	
 	/**
 	 * 压缩文件和文件夹
-	 * @param fileList
-	 * @param targetPath
-	 * @param password
-	 * @return 
-	 * @throws ZipException
+	 * @param fileList 文件列表
+	 * @param zipPath 压缩文件路径
+	 * @param password 密码
+	 * @return  压缩文件
+	 * @throws ZipException 压缩异常
 	 */
 	public static File zip(List<File> fileList, String zipPath, String password) throws ZipException {
 		new File(zipPath).delete();	//并不完全覆盖，如果原文件存在会保持原来的,参考:https://www.jb51.net/article/125808.htm
@@ -61,12 +61,12 @@ public class Zip4jUtils {
 	
 	/**
 	 * 打包并拆分压缩包(仅支持多个文件)
-	 * @param fileList
-	 * @param zipPath
+	 * @param fileList 文件列表
+	 * @param zipPath 压缩文件路径
 	 * @param limitSize Zip file format specifies a minimum of 65536 bytes (64kb) as a minimum length for split files. Zip4j will throw an exception if anything less than this value is specified.
-	 * @param password
-	 * @return 
-	 * @throws ZipException
+	 * @param password 密码
+	 * @return 压缩文件
+	 * @throws ZipException 压缩异常
 	 */
 	public static ZipFile split(List<File> fileList, String zipPath, Integer limitSize, String password) throws ZipException {
 		new File(zipPath).delete();	//并不完全覆盖，如果原文件存在会保持原来的,参考:https://www.jb51.net/article/125808.htm
@@ -80,12 +80,12 @@ public class Zip4jUtils {
 	
 	/**
 	 * 打包并拆分压缩包(仅支持单个文件夹)
-	 * @param folder
-	 * @param zipPath
+	 * @param folder 文件夹
+	 * @param zipPath 压缩文件路径
 	 * @param limitSize Zip file format specifies a minimum of 65536 bytes (64kb) as a minimum length for split files. Zip4j will throw an exception if anything less than this value is specified.
-	 * @param password
-	 * @return 
-	 * @throws ZipException
+	 * @param password 密码
+	 * @return 压缩文件
+	 * @throws ZipException 压缩异常
 	 */
 	public static ZipFile split(File folder, String zipPath, Integer limitSize, String password) throws ZipException {
 		new File(zipPath).delete();	//并不完全覆盖，如果原文件存在会保持原来的,参考:https://www.jb51.net/article/125808.htm
@@ -99,9 +99,9 @@ public class Zip4jUtils {
 	
 	/**
 	 * 解压压缩包到文件夹(默认解压到压缩包目录/压缩包文件名的路径下)
-	 * @param zipFile
+	 * @param zipFile 压缩文件
 	 * @param destinationDir 目标路径
-	 * @throws ZipException
+	 * @throws ZipException 解压异常
 	 */
 	public static void unZip(ZipFile zipFile, String destinationDir) throws ZipException {
 		if(destinationDir == null) {
@@ -118,7 +118,7 @@ public class Zip4jUtils {
 	 * @param file 文件
 	 * @param destinationDir 目标文件夹路径
 	 * @param password 密码
-	 * @throws ZipException
+	 * @throws ZipException 解压异常
 	 */
 	public static void unZip(File file, String destinationDir, String password) throws ZipException {
 		ZipFile zipFile = getZipTemp(file.getAbsolutePath(), password).zipFile;
@@ -130,7 +130,7 @@ public class Zip4jUtils {
 	 * @param zipFile
 	 * @param absPath 文件相对于压缩包根目录的位置,比如a/b/c.txt
 	 * @param destinationPath 解压的目标路径
-	 * @throws ZipException
+	 * @throws ZipException 解压异常
 	 */
 	public static void unZipSigleFile(ZipFile zipFile, String absPath, String destinationPath) throws ZipException {
 		if(destinationPath == null) {
@@ -145,9 +145,9 @@ public class Zip4jUtils {
 	
 	/**
 	 * 根据目标路径和密码获取数据库实例
-	 * @param zipPath
+	 * @param zipPath 压缩文件路径
 	 * @param password 可以为空
-	 * @return
+	 * @return 压缩文件
 	 */
 	public ZipFile getZipFile(String zipPath, String password) {
 		if(StringUtils.isEmpty(password)) {	//不带密码
@@ -159,9 +159,9 @@ public class Zip4jUtils {
 	
 	/**
 	 * 从压缩包中删除一个文件
-	 * @param zipFile
+	 * @param zipFile 压缩文件
 	 * @param absPath 文件相对于压缩包根目录的位置,比如a/b/c.txt
-	 * @throws ZipException
+	 * @throws ZipException 压缩异常
 	 */
 	public static void removeFile(ZipFile zipFile, String absPath) throws ZipException {
 		Optional<FileHeader> fileHeader = getFileHeader(zipFile, absPath);
@@ -172,10 +172,10 @@ public class Zip4jUtils {
 	
 	/**
 	 * 获取压缩包目标文件的相对位置信息
-	 * @param zipFile
+	 * @param zipFile 压缩文件
 	 * @param absPath 文件相对于压缩包根目录的位置,比如a/b/c.txt
-	 * @return
-	 * @throws ZipException
+	 * @return Optional<FileHeader>
+	 * @throws ZipException 解析异常
 	 */
 	public static Optional<FileHeader> getFileHeader(ZipFile zipFile, String absPath) throws ZipException {
 		return Optional.ofNullable(zipFile.getFileHeader(absPath));
@@ -183,11 +183,10 @@ public class Zip4jUtils {
 	
 	/**
 	 * 获取压缩包对应文件的输入流
-	 * @param zipFile
+	 * @param zipFile 压缩文件
 	 * @param absPath 文件相对于压缩包根目录的位置,比如a/b/c.txt
-	 * @return 
-	 * @return
-	 * @throws ZipException 
+	 * @return Optional<ZipInputStream>
+	 * @throws ZipException 解析异常
 	 */
 	public static Optional<ZipInputStream> getInputStream(ZipFile zipFile, String absPath) throws ZipException {
 		Optional<FileHeader> fileHeader = getFileHeader(zipFile, absPath);
@@ -199,10 +198,10 @@ public class Zip4jUtils {
 	
 	/**
 	 * 判断压缩包中是否存在某个文件
-	 * @param zipFile
+	 * @param zipFile 压缩文件
 	 * @param absPath 文件相对于压缩包根目录的位置,比如a/b/c.txt
-	 * @return
-	 * @throws ZipException 
+	 * @return 是否存在
+	 * @throws ZipException 解析异常
 	 */
 	public static boolean isExisted(ZipFile zipFile, String absPath) throws ZipException {
 		Optional<FileHeader> fileHeader = getFileHeader(zipFile, absPath);
@@ -211,9 +210,9 @@ public class Zip4jUtils {
 	
 	/**
 	 * 获取压缩包中的文件列表
-	 * @param zipFile
-	 * @return
-	 * @throws ZipException
+	 * @param zipFile 压缩文件
+	 * @return List<FileHeader>
+	 * @throws ZipException 解析异常
 	 */
 	public static List<FileHeader> getAllFileHeader(ZipFile zipFile) throws ZipException {
 		return zipFile.getFileHeaders();
@@ -222,9 +221,9 @@ public class Zip4jUtils {
 	
 	/**
 	 * 根据配置信息获取ZipFile实例和ZipParameters实例的打包
-	 * @param zipPath
-	 * @param password
-	 * @return
+	 * @param zipPath 压缩文件路径
+	 * @param password 密码
+	 * @return ZipTemp
 	 */
 	private static ZipTemp getZipTemp(String zipPath, String password) {
 		ZipParameters zipParameters = new ZipParameters();
