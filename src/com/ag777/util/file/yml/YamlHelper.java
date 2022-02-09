@@ -20,14 +20,14 @@ import com.ag777.util.lang.collection.MapUtils;
  * @author ag777
  * @version create on 2020年08月27日,last modify at 2020年08月27日
  */
-public class YmlHelper {
+public class YamlHelper {
 
 	private Map<String, Object> map;
 	
-	public YmlHelper() {
+	public YamlHelper() {
 		init();
 	}
-	public YmlHelper(Map<String, Object> map) {
+	public YamlHelper(Map<String, Object> map) {
 		if(map != null) {
 			this.map = map;
 		} else {
@@ -36,9 +36,9 @@ public class YmlHelper {
 		
 	}
 
-	public static YmlHelper read(File file) throws FileNotFoundException {
-		Map<String, Object> map = YmlUtils.readMap(file);
-		return new YmlHelper(map);
+	public static YamlHelper read(File file) throws FileNotFoundException {
+		Map<String, Object> map = YamlUtils.readMapByFile(file);
+		return new YamlHelper(map);
 	}
 	
 	private void init() {
@@ -54,7 +54,7 @@ public class YmlHelper {
 	}
 	
 	public void save(Writer writer) {
-		YmlUtils.write(map, writer);
+		YamlUtils.write(map, writer);
 	}
 	
 	@SuppressWarnings("unchecked")

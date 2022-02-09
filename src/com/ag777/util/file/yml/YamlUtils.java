@@ -1,10 +1,6 @@
 package com.ag777.util.file.yml;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.StringWriter;
-import java.io.Writer;
+import java.io.*;
 import java.util.Map;
 
 import org.yaml.snakeyaml.Yaml;
@@ -24,10 +20,10 @@ import com.ag777.util.lang.IOUtils;
  * @author ag777
  * @version create on 2020年08月17日,last modify at 2020年08月17日
  */
-public class YmlUtils {
+public class YamlUtils {
 
 	@SuppressWarnings("unchecked")
-	public static Map<String, Object> readMap(File file) throws FileNotFoundException {
+	public static Map<String, Object> readMapByFile(File file) throws FileNotFoundException {
 		FileInputStream in = null;
 		try {
 			in = FileUtils.getInputStream(file);
@@ -36,6 +32,11 @@ public class YmlUtils {
 			IOUtils.close(in);
 		}
 		
+	}
+
+	@SuppressWarnings("unchecked")
+	public static Map<String, Object> readMap(String text) {
+		return yaml().loadAs(text, Map.class);
 	}
 	
 	public static void write(Object obj, Writer writer) {
@@ -46,8 +47,8 @@ public class YmlUtils {
 		}
 	}
 	
-	public static void write(Object obj, File file) {
-		write(obj, file);
+	public static void write(Object obj, File file) throws IOException {
+		write(obj, new FileWriter(file));
 	}
 	
 	public static void toString(Object obj) {
