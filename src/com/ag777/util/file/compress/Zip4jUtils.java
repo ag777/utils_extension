@@ -191,7 +191,7 @@ public class Zip4jUtils {
 	public static Optional<ZipInputStream> getInputStream(ZipFile zipFile, String absPath) throws ZipException {
 		Optional<FileHeader> fileHeader = getFileHeader(zipFile, absPath);
 		if(!fileHeader.isPresent()) {
-			Optional.empty();
+			return Optional.empty();
 		}
 		return Optional.of(zipFile.getInputStream(fileHeader.get()));
 	}
