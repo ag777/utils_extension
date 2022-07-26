@@ -1,30 +1,31 @@
 package com.ag777.util.db;
 
-import java.util.List;
-import java.util.Map;
 import com.ag777.util.db.model.ColumnPojo;
 import com.ag777.util.db.model.DBIPojo;
-import com.ag777.util.lang.Console;
 import com.ag777.util.lang.collection.ListUtils;
+
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * 数据库操作工具类
  * 
  * @author ag777
- * @version create on 2017年12月01日,last modify at 2017年12月13日
+ * @version create on 2017年12月01日,last modify at 2022年07月26日
  */
 public class DbUtils {
 
 	private DbUtils() {}
-	
-	private static boolean log = false;
-	
-	public static void logOn() {
-		log = true;
+
+	private volatile static Consumer<String> onLog;
+
+	public static void logOn(Consumer<String> onLog) {
+		DbUtils.onLog = onLog;
 	}
-	
+
 	public static void logOff() {
-		log = false;
+		DbUtils.onLog = null;
 	}
 	
 	/**
@@ -34,13 +35,13 @@ public class DbUtils {
 	 * 	目标数据库仅支持mysql数据库
 	 * </p>
 	 * 
-	 * @param source
-	 * @param target
-	 * @return
-	 * @throws Exception
+	 * @param source 数据源
+	 * @param target 目标数据库
+	 * @return 是否成功
+	 * @throws Exception 异常
 	 */
 	public static boolean copyDb(DbHelper source, DbHelper target) throws Exception {
-		/**
+		/*
 		 * 思路:
 		 * 1.取出数据库中所有的表(排除系统表)
 		 * 2.在目标数据库中创建这些表(原来存在的表直接删掉)
@@ -79,12 +80,12 @@ public class DbUtils {
 	
 	/**
 	 * 复制表内数据
-	 * @param tableName
-	 * @param sb
-	 * @param helper
-	 * @param helper2
-	 * @return
-	 * @throws Exception
+	 * @param tableName 表名
+	 * @param sb SqlBuilder
+	 * @param source 数据源
+	 * @param target 目标数据库
+	 * @return 是否成功
+	 * @throws Exception 异常
 	 */
 	private static boolean copyData(String tableName, SqlBuilder sb, DbHelper source, DbHelper target) throws Exception {
 		System.out.println("开始复制表:"+tableName);
@@ -158,8 +159,8 @@ public class DbUtils {
 	}
 	
 	private static void log(String msg) {
-		if(log) {
-			Console.log(msg);
+		if(onLog != null) {
+			onLog.accept(msg);
 		}
 	}
 }
