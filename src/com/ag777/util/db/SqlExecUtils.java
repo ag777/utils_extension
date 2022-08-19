@@ -86,7 +86,7 @@ public class SqlExecUtils {
 	
 	private static void update(String sql, String tableName, Object[] params, List<String> titleList, DbHelper db) throws SQLException {
 		try {
-			db.updateWithException(sql.toString(), params);
+			db.update(sql, params);
 		} catch (SQLException e) {
 			boolean flag = false;
 			switch(e.getErrorCode()) {
@@ -131,7 +131,7 @@ public class SqlExecUtils {
 		sb.append(") ENGINE=InnoDB DEFAULT CHARSET=utf8;");
 		
 		try {
-			db.updateWithException(sb.toString());
+			db.update(sb.toString());
 			Console.log(StringUtils.concat("创建表[", tableName, "]"));
 			return true;
 		} catch (SQLException ex) {
@@ -148,8 +148,7 @@ public class SqlExecUtils {
 	 * 创建字段
 	 * @param db
 	 * @param e sql异常,该方法会解析并取出其中的列名
-	 * @param tableName
-	 * @param titleList
+	 * @param tableName 表名
 	 * @return
 	 */
 	private static boolean createColumn(DbHelper db, SQLException e, String tableName) {
@@ -161,8 +160,8 @@ public class SqlExecUtils {
 	 * 创建字段
 	 * @param db 
 	 * @param columnName 列名
-	 * @param tableName
-	 * @param afterColName放在该字段后
+	 * @param tableName 表名
+	 * @param afterColName 放在该字段后
 	 * @return
 	 */
 	private static synchronized  boolean createColumn(DbHelper db, String columnName, String tableName, String afterColName) {
@@ -180,7 +179,7 @@ public class SqlExecUtils {
 			sb.append(';');
 			
 			try {
-				db.updateWithException(sb.toString());
+				db.update(sb.toString());
 				Console.log(StringUtils.concat("表[", tableName,"]增加列[",columnName,"]"));
 				return true;
 			} catch (SQLException ex) {

@@ -1,5 +1,6 @@
 package com.ag777.util.db;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -85,12 +86,12 @@ public class SqlBuilder {
 		return create;
 	}
 	
-	public void doCreate(DbHelper helper) {
+	public void doCreate(DbHelper helper) throws SQLException {
 		String sql = getCreateSql().sql;
 		helper.update(sql);
 	}
 	
-	public int doInsert(Map<String, Object> paramsMap, DbHelper helper) {
+	public int doInsert(Map<String, Object> paramsMap, DbHelper helper) throws SQLException {
 		
 		String sql = getInsertSql().sql;
 		List<String> keyList = getInsertSql().paramList;
@@ -102,7 +103,7 @@ public class SqlBuilder {
 		return helper.update(sql, params);
 	}
 	
-	public int[] doBatchInsert(List<Map<String, Object>> paramsMapList, DbHelper helper) {
+	public int[] doBatchInsert(List<Map<String, Object>> paramsMapList, DbHelper helper) throws SQLException {
 		String sql = getInsertSql().sql;
 		List<String> keyList = getInsertSql().paramList;
 		List<Object[]> paramsList = new ArrayList<>();
@@ -121,8 +122,6 @@ public class SqlBuilder {
 	/*============内部方法=============*/
 	/**
 	 * 构造插入语句
-	 * @param tableName
-	 * @param columnNameList
 	 */
 	private void initInsertSql() {
 		List<String> insertParamList = new ArrayList<>();
