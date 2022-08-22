@@ -53,6 +53,23 @@ public class JsoupRuleUtils {
         if (rule.getRegex() != null) {
             p = Pattern.compile(rule.getRegex());
         }
+        if (!StringUtils.isEmpty(rule.getFuncName())) {
+            switch (rule.getFuncName().toLowerCase()) {
+                case Rule.FUNC_NAME_TEXT:
+                    rule.setFunc(Rule.FUNC_TEXT);
+                    break;
+                case Rule.FUNC_NAME_HTML:
+                    rule.setFunc(Rule.FUNC_HTML);
+                    break;
+                case Rule.FUNC_NAME_ATTR:
+                    rule.setFunc(Rule.FUNC_ATTR);
+                    break;
+                default:
+                    rule.setFunc(Rule.FUNC_STR);
+                    break;
+            }
+
+        }
         return findByRule(element, rule.getCssQuery(), rule.isMultiple(), rule.getFunc(), rule.getAttrName(), p, rule.getReplacement());
     }
 
@@ -132,10 +149,10 @@ public class JsoupRuleUtils {
          */
         Map<String, Object> map = findByRuleMap(u.getDoc().root(), MapUtils.of(
                 String.class, Rule.class,
-                "a", new Rule("#areabutton > ul > li > span")
+                "a", RuleBuilder.getInstance("#areabutton > ul > li > span")
                         .multiple()
                         .attr("onclick")
-                        .regex("\\('(.+?)'\\)", "$1"),
+                        .regex("\\('(.+?)'\\)", "$1").build(),
                 "b", new Rule("body > title")
         ));
         Console.prettyLog(map);
