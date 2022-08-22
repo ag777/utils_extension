@@ -1,85 +1,91 @@
 package com.ag777.util.jsoup.model;
 
-import java.util.regex.Pattern;
-
-import com.ag777.util.jsoup.interf.RuleInterf;
-
 /**
- * Created by ag777 on 2017/2/14.
+ * @author ag777 <837915770@vip.qq.com>
+ * @version create on 2022年08月22日,last modify at 2022年08月22日
  */
-public class Rule implements RuleInterf{
-    
-    public String selector;
-    
-    public String fun;
-    
-    public String param;
-    
-    public String regex;
-    
-    public String replacement;
-    
-    public Pattern pattern;	//预处理
+public class Rule {
+    public final static int FUNC_STR = 0;  // toString
+    public final static int FUNC_TEXT = 1;  // 节点内容
+    public final static int FUNC_HTML = 2;  // 节点html
+    public final static int FUNC_ATTR = 3;  // 节点属性
 
-    public Rule(String selector, String fun, String param, String regex, String replacement) {
-        this.selector = selector;
-        this.fun = fun;
-        this.param = param;
+    private String cssQuery;    // html节点
+    private boolean multiple;   // 当cssQuery匹配到多个节点时，是否解析多个节点，否则只匹配第一个节点
+    private int func;   // 提取方法，文字，属性等
+    private String attrName;    // 如果提取方法是属性，则需要给予要提取的属性名
+    private String regex;   // 对提取结果进行正则匹配
+    private String replacement; // 对正则匹配结果进行正则替换
+
+    public Rule(String cssQuery) {
+        this.cssQuery = cssQuery;
+        this.multiple = false;
+        this.func = FUNC_TEXT;
+    }
+
+    public Rule cssQuery(String cssQuery) {
+        this.cssQuery = cssQuery;
+        return this;
+    }
+
+    public Rule multiple() {
+        this.multiple = true;
+        return this;
+    }
+
+    public Rule str() {
+        this.func = FUNC_STR;
+        return this;
+    }
+
+    public Rule text() {
+        this.func = FUNC_TEXT;
+        return this;
+    }
+
+    public Rule html() {
+        this.func = FUNC_HTML;
+        return this;
+    }
+
+    public Rule attr(String attrName) {
+        this.func = FUNC_ATTR;
+        this.attrName = attrName;
+        return this;
+    }
+
+    public Rule regex(String regex) {
+        this.regex = regex;
+        return this;
+    }
+
+    public Rule regex(String regex, String replacement) {
         this.regex = regex;
         this.replacement = replacement;
+        return this;
     }
 
-    public Rule() {
+    public String getCssQuery() {
+        return cssQuery;
     }
 
-	public String getSelector() {
-		return selector;
-	}
+    public boolean isMultiple() {
+        return multiple;
+    }
 
-	public void setSelector(String selector) {
-		this.selector = selector;
-	}
+    public int getFunc() {
+        return func;
+    }
 
-	public String getFun() {
-		return fun;
-	}
+    public String getAttrName() {
+        return attrName;
+    }
 
-	public void setFun(String fun) {
-		this.fun = fun;
-	}
+    public String getRegex() {
+        return regex;
+    }
 
-	public String getParam() {
-		return param;
-	}
-
-	public void setParam(String param) {
-		this.param = param;
-	}
-
-	public String getRegex() {
-		return regex;
-	}
-
-	public void setRegex(String regex) {
-		this.regex = regex;
-	}
-
-	public String getReplacement() {
-		return replacement;
-	}
-
-	public void setReplacement(String replacement) {
-		this.replacement = replacement;
-	}
-
-	@Override
-	public void setPattern(Pattern pattern) {
-		this.pattern = pattern;
-	}
-
-	@Override
-	public Pattern getPattern() {
-		return pattern;
-	}
-	
+    public String getReplacement() {
+        return replacement;
+    }
 }

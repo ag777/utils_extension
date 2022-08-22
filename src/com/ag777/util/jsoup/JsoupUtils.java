@@ -1,16 +1,5 @@
 package com.ag777.util.jsoup;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -18,10 +7,14 @@ import org.jsoup.nodes.Element;
 import org.jsoup.safety.Cleaner;
 import org.jsoup.safety.Whitelist;
 import org.jsoup.select.Elements;
-import com.ag777.util.jsoup.interf.RuleInterf;
-import com.ag777.util.jsoup.model.Rule;
-import com.ag777.util.lang.Console;
-import com.ag777.util.lang.collection.MapUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 有关 <code>Jsoup</code> 爬虫工具类
@@ -36,7 +29,7 @@ import com.ag777.util.lang.collection.MapUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2017年06月05日,last modify at 2020年03月12日
+ * @version create on 2017年06月05日,last modify at 2022年08月22日
  */
 public class JsoupUtils {
 
@@ -62,8 +55,8 @@ public class JsoupUtils {
 	/*==================入口函数======================*/
 	/**
 	 * 通过字符串构建
-	 * @param html
-	 * @return
+	 * @param html html
+	 * @return JsoupUtils
 	 */
 	public static JsoupUtils parse(String html) {
 		return new JsoupUtils(Jsoup.parse(html));
@@ -71,47 +64,35 @@ public class JsoupUtils {
 	
 	/**
 	 * 通过文件构建
-	 * @param in
-	 * @param charsetName
-	 * @return
-	 * @throws IOException
+	 * @param in 文件
+	 * @param charsetName 编码
+	 * @return JsoupUtils
+	 * @throws IOException io异常
 	 */
 	public static JsoupUtils parse(File in, String charsetName) throws IOException {
-		try {
-			return new JsoupUtils(Jsoup.parse(in, charsetName));
-		} catch (IOException e) {
-			throw e;
-		}
+		return new JsoupUtils(Jsoup.parse(in, charsetName));
 	}
 	
 	/**
 	 * 连接目标url
-	 * @param url
-	 * @return
-	 * @throws Exception
+	 * @param url url
+	 * @return JsoupUtils
+	 * @throws IOException io异常
 	 */
 	public static JsoupUtils connect(String url) throws IOException{
-		try {
-			Document doc = c(url).get();
-			return new JsoupUtils(doc);
-		} catch(IOException ex) {
-			throw ex;
-		}
+		Document doc = c(url).get();
+		return new JsoupUtils(doc);
 	}
 	
 	/**
 	 * 连接目标url(post请求)
-	 * @param url
-	 * @return
-	 * @throws IOException
+	 * @param url url
+	 * @return JsoupUtils
+	 * @throws IOException io异常
 	 */
 	public static JsoupUtils post(String url) throws IOException{
-		try {
-			Document doc = c(url).post();
-			return new JsoupUtils(doc);
-		} catch(IOException ex) {
-			throw ex;
-		}
+		Document doc = c(url).post();
+		return new JsoupUtils(doc);
 	}
 
 	private static Connection c(String url) {
@@ -122,14 +103,14 @@ public class JsoupUtils {
 
 	/**
 	 * 根据配置来做连接
-	 * @param url
-	 * @param config
-	 * @return
-	 * @throws IOException
+	 * @param url url
+	 * @param config 连接配置
+	 * @return JsoupUtils
+	 * @throws IOException io异常
 	 */
 	public static JsoupUtils connect(String url, JsoupBuilder config) throws IOException {
 		Integer retryTimes = config.retryTimes();
-		if(retryTimes == null) {
+		if(retryTimes == null || retryTimes < 1) {
 			retryTimes = 1;
 		}
 		IOException ex = null;
@@ -146,14 +127,14 @@ public class JsoupUtils {
 	
 	/**
 	 * 根据配置来做连接(post请求)
-	 * @param url
-	 * @param config
-	 * @return
-	 * @throws IOException
+	 * @param url url
+	 * @param config 连接配置
+	 * @return JsoupUtils
+	 * @throws IOException io异常
 	 */
 	public static JsoupUtils post(String url, JsoupBuilder config) throws IOException {
 		Integer retryTimes = config.retryTimes();
-		if(retryTimes == null) {
+		if(retryTimes == null || retryTimes < 1) {
 			retryTimes = 1;
 		}
 		IOException ex = null;
@@ -170,9 +151,9 @@ public class JsoupUtils {
 	
 	/**
 	 * 获取connection对象
-	 * @param url
-	 * @param config
-	 * @return
+	 * @param url url
+	 * @param config 连接配置
+	 * @return 连接
 	 */
 	private static Connection getConn(String url, JsoupBuilder config) {
 //		Whitelist whitelist = Whitelist.basicWithImages();
@@ -217,8 +198,7 @@ public class JsoupUtils {
 	}
 	
 	/**
-	 * 获取格式化的html
-	 * @return
+	 * @return 格式化的html
 	 */
 	public String getPrettyHtml() {
 		doc.outputSettings().prettyPrint(true);//是否格式化
@@ -226,21 +206,20 @@ public class JsoupUtils {
 	}
 
 	/**
-	 * 获取当前页的地址
-	 * @return
+	 * @return 当前页的地址
 	 */
 	public String getUrl() {
 		return doc.baseUri();
 	}
-	
+
 	/**
 	 * 利用白名单功能清除javascript标签
 	 * <p>
 	 * 详见filterTags(String... tags)方法注释
 	 * </p>
 	 * 
-	 * @param tags
-	 * @return
+	 * @param tags 标签
+	 * @return JsoupUtils
 	 */
 	public JsoupUtils filterScript(String... tags) {
 		return filterTags();
@@ -254,7 +233,7 @@ public class JsoupUtils {
 	 * 另外加上span标签,其余的标签均会被删除
 	 * </p>
 	 * 
-	 * @return 
+	 * @return JsoupUtils
 	 */
 	public JsoupUtils filterTags(String... tags) {
 		Whitelist whitelist = Whitelist.relaxed();
@@ -273,8 +252,8 @@ public class JsoupUtils {
 	
 	/**
 	 * 通过id获取节点
-	 * @param id
-	 * @return
+	 * @param id id
+	 * @return 节点
 	 */
 	public Element findById(String id) {
 		return doc.getElementById(id);
@@ -282,8 +261,8 @@ public class JsoupUtils {
 
 	/**
 	 * 通过class获取节点集合
-	 * @param className
-	 * @return
+	 * @param className className
+	 * @return 节点
 	 */
 	public Elements findByClass(String className) {
 		return doc.getElementsByClass(className);
@@ -291,8 +270,8 @@ public class JsoupUtils {
 
 	/**
 	 * 通过tag获取节点集合
-	 * @param tagName
-	 * @return
+	 * @param tagName tagName
+	 * @return 节点
 	 */
 	public Elements findByTag(String tagName) {
 		return doc.getElementsByTag(tagName);
@@ -300,8 +279,8 @@ public class JsoupUtils {
 
 	/**
 	 * 通过css选择的器来选节点
-	 * @param cssQuery
-	 * @return
+	 * @param cssQuery cssQuery
+	 * @return 节点
 	 */
 	public Elements select(String cssQuery) {
 		return doc.select(cssQuery);
@@ -312,15 +291,14 @@ public class JsoupUtils {
 		if(elements.size() > 0) {
 			return Optional.of(elements.get(0));
 		}
-		return Optional.ofNullable(null);
+		return Optional.empty();
 	}
 	
 	/**
-	 * 寻找页面内所有图片
-	 * @return
+	 * @return 页面内所有图片
 	 */
 	public List<String> findImgUrls() {
-		List<String> urls = new ArrayList<String>();
+		List<String> urls = new ArrayList<>();
 		Elements media = doc.select("[src]");
 
 		for (Element src : media) {
@@ -342,11 +320,11 @@ public class JsoupUtils {
 
 	/**
 	 * 通过正则获取节点列表
-	 * @param regex
-	 * @return
+	 * @param regex regex
+	 * @return 匹配到的节点列表
 	 */
 	public List<Element> findByReg(String regex) {
-		List<Element> list = new ArrayList<Element>();
+		List<Element> list = new ArrayList<>();
 		Pattern pattern = Pattern.compile(regex);
 		Matcher matcher = pattern.matcher(getHtml());
 
@@ -367,7 +345,7 @@ public class JsoupUtils {
 	 * @param cssQuery		css选择器，想找到目标容器的大致范围(目标的父容器)
 	 * @param regex			匹配用的正则表达式
 	 * @param replacement	置换规则（将正则匹配的结果替换为想要的格式）
-	 * @return
+	 * @return 结果列表
 	 */
 	public List<String> findByReg(String cssQuery, String regex, String replacement) {
 		List<String> list = new ArrayList<>();
@@ -378,10 +356,7 @@ public class JsoupUtils {
 				Pattern pattern = Pattern.compile(regex);
 				Matcher matcher = pattern.matcher(element.html());
 
-				if (!matcher.find()) {
-
-				} else if (matcher.groupCount() >= 1) {
-
+				if (matcher.find()) {
 					for (int i = 1; i <= matcher.groupCount(); i++) {
 						String replace = matcher.group(i);
 						replacement = replacement.replaceAll("\\$" + i, (replace != null) ? replace : "");
@@ -394,284 +369,8 @@ public class JsoupUtils {
 		return list;
 	}
 
-	/**
-	 * 通过rulemap查找结果列表
-	 * @param ruleMap
-	 * @param cssQuery	缩小查找范围
-	 * @return
-	 * @throws java.util.regex.PatternSyntaxException
-	 */
-	public List<Map<String, Object>> findListByRuleMap(Map<String, RuleInterf> ruleMap, String cssQuery) throws java.util.regex.PatternSyntaxException {
-		List<Map<String, Object>> result = new ArrayList<>();
-		Elements elements = doc.select(cssQuery);
-		if(elements != null && !elements.isEmpty()) {
-			for (Element element : elements) {
-				Map<String, Object> item = new HashMap<String, Object>();
-				Iterator<String> itor = ruleMap.keySet().iterator();
-				while(itor.hasNext()) {
-					String key = itor.next();
-					RuleInterf ruleInterf = ruleMap.get(key);
-					item.put(key, findByRule(ruleInterf, element));
-				}
-				result.add(item);
-			}
-		}
-		return result;
-	}
-	
-	/**
-	 * 通过rulemap查找结果
-	 * @param ruleMap
-	 * @param cssQuery	缩小查找范围
-	 * @return
-	 * @throws java.util.regex.PatternSyntaxException
-	 */
-	public Map<String, Object> findByRuleMap(Map<String, RuleInterf> ruleMap, String cssQuery) throws java.util.regex.PatternSyntaxException {
-		Elements elements = doc.select(cssQuery);
-		if(elements != null && !elements.isEmpty()) {
-			Map<String, Object> result = new HashMap<String, Object>();
-			Iterator<String> itor = ruleMap.keySet().iterator();
-			while(itor.hasNext()) {
-				String key = itor.next();
-				RuleInterf ruleInterf = ruleMap.get(key);
-				result.put(key, findByRule(ruleInterf, elements.get(0)));
-			}
-			return result;
-		}
-		
-		return null;
-	}
-	
-	/**
-	 * 通过rulemap查找结果列表
-	 * @param ruleMap
-	 * @param elements
-	 * @return
-	 * @throws java.util.regex.PatternSyntaxException
-	 */
-	public List<Map<String, Object>> findListByRuleMap(Map<String, RuleInterf> ruleMap, Elements elements) throws java.util.regex.PatternSyntaxException {
-		List<Map<String, Object>> result = new ArrayList<>();
-		if(elements != null) {
-			for (Element element : elements) {
-				result.add(findByRuleMap(ruleMap, element));
-			}
-		}
-		return result;
-	}
-	
-	/**
-	 * 通过rulemap查找结果
-	 * @param ruleMap key以及对应的map
-	 * @param element
-	 * @return
-	 * @throws java.util.regex.PatternSyntaxException
-	 */
-	public Map<String, Object> findByRuleMap(Map<String, RuleInterf> ruleMap, Element element) throws java.util.regex.PatternSyntaxException {
-		Map<String, Object> result = new HashMap<String, Object>();
-		Iterator<String> itor = ruleMap.keySet().iterator();
-		while(itor.hasNext()) {
-			String key = itor.next();
-			RuleInterf ruleInterf = ruleMap.get(key);
-			result.put(key, findByRule(ruleInterf, element));
-		}
-		return result;
-	}
-	
-	/**
-	 * 通过jsonMap(特定规则的map)来获取结果
-	 * @param jsonMap
-	 * @return
-	 * @throws Exception
-	 */
-	public Map<String,Object> findByJsonMap(Map<String, Object> jsonMap) throws Exception {
-		return findByJsonMap(jsonMap, doc, "data");
-	}
-	
-	/**
-	 * 通过jsonMap(特定规则的map)来获取结果
-	 * @param jsonMap 
-	 * @param topElement 根遍历节点，默认为doc
-	 * @param defaultKey 根节点默认的key(根节点直接对应列表)
-	 * @return
-	 * @throws Exception
-	 */
-	@SuppressWarnings("unchecked")
-	public Map<String,Object> findByJsonMap(Map<String, Object> jsonMap, Element topElement, String defaultKey) throws Exception {
-		try {
-			Map<String,Object> result = new HashMap<>();
-			if(jsonMap.containsKey("item")) {
-				List<Map<String,Object>> list = new ArrayList<>();
-				Map<String,Object> selectorMap = (Map<String, Object>) jsonMap.get("item");
-				String selector = (String) selectorMap.get("selector");
-//				jsonMap.remove("item");
-				Elements elements = topElement.select(selector);
-				
-				for (Element element : elements) {
-					Iterator<String> itor = jsonMap.keySet().iterator();
-					Map<String, Object> item = new HashMap<>();
-					while(itor.hasNext()) {
-						String key = itor.next();
-						if("item".equals(key)) {
-							continue;
-						}
-						Map<String, Object> params = (Map<String, Object>) jsonMap.get(key);
-						item.put(key, findByJsonMap(element, params));
-					}
-					list.add(item);
-				}
-				result.put(defaultKey, list);
-			} else if(!jsonMap.containsKey("selector")){
-			
-				Iterator<String> itor = jsonMap.keySet().iterator();
-				while(itor.hasNext()) {
-					String key = itor.next();
-					if("item".equals(key)) {
-						continue;
-					}
-					Map<String, Object> map = (Map<String, Object>) jsonMap.get(key);
-					result.putAll(findByJsonMap(map, topElement, key));
-				}
-			} else {
-				result.put(defaultKey, findByJsonMap(topElement, jsonMap));
-			}
-			return result;
-		} catch(Exception ex) {
-			Console.err(ex);
-			throw new Exception("json不正确");
-		}
-	}
-	
-	/**
-	 * 通过规则得到节点中匹配的值
-	 * 流程:
-		 * 1.通过select找到对应节点
-		 * 2.提取对应属性中的值
-		 * 3.正则提取结果字符串中的相应部分
-	 * @param ruleInterf
-	 * @param cssQuery 缩小查找范围
-	 * @return
-	 * @throws java.util.regex.PatternSyntaxException
-	 */
-	public List<String> findListByRule(RuleInterf ruleInterf, String cssQuery) throws java.util.regex.PatternSyntaxException{
-		List<String> result = new ArrayList<>();
-		Elements elements = doc.select(cssQuery);
-		if(elements != null && !elements.isEmpty()) {
-			for (Element element : elements) {
-				String item = findByRule(ruleInterf, element);
-				if(item != null) {
-					result.add(item);
-				}
-			}
-		}
-		return result;
-	}
-	
-	/**
-	 * 通过规则得到节点中匹配的值
-	 * 流程:
-		 * 1.通过select找到对应节点
-		 * 2.提取对应属性中的值
-		 * 3.正则提取结果字符串中的相应部分
-	 * @param ruleInterf
-	 * @param element	 查找范围,传null则为默认的doc
-	 * @return
-	 * @throws java.util.regex.PatternSyntaxException 正则表达式错误
-	 */
-	public String findByRule(RuleInterf ruleInterf, Element element) throws java.util.regex.PatternSyntaxException{
-		if(element == null) {
-			element = doc;
-		}
-		
-		String result = null;
-		Elements target = element.select(ruleInterf.getSelector());
-		if(target != null) {	//通过【selector】找到节点
 
-			//通过【fun】来提取对应属性
-			if ("attr".equals(ruleInterf.getFun())) {
-				result = element.attr(ruleInterf.getParam());
-			} else if ("html".equals(ruleInterf.getFun())) {
-				result = element.html();
-			} else if ("text".equals(ruleInterf.getFun())) {
-				result = element.text();
-			} else {
-				result = element.toString();
-			}
 
-			if(ruleInterf.getRegex() != null && ruleInterf.getPattern() == null) {
-				ruleInterf.setPattern(Pattern.compile(ruleInterf.getRegex()));
-			}
-			result = get(result, ruleInterf.getPattern(), ruleInterf.getReplacement());
-
-		}
-
-		return result;
-	}
-	
-	
-	/**
-	 * 根据规则及对应节点获取结果
-	 * @param element
-	 * @param params
-	 * @return
-	 */
-	private String findByJsonMap(Element element, Map<String, Object> params) {
-		String result = null;
-		Elements target = element.select(MapUtils.getStr(params, "selector"));
-		if(target != null) {	//通过【selector】找到节点
-
-			//通过【fun】来提取对应属性
-			String fun = MapUtils.getStr(params, "fun");
-			if ("attr".equals(fun)) {
-				result = target.attr(MapUtils.getStr(params, "param"));
-			} else if ("html".equals(fun)) {
-				result = target.html();
-			} else if ("text".equals(fun)) {
-				result = target.text();
-			} else {
-				result = target.toString();
-			}
-			//预存pattern,实际上直接用正则也能获取到结果
-			String reg = MapUtils.getStr(params, "regex");
-			if(reg != null && !params.containsKey("pattern")) {
-				params.put("pattern", Pattern.compile(reg));
-			}
-			result = get(result, (Pattern) params.get("pattern"), MapUtils.getStr(params, "replacement"));
-
-		}
-		return result;
-	}
-
-	/**
-	 * 通过正则表达式对应的Pattern提取相应的结果
-	 * @param target
-	 * @param pattern
-	 * @param replacement
-	 * @return
-	 */
-	private String get(String target, Pattern pattern, String replacement) {
-		if(target != null && pattern != null) {
-			Matcher matcher = pattern.matcher(target);
-
-			if (!matcher.find()) {
-
-			} else if (matcher.groupCount() >= 1) {
-				if (replacement != null) {
-					for (int i = 1; i <= matcher.groupCount(); i++) {
-						String replace = matcher.group(i);
-						replacement =  replacement.replaceAll("\\$" + i, (replace != null) ? replace : "");
-					}
-					return replacement;
-				}else {	//不需要替换
-					return matcher.group(1);
-				}
-
-			}
-
-		} else {
-			return target;
-		}
-		return null;
-	}
 
 	public static void main(String[] args) {
 //		List<Element> html = connect("https://tieba.baidu.com/f?kw=%C1%E3%D6%AE%D3%C0%BA%E3").findByReg("<span[^>]+?>([\\s\\S]*?)</span>");
@@ -695,17 +394,6 @@ public class JsoupUtils {
 ////			System.out.println(title+"||"+cover+"||"+datetime);
 //		}
 
-		Map<String, RuleInterf> params = new HashMap<>();
-		params.put("标题", new Rule("a>h1.title, h2>a.title", "html", null, null, null));
-		params.put("封面", new Rule("div._layout-thumbnail>img", null, null, "\"(https?://[^\"]*?\\.(?:jpg|jpeg|png|bmp))\"", null));
-////		params.put("日期", new Rule("a.work img._thumbnail", "attr", "data-src", ".*img/(\\d{4})/(\\d{2})/(\\d{2})/(\\d{2})/(\\d{2})/(\\d{2})", "$1-$2-$3 $4:$5:$6"));
-		try {
-			//需要登录后的cookie
-			List<Map<String, Object>> result = connect("https://www.pixiv.net/search.php?s_mode=s_tag_full&word=東方&p={page:1}")
-					.findListByRuleMap(params, "ul._image-items>li.image-item, section.ranking-item");
-			Console.log(result);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+
 	}
 }
