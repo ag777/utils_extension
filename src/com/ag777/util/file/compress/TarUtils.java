@@ -82,7 +82,9 @@ public class TarUtils extends BaseApacheCompressUtils{
 	@Override
 	public ArchiveEntry getArchiveEntry(String filePath, File file, boolean isFile) {
 		TarArchiveEntry entry = new TarArchiveEntry(filePath);
-		entry.setSize(file.length());
+		if (isFile) {
+			entry.setSize(file.length());
+		}
 		return entry;
 	}
 	
