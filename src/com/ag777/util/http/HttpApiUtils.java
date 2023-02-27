@@ -137,9 +137,9 @@ public class HttpApiUtils {
         try {
             File file = FileUtils.write(in, targetPath);
             if(file.exists() && file.isFile()) {
-                throw toException.apply("转写"+apiName+"返回异常,转写文件不存在", null);
+                return file;
             }
-            return file;
+            throw toException.apply("转写"+apiName+"返回异常,转写文件不存在", null);
         } catch (IOException e) {
             throw toException.apply("转写"+apiName+"返回出现io异常", e);
         }
