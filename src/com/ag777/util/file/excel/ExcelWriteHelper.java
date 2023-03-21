@@ -47,7 +47,7 @@ import com.ag777.util.lang.interf.Disposable;
  * </p>
  * 
  * @author ag777
- * @version last modify at 2019年08月19日
+ * @version last modify at 2023年01月21日
  */
 public class ExcelWriteHelper implements Disposable {
 	
@@ -60,7 +60,7 @@ public class ExcelWriteHelper implements Disposable {
 	
 	/**
 	 * 获取当前工作环境(用于构造表格样式)
-	 * @return
+	 * @return 工作簿
 	 */
 	public Workbook workBook() {
 		return workBook;
@@ -68,7 +68,7 @@ public class ExcelWriteHelper implements Disposable {
 	
 	/**
 	 * 获取当前sheet
-	 * @return
+	 * @return 页
 	 */
 	public Sheet curSheet() {
 		return curSheet;
@@ -95,8 +95,6 @@ public class ExcelWriteHelper implements Disposable {
 	public static void write(OutputStream os, Workbook workBook) throws IOException {
 		try {
 			workBook.write(os);
-		} catch (IOException e) {
-			throw e;
 		} finally {
 			IOUtils.close(os);
 		}
@@ -104,8 +102,8 @@ public class ExcelWriteHelper implements Disposable {
 	
 	/**
 	 * 将excel文件写出到输出流中,并关闭输出流
-	 * @param os
-	 * @throws Exception 
+	 * @param os 输出流
+	 * @throws IOException 异常
 	 */
 	public void write(OutputStream os) throws IOException {
 		write(os, workBook);
@@ -151,7 +149,7 @@ public class ExcelWriteHelper implements Disposable {
 			// 解决自动设置列宽中文失效的问题
 			int colWidth = curSheet.getColumnWidth(i) * 17 / 10;
 			// 解决宽度设置不得大于254的问题java.lang.IllegalArgumentException: The maximum column width for an individual cell is 255 characters.
-			curSheet.setColumnWidth(i, colWidth<maxWitdh?colWidth:maxWitdh);
+			curSheet.setColumnWidth(i, Math.min(colWidth, maxWitdh));
 		}
 		return this;
 	}
@@ -159,8 +157,8 @@ public class ExcelWriteHelper implements Disposable {
 	
 	/**
 	 * 设置列宽
-	 * @param colWidths
-	 * @return
+	 * @param colWidths 单元格宽度
+	 * @return 链式调用本身
 	 */
 	public ExcelWriteHelper columnWidth(int[] colWidths) {
 		//设置列宽
@@ -174,12 +172,12 @@ public class ExcelWriteHelper implements Disposable {
 	
 	/**
 	 * 横表
-	 * @param dataList
-	 * @param keys
-	 * @param titles
-	 * @param titleStryle
-	 * @param contentStyle
-	 * @return 
+	 * @param dataList 数据列表
+	 * @param keys 数据键
+	 * @param titles 标题
+	 * @param titleStyle 标题样式
+	 * @param contentStyles 内容样式
+	 * @return 链式调用本身
 	 */
 	public ExcelWriteHelper createTableHorizontal(
 			List<Map<String, Object>> dataList,
@@ -190,7 +188,7 @@ public class ExcelWriteHelper implements Disposable {
 		if(dataList == null) {
 			dataList = new ArrayList<>();
 		}
-		
+
 		if(keys == null && !dataList.isEmpty()) {
 			Map<String, Object> firstMap = dataList.get(0);
 			if(!firstMap.isEmpty()) {
@@ -203,17 +201,17 @@ public class ExcelWriteHelper implements Disposable {
 				}
 			}
 		}
-		
+
 		if(titles != null && titles.length == 0) {	//如果标题为空，则令titles和keys相同
 			titles = keys;
 		}
-		
+
 		/*参数处理结束*/
-		
+
 		int rowNumStart = index;	//先记录表格初始行的位置
 		int rowNumLast = index+dataList.size()-(titles==null?1:0);	//结束行的位置
 		int colNumLast = keys==null?(titles==null?0:titles.length-1):keys.length-1;	//结束列数，-1是因为计数从0开始
-		
+
 		if (titles != null) {
 			// 创建行头
 			Row row0 = createRow();
@@ -229,49 +227,47 @@ public class ExcelWriteHelper implements Disposable {
 		// 创建数据行
 		if (keys  != null) {
 			for (int k=0, size = dataList.size(); k < size; k++) {	//k为dataList的下标,i代表多少行,j代表多少列
-				
+
 				Map<String, Object> rowObj = dataList.get(k);
-				
+
 				// 创建行
 				Row row = createRow();
 				// 创建行的列
-				if (keys != null) {
-					for (int j = 0, length = keys.length; j < length; j++) {
-						Cell cell = row.createCell(j);
-						
-						CellStyle contentStyle = null;
-						if(contentStyles != null) {
-							contentStyle = (j<contentStyles.length)?contentStyles[j]:contentStyles[contentStyles.length-1];
-						}
-						
-						if(contentStyle != null) {
-							cell.setCellStyle(contentStyle);
-						}
-						
-						if(rowObj.containsKey(keys[j]) && rowObj.get(keys[j])!=null){
-							cell.setCellValue(new HSSFRichTextString(rowObj
-									.get(keys[j]).toString()));
-						}else{
-							cell.setCellValue("");
-						}
+				for (int j = 0, length = keys.length; j < length; j++) {
+					Cell cell = row.createCell(j);
+
+					CellStyle contentStyle = null;
+					if(contentStyles != null) {
+						contentStyle = (j<contentStyles.length)?contentStyles[j]:contentStyles[contentStyles.length-1];
 					}
 
+					if(contentStyle != null) {
+						cell.setCellStyle(contentStyle);
+					}
+
+					if(rowObj.containsKey(keys[j]) && rowObj.get(keys[j])!=null){
+						cell.setCellValue(new HSSFRichTextString(rowObj
+								.get(keys[j]).toString()));
+					}else{
+						cell.setCellValue("");
+					}
 				}
+
 			}
 		}
-		
+
 		createTableBorder(rowNumStart, rowNumLast, 0, colNumLast);
 		return this;
 	}
-	
+
 	/**
 	 * 横表(仅一条数据行)
-	 * @param dataMap
-	 * @param keys
-	 * @param titles
-	 * @param titleStyle
-	 * @param contentStyle
-	 * @return
+	 * @param dataMap 数据表
+	 * @param keys 数据键
+	 * @param titles 标题
+	 * @param titleStyle 标题样式
+	 * @param contentStyle 内容样式
+	 * @return 链式调用本身
 	 */
 	public ExcelWriteHelper createTableHorizontal(
 			Map<String, Object> dataMap,
@@ -280,11 +276,11 @@ public class ExcelWriteHelper implements Disposable {
 			CellStyle titleStyle,
 			CellStyle contentStyle) {
 		/*参数处理*/
-		
+
 		if(dataMap == null) {
 			dataMap = new HashMap<>();
 		}
-		
+
 		if(keys == null && !dataMap.isEmpty()) {
 			keys = new String[dataMap.size()];
 			int i=0;
@@ -294,17 +290,17 @@ public class ExcelWriteHelper implements Disposable {
 				i++;
 			}
 		}
-		
+
 		if(titles != null && titles.length == 0) {	//如果标题为空，则令titles和keys相同
 			titles = keys;
 		}
-		
+
 		/*参数处理结束*/
-		
+
 		int rowNumStart = index;	//先记录表格初始行的位置
 		int rowNumLast = index+1-(titles==null?1:0);	//结束行的位置
 		int colNumLast = keys==null?(titles==null?0:titles.length-1):keys.length-1;	//结束列数，-1是因为计数从0开始
-		
+
 		if (titles != null) {
 			// 创建行头
 			Row row0 = createRow();
@@ -319,46 +315,39 @@ public class ExcelWriteHelper implements Disposable {
 		}
 		// 创建数据行
 		if (keys  != null) {
-			
-				
-			Map<String, Object> rowObj = dataMap;
-			
 			// 创建行
 			Row row = createRow();
 			// 创建行的列
-			if (keys != null) {
-				for (int j = 0, length = keys.length; j < length; j++) {
-					Cell cell = row.createCell(j);
-					
-					if(contentStyle != null) {
-						cell.setCellStyle(contentStyle);
-					}
-					
-					if(rowObj.containsKey(keys[j]) && rowObj.get(keys[j])!=null){
-						cell.setCellValue(new HSSFRichTextString(rowObj
-								.get(keys[j]).toString()));
-					}else{
-						cell.setCellValue("");
-					}
+			for (int j = 0, length = keys.length; j < length; j++) {
+				Cell cell = row.createCell(j);
+
+				if(contentStyle != null) {
+					cell.setCellStyle(contentStyle);
 				}
 
+				if(dataMap.containsKey(keys[j]) && dataMap.get(keys[j])!=null){
+					cell.setCellValue(new HSSFRichTextString(dataMap
+							.get(keys[j]).toString()));
+				}else{
+					cell.setCellValue("");
+				}
 			}
 
-				
+
 		}
-		
+
 		createTableBorder(rowNumStart, rowNumLast, 0, colNumLast);
 		return this;
 	}
-	
+
 	/**
 	 * 纵表
-	 * @param dataList
-	 * @param keys
-	 * @param titles
-	 * @param titleStryle
-	 * @param contentStyle
-	 * @return 
+	 * @param dataList 数据列表
+	 * @param keys 数据键
+	 * @param titles 标题
+	 * @param titleStyle 标题样式
+	 * @param contentStyles 内容样式
+	 * @return 链式调用本身
 	 */
 	public ExcelWriteHelper createTableVertical(
 			List<Map<String, Object>> dataList,
@@ -370,7 +359,7 @@ public class ExcelWriteHelper implements Disposable {
 		if(dataList == null) {
 			dataList = new ArrayList<>();
 		}
-		
+
 		if(keys == null && !dataList.isEmpty()) {
 			Map<String, Object> firstMap = dataList.get(0);
 			if(!firstMap.isEmpty()) {
@@ -383,63 +372,59 @@ public class ExcelWriteHelper implements Disposable {
 				}
 			}
 		}
-		
+
 		if(titles != null && titles.length == 0) {	//如果标题为空，则令titles和keys相同
 			titles = keys;
 		}
-		
+
 		/*参数处理结束*/
-		
+
 		int rowNumStart = index;	//先记录表格初始行的位置
 		int rowNumLast = keys==null?index:index+keys.length-1;	//结束行的位置
-		
+
 		int k = 0;	//每列的游标
-		
+
 		if(titles != null) {	//写标题
-			for (int i = 0; i < titles.length; i++) {
+			for (String title : titles) {
 				Row row = createRow();
-				createCell(row, 0, titles[i], titleStyle);
+				createCell(row, 0, title, titleStyle);
 			}
 			k++;	//标题占了一列
 		}
-		
+
 		//生成列
 		if(keys != null) {
 			//遍历数据列表，再通过键取出对应的值，获取对应的行生成对应的列，按列插入数据
 			for (int i = 0; i < dataList.size(); i++) {	//生成列数
 				Map<String, Object> rowObj = dataList.get(i);
-				
+
 				for (int j = 0; j < keys.length; j++) {	//行数
 					Row row = curSheet.getRow(rowNumStart+j);	//如果当前行没被创建则返回null
-					if(row == null ) {	
+					if(row == null ) {
 						row = createRow();
 					}
-					
+
 					CellStyle contentStyle = (j<contentStyles.length)?contentStyles[j]:contentStyles[contentStyles.length-1];
-					
-					if(rowObj.containsKey(keys[j])) {
-						createCell(row, k+i, rowObj.get(keys[j]), contentStyle);
-					} else {
-						createCell(row, k+i, "", contentStyle);
-					}
+
+					createCell(row, k + i, rowObj.getOrDefault(keys[j], ""), contentStyle);
 				}
-	
+
 			}
 		}
-		
+
 		createTableBorder(rowNumStart, rowNumLast, 0, k+dataList.size()-1);
 		return this;
-		
+
 	}
-	
+
 	/**
 	 * 纵表
-	 * @param dataList
-	 * @param keys
-	 * @param titles
-	 * @param titleStryle
-	 * @param contentStyle
-	 * @return 
+	 * @param dataList 数据列表
+	 * @param keys 数据键
+	 * @param titles 标题
+	 * @param titleStyle 标题样式
+	 * @param contentStyle 内容样式
+	 * @return 链式调用本身
 	 */
 	public ExcelWriteHelper createTableVertical(
 			List<Map<String, Object>> dataList,
@@ -447,22 +432,22 @@ public class ExcelWriteHelper implements Disposable {
 			String[] titles,
 			CellStyle titleStyle,
 			CellStyle contentStyle) {
-		
+
 		return createTableVertical(dataList,
 				keys,
 				titles,
 				titleStyle,
 				new CellStyle[]{contentStyle});
 	}
-	
+
 	/**
 	 * 纵表(一个数据列)
-	 * @param dataMap
-	 * @param keys
-	 * @param titles
-	 * @param titleStyle
-	 * @param contentStyle
-	 * @return
+	 * @param dataMap 数据表
+	 * @param keys 数据键
+	 * @param titles 标题
+	 * @param titleStyle 标题样式
+	 * @param contentStyle 内容样式
+	 * @return 链式调用本身
 	 */
 	public ExcelWriteHelper createTableVertical(
 			Map<String, Object> dataMap,
@@ -471,35 +456,34 @@ public class ExcelWriteHelper implements Disposable {
 			CellStyle titleStyle,
 			CellStyle contentStyle) {
 		/*参数处理*/
-		
+
 		if(dataMap == null) {
 			dataMap = new HashMap<>();
 		}
-		
+
 		if(keys == null) {
-			Map<String, Object> firstMap = dataMap;
-			if(!firstMap.isEmpty()) {
-				keys = new String[firstMap.size()];
+			if(!dataMap.isEmpty()) {
+				keys = new String[dataMap.size()];
 				int i=0;
-				Iterator<String> itor = firstMap.keySet().iterator();
+				Iterator<String> itor = dataMap.keySet().iterator();
 				while(itor.hasNext()) {
 					keys[i] = itor.next();
 					i++;
 				}
 			}
 		}
-		
+
 		if(titles != null && titles.length == 0) {	//如果标题为空，则令titles和keys相同
 			titles = keys;
 		}
-		
+
 		/*参数处理结束*/
-		
+
 		int rowNumStart = index;	//先记录表格初始行的位置
 		int rowNumLast = keys==null?index:index+keys.length-1;
-		
+
 		int k = 0;	//每列的游标
-		
+
 		if(titles != null) {	//写标题
 			for (int i = 0; i < titles.length; i++) {
 				Row row = createRow();
@@ -507,40 +491,39 @@ public class ExcelWriteHelper implements Disposable {
 			}
 			k++;	//标题占了一列
 		}
-		
-		
+
+
 		//生成列
 		if(keys != null) {
 			//遍历数据列表，再通过键取出对应的值，获取对应的行生成对应的列，按列插入数据
-			Map<String, Object> rowObj = dataMap;
-			
+
 			for (int j = 0; j < keys.length; j++) {	//行数
-				
+
 				Row row = curSheet.getRow(rowNumStart+j);	//如果当前行没被创建则返回null
-				if(row == null ) {	
+				if(row == null ) {
 					row = createRow();
 				}
-				
-				if(rowObj.containsKey(keys[j])) {
-					createCell(row, k, rowObj.get(keys[j]), contentStyle);
+
+				if(dataMap.containsKey(keys[j])) {
+					createCell(row, k, dataMap.get(keys[j]), contentStyle);
 				} else {
 					createCell(row, k, "", contentStyle);
 				}
 			}
-	
+
 		}
-		
+
 		createTableBorder(rowNumStart, rowNumLast, 0, k);
 		return this;
 	}
-	
+
 	/**
 	 * 纵表(仅一条数据行)
-	 * @param datas
-	 * @param titles
-	 * @param titleStyle
-	 * @param contentStyle
-	 * @return
+	 * @param datas 数据
+	 * @param titles 标题
+	 * @param titleStyle 标题样式
+	 * @param contentStyles 内容样式
+	 * @return 链式调用本身
 	 */
 	public ExcelWriteHelper createTableVertical(
 			Object[] datas,
@@ -548,18 +531,18 @@ public class ExcelWriteHelper implements Disposable {
 			CellStyle titleStyle,
 			CellStyle[] contentStyles) {
 		/*参数处理*/
-		
+
 		if(datas == null) {
 			datas = new Object[]{};
 		}
-		
+
 		/*参数处理结束*/
-		
+
 		int rowNumStart = index;	//先记录表格初始行的位置
 		int rowNumLast = index+datas.length-1;
-		
+
 		int k = 0;	//每列的游标
-		
+
 		if(titles != null) {	//写标题
 			for (int i = 0; i < titles.length; i++) {
 				Row row = createRow();
@@ -567,12 +550,12 @@ public class ExcelWriteHelper implements Disposable {
 			}
 			k++;	//标题占了一列
 		}
-		
+
 		//写数据列
 		if(datas.length>0) {
 			for (int i = 0; i < datas.length; i++) {
 				Row row = curSheet.getRow(rowNumStart+i);	//如果当前行没被创建则返回null
-				if(row == null ) {	
+				if(row == null ) {
 					row = createRow();
 				}
 				CellStyle contentStyle = (i<contentStyles.length)?contentStyles[i]:contentStyles[contentStyles.length-1];
@@ -631,10 +614,10 @@ public class ExcelWriteHelper implements Disposable {
 	
 	/**
 	 * 创建带sheet内超链接的行
-	 * @param content
-	 * @param style
-	 * @param link
-	 * @return
+	 * @param content 内容
+	 * @param style 样式
+	 * @param link 链接
+	 * @return 行
 	 */
 	public Row createLinkRow(Object content, CellStyle style, Hyperlink link) {
 		Row row = createRow();
@@ -646,7 +629,7 @@ public class ExcelWriteHelper implements Disposable {
 	 * 获取sheet内超链接
 	 * @param column	A-Z
 	 * @param row	>=0
-	 * @return
+	 * @return Hyperlink
 	 */
 	public Hyperlink getLink(char column, int row) {
 		HyperlinkType type = HyperlinkType.DOCUMENT;
@@ -665,9 +648,9 @@ public class ExcelWriteHelper implements Disposable {
 	
 	/**
 	 * 创建只有一列的行
-	 * @param content
-	 * @param style
-	 * @return 
+	 * @param content 内容
+	 * @param style 样式
+	 * @return 行
 	 */
 	public Row createRow(Object content, CellStyle style) {
 		Row row = createRow();
@@ -683,9 +666,9 @@ public class ExcelWriteHelper implements Disposable {
 	
 	/**
 	 * 创建一个数据行,一行都采用相同的样式
-	 * @param contentList
-	 * @param style
-	 * @return 
+	 * @param contentList 内容列表
+	 * @param style 样式
+	 * @return 行
 	 */
 	public Row createRow(List<Object> contentList, CellStyle style) {
 		return createRow(curSheet, index, contentList, style);
@@ -693,8 +676,8 @@ public class ExcelWriteHelper implements Disposable {
 	
 	/**
 	 * 创建一个数据行,一行都采用相同的样式
-	 * @param contents
-	 * @param style
+	 * @param contents 内容数组
+	 * @param style 样式
 	 */
 	public void createRow(Object[] contents, CellStyle style) {
 		Row row = createRow();
@@ -716,7 +699,7 @@ public class ExcelWriteHelper implements Disposable {
 	
 	/**
 	 * 空rowNum行
-	 * @param rowNum
+	 * @param rowNum 行数
 	 */
 	public void skipRow(int rowNum) {
 		index += rowNum;
@@ -724,8 +707,8 @@ public class ExcelWriteHelper implements Disposable {
 	
 	/**
 	 * 创建空行并合并0-col列
-	 * @param col
-	 * @return
+	 * @param col 列
+	 * @return 行
 	 */
 	public Row createRowMerged(int col) {
 		Row row = createRow();
@@ -736,7 +719,7 @@ public class ExcelWriteHelper implements Disposable {
 	
 	/**
 	 * 创建空行
-	 * @return 
+	 * @return 行
 	 */
 	public Row createRow() {
 		return createRow(curSheet, index++);
@@ -746,11 +729,11 @@ public class ExcelWriteHelper implements Disposable {
 	/*---------------内部用方法------------------------*/
 	/**
 	 * 创建一行
-	 * @param sheet
-	 * @param index
-	 * @param contentList
-	 * @param style
-	 * @return
+	 * @param sheet 页
+	 * @param index 下标
+	 * @param contentList 内容列表
+	 * @param style 样式
+	 * @return 行
 	 */
 	public static Row createRow(Sheet sheet, int index, List<Object> contentList, CellStyle style) {
 		if(contentList == null) {
@@ -769,9 +752,9 @@ public class ExcelWriteHelper implements Disposable {
 	
 	/**
 	 * 创建空行
-	 * @param sheet
-	 * @param index
-	 * @return
+	 * @param sheet 页
+	 * @param index 行数
+	 * @return 行
 	 */
 	public static Row createRow(Sheet sheet, int index) {
 		Row row = sheet.createRow(index);
@@ -779,12 +762,14 @@ public class ExcelWriteHelper implements Disposable {
 		index++;
 		return row;
 	}
-	
+
 	/**
 	 * 创建单个单元格
-	 * @param cell
-	 * @param content
-	 * @param style
+	 * @param row 行
+	 * @param colNum 列
+	 * @param content 内容
+	 * @param style 样式
+	 * @return 单元格
 	 */
 	public static Cell createCell(Row row, int colNum, Object content, CellStyle style) {
 		Cell cell = row.createCell(colNum);
@@ -801,12 +786,12 @@ public class ExcelWriteHelper implements Disposable {
 	
 	/**
 	 * 创建一个带超链接的单元格
-	 * @param row
-	 * @param colNum
-	 * @param content
-	 * @param style
-	 * @param link
-	 * @return
+	 * @param row 行
+	 * @param colNum 列
+	 * @param content 内容
+	 * @param style 样式
+	 * @param link 链接
+	 * @return 单元格
 	 */
 	private static Cell createCell(Row row, int colNum, Object content, CellStyle style, Hyperlink link) {
 		Cell cell = createCell(row, colNum, content, style);
@@ -854,7 +839,7 @@ public class ExcelWriteHelper implements Disposable {
 	 * }
 	 * 
 	 * @param sheetName 原sheet名称
-	 * @return
+	 * @return 页名
 	 */
 	private String filterUnsupportedSheetName(String sheetName) {
 		if(sheetName == null) {
