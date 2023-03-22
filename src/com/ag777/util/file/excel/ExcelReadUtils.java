@@ -1,25 +1,5 @@
 package com.ag777.util.file.excel;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PushbackInputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.poifs.filesystem.FileMagic;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
-
 import com.ag777.util.file.FileUtils;
 import com.ag777.util.file.excel.model.ExcelLineReader;
 import com.ag777.util.lang.IOUtils;
@@ -27,6 +7,13 @@ import com.ag777.util.lang.StringUtils;
 import com.ag777.util.lang.collection.CollectionAndMapUtils;
 import com.ag777.util.lang.collection.ListUtils;
 import com.ag777.util.lang.exception.Assert;
+import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.poifs.filesystem.FileMagic;
+import org.apache.poi.ss.usermodel.*;
+
+import java.io.*;
+import java.util.*;
 
 /**
  * excel文件读取工具类
@@ -53,14 +40,14 @@ import com.ag777.util.lang.exception.Assert;
  * </p>
  * 
  * @author ag777
- * @version last modify at 2019年11月20日
+ * @version last modify at 2023年03月22日
  */
 public class ExcelReadUtils {
 
 	/**
 	 * 移除角标对应的sheet
-	 * @param wb
-	 * @param index
+	 * @param wb 工作簿
+	 * @param index sheet下标
 	 * @throws IllegalArgumentException 角标超出范围等等
 	 */
 	public static void removeSheet(Workbook wb, int index) throws IllegalArgumentException {
@@ -69,8 +56,8 @@ public class ExcelReadUtils {
 	
 	/**
 	 * 获取sheet名称列表
-	 * @param wb
-	 * @return
+	 * @param wb 工作簿
+	 * @return sheet名称列表
 	 */
 	public static List<String> getSheetNameList(Workbook wb) {
 		List<String> list = ListUtils.newArrayList();
@@ -83,27 +70,27 @@ public class ExcelReadUtils {
 		
 	/**
 	 * 获取工作簿对象
-	 * @param filePath
-	 * @return
-	 * @throws IllegalArgumentException
-	 * @throws EncryptedDocumentException
-	 * @throws InvalidFormatException
-	 * @throws IOException
+	 * @param filePath 文件路径
+	 * @return 工作簿
+	 * @throws IllegalArgumentException 参数异常
+	 * @throws EncryptedDocumentException 解密工作簿异常
+	 * @throws IOException 读取异常
 	 */
-	public static Workbook getWorkBook(String filePath) throws IllegalArgumentException, EncryptedDocumentException, InvalidFormatException, IOException {
+	public static Workbook getWorkBook(String filePath) throws IllegalArgumentException, EncryptedDocumentException, IOException, InvalidFormatException {
 		Assert.notBlank(filePath, "文件路径不能为空");
 		return getWorkBook(FileUtils.getInputStream(filePath));
 	}
 	
 	/**
 	 * 获取工作簿对象
-	 * @param inputStream
-	 * @return
-	 * @throws EncryptedDocumentException
-	 * @throws InvalidFormatException
-	 * @throws IOException
+	 * @param inputStream 流
+	 * @return 工作簿
+	 * @throws IllegalArgumentException 参数异常
+	 * @throws EncryptedDocumentException 解密工作簿异常
+	 * @throws IOException 读取异常
 	 */
-	public static Workbook getWorkBook(InputStream inputStream) throws EncryptedDocumentException, InvalidFormatException, IOException {
+	public static Workbook getWorkBook(InputStream inputStream) throws IllegalArgumentException, EncryptedDocumentException, IOException, InvalidFormatException {
+		Assert.notNull(inputStream, "文件流不能为空");
 		try {
 			return WorkbookFactory.create(inputStream);
 		} finally {	//测试直接关闭输入流是不影响后续读取的,而且如果想保存回源文件必须先关闭输入流停止文件占用
@@ -113,13 +100,13 @@ public class ExcelReadUtils {
 	
 	/**
 	 * 获取sheet名称及对应的数据list
-	 * @param filePath
-	 * @param isIgnoreFirstRow
+	 * @param filePath 文件录进
+	 * @param isIgnoreFirstRow 是否跳过第一行(标题)
 	 * @return {sheet的名字:[{"a","第一行第一列","b":"第一行第二列"},{"a":"第二行第一列"}]}
-	 * @throws IllegalArgumentException
-	 * @throws EncryptedDocumentException
-	 * @throws InvalidFormatException
-	 * @throws IOException
+	 * @throws IllegalArgumentException 参数异常
+	 * @throws EncryptedDocumentException 解密工作簿异常
+	 * @throws InvalidFormatException 工作簿格式不正确
+	 * @throws IOException 读取异常
 	 */
 	public static Map<String, List<Map<String, String>>> readSheetMap(String filePath, boolean isIgnoreFirstRow) throws IllegalArgumentException, EncryptedDocumentException, InvalidFormatException, IOException {
 		Assert.notEmpty(filePath, "参数文件路径不能为空");
@@ -129,8 +116,8 @@ public class ExcelReadUtils {
 	
 	/**
 	 * 从工作簿中获取sheet名称及对应的数据list
-	 * @param workBook
-	 * @param isIgnoreFirstRow
+	 * @param workBook 工作簿
+	 * @param isIgnoreFirstRow 是否跳过第一行(标题)
 	 * @return {sheet的名字:[{"a","第一行第一列","b":"第一行第二列"},{"a":"第二行第一列"}]}
 	 */
 	public static Map<String, List<Map<String, String>>> readSheetMap(Workbook workBook, boolean isIgnoreFirstRow) {
@@ -149,10 +136,10 @@ public class ExcelReadUtils {
 	 * 逐行读取excel文件
 	 * @param filePath 文件路径
 	 * @param reader 读取工具
-	 * @throws IllegalArgumentException
-	 * @throws EncryptedDocumentException
-	 * @throws InvalidFormatException
-	 * @throws IOException
+	 * @throws IllegalArgumentException 参数异常
+	 * @throws EncryptedDocumentException 解密工作簿异常
+	 * @throws InvalidFormatException 工作簿格式不正确
+	 * @throws IOException 读取异常
 	 */
 	public static void readSheetLines(String filePath, ExcelLineReader reader) throws IllegalArgumentException, EncryptedDocumentException, InvalidFormatException, IOException {
 		Assert.notEmpty(filePath, "参数文件路径不能为空");
@@ -164,10 +151,10 @@ public class ExcelReadUtils {
 	 * 逐行读取excel文件的第一个sheet
 	 * @param filePath 文件路径
 	 * @param reader 读取工具
-	 * @throws IllegalArgumentException
-	 * @throws EncryptedDocumentException
-	 * @throws InvalidFormatException
-	 * @throws IOException
+	 * @throws IllegalArgumentException 参数异常
+	 * @throws EncryptedDocumentException 解密工作簿异常
+	 * @throws InvalidFormatException 工作簿格式不正确
+	 * @throws IOException 读取异常
 	 */
 	public static void readLinesForFirstSheet(String filePath, ExcelLineReader reader) throws IllegalArgumentException, EncryptedDocumentException, InvalidFormatException, IOException {
 		Assert.notEmpty(filePath, "参数文件路径不能为空");
@@ -198,7 +185,7 @@ public class ExcelReadUtils {
 	 * 逐行读取
 	 * @param sheet sheet
 	 * @param sheetNo sheet角标
-	 * @param reader
+	 * @param reader 读取器
 	 */
 	public static void readLines(Sheet sheet, int sheetNo, ExcelLineReader reader) {
 		int rowNo = 0;
@@ -224,9 +211,8 @@ public class ExcelReadUtils {
 	 * @param sheetTitles			转为map时对应的key
 	 * @param isIgnoreFirstRow	是否忽略第一行(有时候第一行是标题栏)
 	 * @return 路径为空或者为null时返回null
-	 * @throws IOException
-	 * @throws InvalidFormatException 
-	 * @throws EncryptedDocumentException 
+	 * @throws IOException 读取异常
+	 * @throws EncryptedDocumentException 解密工作簿异常
 	 */
 	public static List<List<Map<String, String>>> read(String filePath, List<List<String>> sheetTitles, boolean isIgnoreFirstRow) throws IOException, EncryptedDocumentException, InvalidFormatException {//读取excel,不论什么版本
 		Workbook workBook = WorkbookFactory.create(new File(filePath));
@@ -249,13 +235,13 @@ public class ExcelReadUtils {
 	
 	/**
 	 * 读取工作簿,用的是抽象类的方法,不区分版本(已去除空数据行)
-	 * @param workBook
-	 * @param sheetTitleList
-	 * @param isIgnoreFirstRow
-	 * @return
+	 * @param workBook 工作簿
+	 * @param sheetTitleList 每个sheet对应的标题列表
+	 * @param isIgnoreFirstRow 是否跳过第一行(标题)的读取
+	 * @return 所有工作簿中的记录
 	 */
 	public static List<List<Map<String, String>>> readWorkBook(Workbook workBook, List<List<String>> sheetTitleList, boolean isIgnoreFirstRow) {
-		/**
+		/*
 		 * 二维列表转二维数组
 		 */
 		String[][] sheetTitles = null;
@@ -282,13 +268,13 @@ public class ExcelReadUtils {
 	
 	/**
 	 * 读取工作簿,用的是抽象类的方法,不区分版本
-	 * @param workBook
-	 * @param sheetTitles
-	 * @param isIgnoreFirstRow
-	 * @return
+	 * @param workBook 工作簿
+	 * @param sheetTitles 每个sheet对应的标题列表
+	 * @param isIgnoreFirstRow 是否跳过第一行(标题)的读取
+	 * @return 有工作簿中的记录
 	 */
 	public static List<List<Map<String, String>>> readWorkBook(Workbook workBook, String[][] sheetTitles, boolean isIgnoreFirstRow) {
-		List<List<Map<String, String>>> sheetList = new ArrayList<List<Map<String, String>>>();	//最终结果集
+		List<List<Map<String, String>>> sheetList = new ArrayList<>();	//最终结果集
 		try {
 			// Read the Sheet
 			for (int numSheet=0; numSheet < workBook.getNumberOfSheets(); numSheet++) {
@@ -296,7 +282,7 @@ public class ExcelReadUtils {
 					break;
 				}
 				String[] titles = sheetTitles[numSheet];
-				List<Map<String, String>> rows = new ArrayList<Map<String,String>>();	//每个sheet中的内容
+				List<Map<String, String>> rows = new ArrayList<>();	//每个sheet中的内容
 				
 				Sheet sheet = workBook.getSheetAt(numSheet);
 				if (sheet == null) {
@@ -313,7 +299,7 @@ public class ExcelReadUtils {
 					
 					Row row = sheet.getRow(rowNum);
 					if (row != null) {	
-						Map<String, String> item = new HashMap<String, String>();	//每行中的内容
+						Map<String, String> item = new HashMap<>();	//每行中的内容
 						boolean flag = false;	//排除空行
 						int maxColNum = row.getLastCellNum();
 						for(int index=0; index<titles.length; index++) {
@@ -371,14 +357,14 @@ public class ExcelReadUtils {
 	
 	/**
 	 * 获取单元格里面的值
-	 * @param cell
-	 * @return
+	 * @param cell 单元格
+	 * @return 单元格中的内容
 	 */
 	public static String getValue(Cell cell) {
 		if(cell == null){
 			return null;
 		}
-		String result = null;
+		String result;
 		if (cell.getCellTypeEnum() == CellType.BOOLEAN) {
 			result =  String.valueOf(cell.getBooleanCellValue());
 		} else if (cell.getCellTypeEnum() == CellType.NUMERIC || cell.getCellTypeEnum() == CellType.FORMULA) {
@@ -396,8 +382,8 @@ public class ExcelReadUtils {
 	
 	/** 
      * 判断是否为excel2007及以上 
-	 * @throws IOException 
-	 * @throws InvalidFormatException 
+	 * @throws IOException 读取异常
+	 * @throws InvalidFormatException 工作簿格式不正确
      */  
     public static  boolean isExcel2007(String filePath) throws IOException, InvalidFormatException {
     	
@@ -405,22 +391,17 @@ public class ExcelReadUtils {
         try {  
         	is = new FileInputStream(filePath);
         	return isExcel2007(is);
-        } catch (IOException ex) {  
-        	throw ex; 
-        } catch (InvalidFormatException ex) {
-        	throw ex; 
-		}  finally {
+        } finally {
         	IOUtils.close(is);
         }
         
     }  
     
     /**
-     * 判断是否为excel2007及以上 
-     * @param is
-     * @return
-     * @throws IOException
-     * @throws InvalidFormatException
+     * @param is 输入流
+     * @return 是否为excel2007及以上(是否是xlsx)
+     * @throws IOException 读取异常
+     * @throws InvalidFormatException 工作簿格式不正确
      */
 	public static  boolean isExcel2007(InputStream is) throws IOException, InvalidFormatException {
     	// If clearly doesn't do mark/reset, wrap up  
