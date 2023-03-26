@@ -1,25 +1,5 @@
 package com.ag777.util.file.excel;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PushbackInputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.poifs.filesystem.FileMagic;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
-
 import com.ag777.util.file.FileUtils;
 import com.ag777.util.file.excel.model.ExcelLineReader;
 import com.ag777.util.lang.IOUtils;
@@ -27,6 +7,14 @@ import com.ag777.util.lang.StringUtils;
 import com.ag777.util.lang.collection.CollectionAndMapUtils;
 import com.ag777.util.lang.collection.ListUtils;
 import com.ag777.util.lang.exception.Assert;
+import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.poifs.filesystem.FileMagic;
+import org.apache.poi.ss.usermodel.*;
+
+import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * excel文件读取工具类
@@ -56,6 +44,9 @@ import com.ag777.util.lang.exception.Assert;
  * @version last modify at 2019年11月20日
  */
 public class ExcelReadUtils {
+
+	private static final SimpleDateFormat FORMATTER_TIME =
+			new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	/**
 	 * 移除角标对应的sheet
@@ -382,11 +373,16 @@ public class ExcelReadUtils {
 		if (cell.getCellTypeEnum() == CellType.BOOLEAN) {
 			result =  String.valueOf(cell.getBooleanCellValue());
 		} else if (cell.getCellTypeEnum() == CellType.NUMERIC || cell.getCellTypeEnum() == CellType.FORMULA) {
-			Double num = cell.getNumericCellValue();
-			if(num.longValue() == num){
-				result = String.valueOf(num.longValue());
-			} else {
-				result = String.valueOf(num);
+			// 日期类型
+			if (DateUtil.isCellDateFormatted(cell)) {
+				result = FORMATTER_TIME.format(cell.getDateCellValue());
+			} else {    // 纯数值类型
+				Double num = cell.getNumericCellValue();
+				if (num.longValue() == num) {
+					result = String.valueOf(num.longValue());
+				} else {
+					result = String.valueOf(num);
+				}
 			}
 		} else {
 			result =  cell.getStringCellValue();
