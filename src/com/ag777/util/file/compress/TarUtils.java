@@ -27,7 +27,7 @@ import com.ag777.util.file.compress.base.BaseApacheCompressUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年04月12日,last modify at 2018年04月16日
+ * @version create on 2018年04月12日,last modify at 2023年02月16日
  */
 public class TarUtils extends BaseApacheCompressUtils{
 
@@ -82,7 +82,9 @@ public class TarUtils extends BaseApacheCompressUtils{
 	@Override
 	public ArchiveEntry getArchiveEntry(String filePath, File file, boolean isFile) {
 		TarArchiveEntry entry = new TarArchiveEntry(filePath);
-		entry.setSize(file.length());
+		if (isFile) {
+			entry.setSize(file.length());
+		}
 		return entry;
 	}
 	
