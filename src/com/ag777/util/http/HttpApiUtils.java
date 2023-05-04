@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketTimeoutException;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -18,7 +19,7 @@ import java.util.function.Consumer;
 /**
  * 第三方服务接口调用处理封装
  * @author ag777 <837915770@vip.qq.com>
- * @Date 2023/4/23 09:19
+ * @version  2023/5/04 08:46
  */
 public class HttpApiUtils {
 
@@ -44,6 +45,52 @@ public class HttpApiUtils {
             throw toException.apply(apiName+"返回格式错误:"+json, e);
         }
         return obj;
+    }
+
+    /**
+     * 发送请求并保存响应列表
+     * @param <E> 抛出异常类型
+     * @param call 请求
+     * @param apiName 接口名
+     * @param toException 处理其它异常
+     * @param onHttpErr 处理Http异常
+     * @return 列表
+     * @throws E 异常
+     * @throws SocketTimeoutException http连接超时
+     */
+    public static <E extends Exception> List<Map<String, Object>> executeForListMap(MyCall call, String apiName, BiFunction<String, Throwable, E> toException, Consumer<Response> onHttpErr) throws E, SocketTimeoutException {
+        String json = executeForStr(call, apiName, toException, onHttpErr);
+        List<Map<String, Object>> resultMap;
+        try {
+            resultMap = GsonUtils.get().toListMapWithException(json);
+        } catch (JsonSyntaxException e) {
+            throw toException.apply(apiName+"返回格式错误:"+json, e);
+        }
+        return resultMap;
+    }
+
+    /**
+     * 发送请求并保存响应列表
+     * @param call 请求
+     * @param apiName 接口名
+     * @param clazzOfT 列表项的类型
+     * @param toException 处理其它异常
+     * @param onHttpErr 处理Http异常
+     * @param <E> 抛出异常类型
+     * @param <T> 列表项的类型
+     * @return 列表
+     * @throws E 异常
+     * @throws SocketTimeoutException http连接超时
+     */
+    public static <E extends Exception, T> List<T> executeForList(MyCall call, String apiName, Class<T> clazzOfT, BiFunction<String, Throwable, E> toException, Consumer<Response> onHttpErr) throws E, SocketTimeoutException {
+        String json = executeForStr(call, apiName, toException, onHttpErr);
+        List<T> resultMap;
+        try {
+            resultMap = GsonUtils.get().toListWithException(json, clazzOfT);
+        } catch (JsonSyntaxException e) {
+            throw toException.apply(apiName+"返回格式错误:"+json, e);
+        }
+        return resultMap;
     }
 
     /**
@@ -106,7 +153,7 @@ public class HttpApiUtils {
      * @throws SocketTimeoutException http连接超时
      */
     public static <E extends Exception> File executeForFile(MyCall call, String apiName, String targetPath, BiFunction<String, Throwable, E> toException, Consumer<Response> onHttpErr) throws E, SocketTimeoutException {
-        InputStream in = executeFoInputStream(call, apiName, toException, onHttpErr);
+        InputStream in = executeForInputStream(call, apiName, toException, onHttpErr);
         try {
             File file = FileUtils.write(in, targetPath);
             if(file.exists() && file.isFile()) {
@@ -129,7 +176,7 @@ public class HttpApiUtils {
      * @throws E 异常
      * @throws SocketTimeoutException http连接超时
      */
-    public static <E extends Exception>InputStream executeFoInputStream(MyCall call, String apiName, BiFunction<String, Throwable, E> toException, Consumer<Response> onHttpErr) throws E, SocketTimeoutException {
+    public static <E extends Exception>InputStream executeForInputStream(MyCall call, String apiName, BiFunction<String, Throwable, E> toException, Consumer<Response> onHttpErr) throws E, SocketTimeoutException {
         Response res = executeForResponse(call, apiName, toException, onHttpErr);
         try {
             Optional<InputStream> temp = HttpUtils.responseInputStream(res);
