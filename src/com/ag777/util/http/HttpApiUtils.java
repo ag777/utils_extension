@@ -14,12 +14,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * 第三方服务接口调用处理封装
  * @author ag777 <837915770@vip.qq.com>
- * @version  2023/5/04 08:46
+ * @version  2023/08/08 17:04
  */
 public class HttpApiUtils {
 
@@ -36,7 +36,7 @@ public class HttpApiUtils {
      * @throws E 异常
      * @throws SocketTimeoutException http连接超时
      */
-    public static <T, E extends Exception>T executeForObj(MyCall call, String apiName, Class<T> clazz, BiFunction<String, Throwable, E> toException, Consumer<Response> onHttpErr) throws E, SocketTimeoutException {
+    public static <T, E extends Exception>T executeForObj(MyCall call, String apiName, Class<T> clazz, BiFunction<String, Throwable, E> toException, Function<Response, E> onHttpErr) throws E, SocketTimeoutException {
         String json = executeForStr(call, apiName, toException, onHttpErr);
         T obj;
         try {
@@ -58,7 +58,7 @@ public class HttpApiUtils {
      * @throws E 异常
      * @throws SocketTimeoutException http连接超时
      */
-    public static <E extends Exception> List<Map<String, Object>> executeForListMap(MyCall call, String apiName, BiFunction<String, Throwable, E> toException, Consumer<Response> onHttpErr) throws E, SocketTimeoutException {
+    public static <E extends Exception> List<Map<String, Object>> executeForListMap(MyCall call, String apiName, BiFunction<String, Throwable, E> toException, Function<Response, E> onHttpErr) throws E, SocketTimeoutException {
         String json = executeForStr(call, apiName, toException, onHttpErr);
         List<Map<String, Object>> resultMap;
         try {
@@ -82,7 +82,7 @@ public class HttpApiUtils {
      * @throws E 异常
      * @throws SocketTimeoutException http连接超时
      */
-    public static <E extends Exception, T> List<T> executeForList(MyCall call, String apiName, Class<T> clazzOfT, BiFunction<String, Throwable, E> toException, Consumer<Response> onHttpErr) throws E, SocketTimeoutException {
+    public static <E extends Exception, T> List<T> executeForList(MyCall call, String apiName, Class<T> clazzOfT, BiFunction<String, Throwable, E> toException, Function<Response, E> onHttpErr) throws E, SocketTimeoutException {
         String json = executeForStr(call, apiName, toException, onHttpErr);
         List<T> resultMap;
         try {
@@ -104,7 +104,7 @@ public class HttpApiUtils {
      * @throws E 异常
      * @throws SocketTimeoutException http连接超时
      */
-    public static <E extends Exception>Map<String, Object> executeForMap(MyCall call, String apiName, BiFunction<String, Throwable, E> toException, Consumer<Response> onHttpErr) throws E, SocketTimeoutException {
+    public static <E extends Exception>Map<String, Object> executeForMap(MyCall call, String apiName, BiFunction<String, Throwable, E> toException, Function<Response, E> onHttpErr) throws E, SocketTimeoutException {
         String json = executeForStr(call, apiName, toException, onHttpErr);
         Map<String, Object> resultMap;
         try {
@@ -126,7 +126,7 @@ public class HttpApiUtils {
      * @throws E 异常
      * @throws SocketTimeoutException http连接超时
      */
-    public static <E extends Exception>String executeForStr(MyCall call, String apiName, BiFunction<String, Throwable, E> toException, Consumer<Response> onHttpErr) throws E, SocketTimeoutException {
+    public static <E extends Exception>String executeForStr(MyCall call, String apiName, BiFunction<String, Throwable, E> toException, Function<Response, E> onHttpErr) throws E, SocketTimeoutException {
         Response res = executeForResponse(call, apiName, toException, onHttpErr);
         try {
             Optional<String> temp = HttpUtils.responseStrForce(res);
@@ -152,7 +152,7 @@ public class HttpApiUtils {
      * @throws E 异常
      * @throws SocketTimeoutException http连接超时
      */
-    public static <E extends Exception> File executeForFile(MyCall call, String apiName, String targetPath, BiFunction<String, Throwable, E> toException, Consumer<Response> onHttpErr) throws E, SocketTimeoutException {
+    public static <E extends Exception> File executeForFile(MyCall call, String apiName, String targetPath, BiFunction<String, Throwable, E> toException, Function<Response, E> onHttpErr) throws E, SocketTimeoutException {
         InputStream in = executeForInputStream(call, apiName, toException, onHttpErr);
         try {
             File file = FileUtils.write(in, targetPath);
@@ -176,7 +176,7 @@ public class HttpApiUtils {
      * @throws E 异常
      * @throws SocketTimeoutException http连接超时
      */
-    public static <E extends Exception>InputStream executeForInputStream(MyCall call, String apiName, BiFunction<String, Throwable, E> toException, Consumer<Response> onHttpErr) throws E, SocketTimeoutException {
+    public static <E extends Exception>InputStream executeForInputStream(MyCall call, String apiName, BiFunction<String, Throwable, E> toException, Function<Response, E> onHttpErr) throws E, SocketTimeoutException {
         Response res = executeForResponse(call, apiName, toException, onHttpErr);
         try {
             Optional<InputStream> temp = HttpUtils.responseInputStream(res);
@@ -194,13 +194,13 @@ public class HttpApiUtils {
      * @param call 请求
      * @param apiName 接口名
      * @param toException 处理其它异常
-     * @param onHttpErr 处理Http异常
+     * @param onHttpErr 处理Http异常, 如果返回null、则由toException处理异常
      * @param <E> 抛出异常类型
      * @return http响应
      * @throws E 异常
      * @throws SocketTimeoutException http连接超时
      */
-    public static <E extends Exception>Response executeForResponse(MyCall call, String apiName, BiFunction<String, Throwable, E> toException, Consumer<Response> onHttpErr) throws E, SocketTimeoutException {
+    public static <E extends Exception>Response executeForResponse(MyCall call, String apiName, BiFunction<String, Throwable, E> toException, Function<Response, E> onHttpErr) throws E, SocketTimeoutException {
         Response res;
         try {
             res = call.executeForResponse();
@@ -211,7 +211,10 @@ public class HttpApiUtils {
         }
         if (!res.isSuccessful()) {
             if (onHttpErr != null) {
-                onHttpErr.accept(res);
+                E e = onHttpErr.apply(res);
+                if (e != null) {
+                    throw e;
+                }
             }
             throw toException.apply(apiName+"异常:"+res.code(), null);
         }
