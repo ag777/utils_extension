@@ -90,7 +90,7 @@ public class DbUtils {
 	private static boolean copyData(String tableName, SqlBuilder sb, DbHelper source, DbHelper target) throws Exception {
 		System.out.println("开始复制表:"+tableName);
 		
-		List<Map<String, Object>> list = source.queryList("select * from "+tableName);
+		List<Map<String, Object>> list = source.queryMapList("select * from "+tableName);
 				
 		return target.doTransaction(h->{
 			for (Map<String, Object> map : list) {
