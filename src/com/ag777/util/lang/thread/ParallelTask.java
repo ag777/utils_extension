@@ -21,11 +21,12 @@ public abstract class ParallelTask<T, D, R, V, E extends Exception> implements C
 
     private final ExecutorService pool;
     private final CompletionServiceHelper<T, D> vsh;
-    // 是否添加完爬虫任务
+    /** 是否添加完爬虫任务 */
     private final AtomicBoolean taskAddFinished;
-    // 一次性处理的数据数量
+    /** 一次性处理的数据数量 */
     private final int batchSize;
 
+    /** 返回值 */
     private volatile R result;
 
     /**
@@ -155,11 +156,30 @@ public abstract class ParallelTask<T, D, R, V, E extends Exception> implements C
     protected void whenCountDown(int taskCount) {
     }
 
+    /**
+     * 批处理数据
+     * @param items 批量的任务结果及其绑定数据
+     * @return 批量处理的结果
+     * @throws InterruptedException 中断
+     * @throws E 异常
+     */
     public abstract V handleItems(List<Pair<T,D>> items) throws InterruptedException, E;
 
+    /**
+     *
+     * @param bindData 绑定数据
+     * @param t 异常
+     * @throws InterruptedException 中断
+     * @throws E 异常的类型
+     */
     public abstract void onErr(D bindData, Throwable t) throws InterruptedException, E;
 
+    /**
+     * 合并历史结果和本次批处理结果
+     * @param result 历史结果
+     * @param newVal 本次批处理结果
+     * @return 结果，最后会作为任务返回
+     */
     public abstract R merge(R result, V newVal);
-
 
 }
