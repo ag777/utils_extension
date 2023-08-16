@@ -1,11 +1,14 @@
 package com.ag777.util.lang.thread;
 
+import com.ag777.util.lang.RandomUtils;
 import com.ag777.util.lang.model.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * 并发任务工具类
@@ -68,12 +71,81 @@ public abstract class ParallelTask<T, D, R, V, E extends Exception> implements C
         return pool;
     }
 
+    public void shutdown() {
+        pool.shutdown();
+    }
+
+    public void shutdownNow() {
+        pool.shutdownNow();
+    }
+
+    public void waitFor() throws InterruptedException {
+        ThreadPoolUtils.waitFor(pool);
+    }
+
     /**
-     * 将该类放到和其它任务同一个线程池里执行
-     * @return 异步任务
+     *
+     * @param doAddTask 添加任务
+     * @param onAddTaskErr 添加任务线程异常处理
+     * @return 处理结果的异步任务
      */
-    public Future<R> runInPool() {
-        return pool.submit(this);
+    public Future<R> runInPool(DoAddTask<T, D, R, V, E> doAddTask, onErr<E> onAddTaskErr) {
+        ThreadPoolExecutor taskAddPool = getTaskAddPool();
+        return runInPool(doAddTask, onAddTaskErr, taskAddPool);
+    }
+
+
+    public Future<R> runInPool(DoAddTask<T, D, R, V, E> doAddTask, onErr<E> onAddTaskErr, ExecutorService pool) {
+        return pool.submit(()->{
+            Future<Void> taskAdd = pool.submit(() -> {
+                try {
+                    doAddTask.accept(this);
+                }  finally {
+                    taskAddFinished.set(true);
+                }
+                return null;
+            });
+            Future<R> taskHandle = pool.submit(this);
+            try {
+                taskAdd.get();
+            }  catch (ExecutionException e) {
+                Throwable cause = e.getCause();
+                if (cause instanceof InterruptedException) {
+                    throw (InterruptedException)cause;
+                }
+                onAddTaskErr.handleErr(e);
+            }
+            pool.shutdown();
+            try {
+                return taskHandle.get();
+            }  catch (ExecutionException e) {
+                Throwable cause = e.getCause();
+                if (cause instanceof InterruptedException) {
+                    throw (InterruptedException)cause;
+                }
+                throw new RuntimeException(e);
+            } finally {
+                vsh.cancel(true);
+            }
+        });
+    }
+
+    public R execInPool(DoAddTask<T, D, R, V, E> doAddTask, onErr<E> onAddTaskErr, onErr<E> onUnCaughtErr) throws InterruptedException, E {
+        ThreadPoolExecutor taskAddPool = getTaskAddPool();
+        return execInPool(doAddTask, onAddTaskErr, onUnCaughtErr, taskAddPool);
+    }
+    public R execInPool(DoAddTask<T, D, R, V, E> doAddTask, onErr<E> onAddTaskErr, onErr<E> onUnCaughtErr, ExecutorService pool) throws InterruptedException, E {
+        Future<R> task = runInPool(doAddTask, onAddTaskErr, pool);
+        try {
+            return task.get();
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof InterruptedException) {
+                throw (InterruptedException)cause;
+            }
+            onUnCaughtErr.handleErr(cause);
+            return null;
+        }
     }
 
     /**
@@ -140,18 +212,15 @@ public abstract class ParallelTask<T, D, R, V, E extends Exception> implements C
                     T item = task.get();
                     list.add(new Pair<>(item, task.getData()));
                 } catch (ExecutionException e) {
-                    Throwable cause = e.getCause();
-                    if (cause instanceof InterruptedException) {
-                        throw (InterruptedException)cause;
-                    }
-                    this.onErr(task.getData(), cause);
+                    onErr0(e, task.getData());
                     continue;
                 }
-                ThreadUtils.checkInterrupted();
                 if (list.size() == batchSize) {
                     handleOnce(list);
                 }
             }
+        } catch (Exception e) {
+            throw e;
         } finally {
             // 不论怎样，处理剩余已爬取到的结果数据
             if (!list.isEmpty()) {
@@ -180,6 +249,27 @@ public abstract class ParallelTask<T, D, R, V, E extends Exception> implements C
     protected void whenCountDown(int taskCount) {
     }
 
+    protected void onErr0(ExecutionException e, D data) throws InterruptedException, E {
+        Throwable cause = e.getCause();
+        if (cause instanceof InterruptedException) {
+            throw (InterruptedException)cause;
+        }
+        this.onErr(cause, data);
+    }
+
+    private ThreadPoolExecutor getTaskAddPool() {
+        AtomicInteger threadNum = new AtomicInteger(0);
+        return new ThreadPoolExecutor(
+                3,
+                3,
+                1,
+                TimeUnit.MILLISECONDS,
+                //第二个参数代表公平锁
+                new ArrayBlockingQueue<>(1, false),
+                r -> new Thread(r, "parallel-task-main="+threadNum.addAndGet(1))
+        );
+    }
+
     /**
      * 批处理数据
      * @param items 批量的任务结果及其绑定数据
@@ -190,13 +280,12 @@ public abstract class ParallelTask<T, D, R, V, E extends Exception> implements C
     public abstract V handleItems(List<Pair<T,D>> items) throws InterruptedException, E;
 
     /**
-     *
-     * @param bindData 绑定数据
      * @param t 异常
+     * @param bindData 绑定数据
      * @throws InterruptedException 中断
      * @throws E 异常的类型
      */
-    public abstract void onErr(D bindData, Throwable t) throws InterruptedException, E;
+    public abstract void onErr(Throwable t, D bindData) throws InterruptedException, E;
 
     /**
      * 合并历史结果和本次批处理结果
@@ -206,4 +295,72 @@ public abstract class ParallelTask<T, D, R, V, E extends Exception> implements C
      */
     public abstract R merge(R result, V newVal);
 
+
+
+    @FunctionalInterface
+    public interface DoAddTask<T, D, R, V, E extends Exception> {
+        void accept(ParallelTask<T, D, R, V, E> task) throws InterruptedException, E;
+    }
+
+    @FunctionalInterface
+    public interface onErr<E extends Exception> {
+        void handleErr(Throwable t) throws InterruptedException, E;
+    }
+
+    public static void main(String[] args) throws Throwable {
+        /* 示例:
+        单线程: 随机(0,1000)，等待该随机数的时间(毫秒),
+        有五个单线程,等待执行完毕。如果两次等待的线程小于100则一起输出，否则分开输出
+        */
+        ParallelTask<String, Void, Void, Void, RuntimeException> task = new ParallelTask<String, Void, Void, Void, RuntimeException>(
+                Executors.newFixedThreadPool(3),
+                null,
+                10,
+                100
+        ) {
+            @Override
+            public Void handleItems(List<Pair<String, Void>> items) throws InterruptedException, RuntimeException {
+                System.out.println(
+                        items.stream().map(item->item.first).collect(Collectors.joining(","))
+                );
+                return null;
+            }
+
+            @Override
+            public void onErr(Throwable t, Void bindData) throws InterruptedException, RuntimeException {
+                throw new RuntimeException("sth wrong", t);
+            }
+
+            @Override
+            public Void merge(Void result, Void newVal) {
+                return null;
+            }
+        };
+
+        Future<Void> futureTask = task.runInPool(
+                (t) -> {
+                    for (int i = 0; i < 5; i++) {
+                        t.add(() -> {
+                            int l = RandomUtils.rInt(1000);
+                            TimeUnit.MILLISECONDS.sleep(l);
+                            return l + "";
+                        }, null);
+                    }
+                    // 不再添加任务，线程池里的线程完成就销毁
+                    task.shutdown();
+                }, e -> {
+                    throw new RuntimeException("添加任务异常", e);
+                }
+        );
+        try {
+            futureTask.get();
+        } catch (InterruptedException e) {
+            System.err.println("中断");
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof InterruptedException) {
+                System.err.println("中断");
+            }
+            throw e.getCause();
+        }
+    }
 }
