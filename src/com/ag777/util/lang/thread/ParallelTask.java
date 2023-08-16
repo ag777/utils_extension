@@ -26,7 +26,7 @@ public abstract class ParallelTask<T, D, R, V, E extends Exception> implements C
     /** 一次性处理的数据数量 */
     private final int batchSize;
     /** 批处理超时,当有要处理的数据时，如果超过一定时间没有得到新的数据，则先执行该次批处理, 为0则不超时 */
-    private long batchTimeout;
+    private final long batchTimeout;
 
     /** 返回值 */
     private volatile R result;
