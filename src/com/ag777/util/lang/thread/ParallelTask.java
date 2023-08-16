@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @param <V> 处理单个任务结果返回的类型
  * @param <E> 抛出异常类型
  * @author ag777 <837915770@vip.qq.com>
- * @version 2023/8/15 10:48
+ * @version 2023/8/16 08:57
  */
 public abstract class ParallelTask<T, D, R, V, E extends Exception> implements Callable<R> {
 
@@ -25,6 +25,8 @@ public abstract class ParallelTask<T, D, R, V, E extends Exception> implements C
     private final AtomicBoolean taskAddFinished;
     /** 一次性处理的数据数量 */
     private final int batchSize;
+    /** 批处理超时,当有要处理的数据时，如果超过一定时间没有得到新的数据，则先执行该次批处理, 为0则不超时 */
+    private long batchTimeout;
 
     /** 返回值 */
     private volatile R result;
@@ -36,11 +38,26 @@ public abstract class ParallelTask<T, D, R, V, E extends Exception> implements C
      * @param batchSize 一次性处理的数据数量
      */
     public ParallelTask(ExecutorService executeService, R initResult, int batchSize) {
+        this(executeService, initResult, batchSize, 0);
+    }
+
+    /**
+     *
+     * @param executeService 线程池
+     * @param initResult 返回智初始值
+     * @param batchSize 一次性处理的数据数量
+     * @param batchTimeout 批处理超时,当有要处理的数据时，如果超过一定时间没有得到新的数据，则先执行该次批处理, 为0则不超时
+     */
+    public ParallelTask(ExecutorService executeService, R initResult, int batchSize, long batchTimeout) {
+        if (batchSize <= 0) {
+            batchSize = 1;
+        }
         this.pool = executeService;
         vsh = new CompletionServiceHelper<>(executeService);
         taskAddFinished = new AtomicBoolean(false);
         this.result = initResult;
         this.batchSize = batchSize;
+        this.batchTimeout = batchTimeout;
     }
 
     public CompletionServiceHelper<T, D> getCompletionServiceHelper() {
@@ -101,7 +118,14 @@ public abstract class ParallelTask<T, D, R, V, E extends Exception> implements C
             while (!taskAddFinished.get() || vsh.getTaskCount() > 0) {
                 // 爬虫没完成或者任务还有剩余的情况下，结束本次解析
                 CompletionServiceHelper.Task<T, D> task;
-                if (taskAddFinished.get()) {
+                if (batchTimeout > 0 &&  !list.isEmpty()) {
+                    task = vsh.poll(batchTimeout, TimeUnit.MILLISECONDS);
+                    if (task == null) {
+                        // 超时还没有任务完成就先处理已经得到的数据
+                        handleOnce(list);
+                        continue;
+                    }
+                } else if (taskAddFinished.get()) {
                     // 爬虫任务结束，直接阻塞获取任务
                     task = vsh.take();
                 } else {
@@ -126,11 +150,6 @@ public abstract class ParallelTask<T, D, R, V, E extends Exception> implements C
                 ThreadUtils.checkInterrupted();
                 if (list.size() == batchSize) {
                     handleOnce(list);
-                    list.clear();
-                    if (taskAddFinished.get()) {
-                        // 可以做日志输出
-                        whenCountDown(vsh.getTaskCount());
-                    }
                 }
             }
         } finally {
@@ -146,6 +165,11 @@ public abstract class ParallelTask<T, D, R, V, E extends Exception> implements C
         V newVal = handleItems(pairs);
         synchronized (ParallelTask.class) {
             this.result = merge(this.result, newVal);
+        }
+        pairs.clear();
+        if (taskAddFinished.get()) {
+            // 可以做日志输出
+            whenCountDown(vsh.getTaskCount());
         }
     }
 
