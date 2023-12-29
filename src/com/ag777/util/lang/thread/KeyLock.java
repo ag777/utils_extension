@@ -7,42 +7,43 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Semaphore;
 
 /**
- * 键值锁
- * <p>针对不同的键进行锁的操作，对网上的代码进行调整的来的工具类，可重入
- * 
- * @param <K>
- * @author https://www.cnblogs.com/klbc/p/9500947.html
+ * KeyLock类，用于对特定的key进行并发控制。
+ * 使用方法：
+ * 1. 创建KeyLock实例：KeyLock<String> keyLock = new KeyLock<>();
+ * 2. 锁定key：keyLock.lock("key1");
+ * 3. 解锁key：keyLock.unlock("key1");
+ * 注意：每次lock调用必须对应一个unlock调用，否则会抛出IllegalStateException。
+ *
+ * @param <K> 锁定的key的类型
+ * @author ag777 <837915770@vip.qq.com>
+ * @version 2023/10/19 10:12
  */
 public class KeyLock<K> {
-    // 保存所有锁定的KEY及其信号量
-    private final ConcurrentMap<K, Semaphore> map = new ConcurrentHashMap<K, Semaphore>();
-    // 保存每个线程锁定的KEY及其锁定计数
-    private final ThreadLocal<Map<K, LockInfo>> local = new ThreadLocal<Map<K, LockInfo>>() {
-        @Override
-        protected Map<K, KeyLock.LockInfo> initialValue() {
-            return new HashMap<>();
-        }
-    };
+    // 存储key和对应的Semaphore的映射
+    private final ConcurrentMap<K, Semaphore> map = new ConcurrentHashMap<>();
+    // 存储当前线程锁定的key和对应的LockInfo的映射
+    private final ThreadLocal<Map<K, LockInfo>> local = ThreadLocal.withInitial(HashMap::new);
 
     /**
-     * 锁定key，其他等待此key的线程将进入等待，直到调用{@link #unlock(K)}
-     * 使用hashcode和equals来判断key是否相同，因此key必须实现{@link #hashCode()}和
-     * {@link #equals(Object)}方法
+     * 锁定指定的key。
+     * 如果key已经被当前线程锁定，则增加锁定计数。
+     * 如果key已经被其他线程锁定，则阻塞直到其他线程解锁。
      *
-     * @param key
+     * @param key 需要锁定的key
+     * @throws InterruptedException 如果当前线程在等待锁定时被中断
      */
     public void lock(K key) throws InterruptedException {
-        if (key == null)
+        if (key == null) {
             return;
+        }
         LockInfo info = local.get().get(key);
         if (info == null) {
             Semaphore current = new Semaphore(1);
-            current.acquire();  //[修改]我们需要能控制中断线程,参考:https://www.cnblogs.com/klbc/p/9500947.html
-            //[补充]previous等待上一个锁释放,这里没有被release
-            Semaphore previous = map.put(key, current);
-            if (previous != null)
+            current.acquire();
+            Semaphore previous = map.putIfAbsent(key, current);
+            if (previous != null) {
                 previous.acquire();
-//                previous.acquireUninterruptibly();
+            }
             local.get().put(key, new LockInfo(current));
         } else {
             info.lockCount++;
@@ -50,55 +51,31 @@ public class KeyLock<K> {
     }
 
     /**
-     * 释放key，唤醒其他等待此key的线程
-     * [补充]重入的情况,如:
-     * lock
-     *  lock
-     *  unlock
-     * unlock
-     * 中间层调用unlock是不能把释放掉的
-     * 之后最后一个unlock才能释放锁
-     * @param key
+     * 解锁指定的key。
+     * 如果key已经被当前线程锁定多次，则减少锁定计数。
+     * 如果key只被当前线程锁定一次，则解锁key。
+     * 如果key没有被当前线程锁定，不进行操作。
+     *
+     * @param key 需要解锁的key
      */
     public void unlock(K key) {
-        if (key == null)
+        if (key == null) {
             return;
+        }
         LockInfo info = local.get().get(key);
-        if (info != null && --info.lockCount == 0) {
-            info.current.release();
-            map.remove(key, info.current);
-            local.get().remove(key);
+        if (info != null) {
+            if (--info.lockCount == 0) {
+                info.current.release();
+                map.remove(key, info.current);
+                local.get().remove(key);
+            }
         }
     }
 
-    /**
-     * 锁定多个key
-     * 建议在调用此方法前先对keys进行排序，使用相同的锁定顺序，防止死锁发生
-     * @param keys
-     */
-    public void lock(K[] keys) throws InterruptedException {
-        if (keys == null)
-            return;
-        for (K key : keys) {
-            lock(key);
-        }
-    }
-
-    /**
-     * 释放多个key
-     * @param keys
-     */
-    public void unlock(K[] keys) {
-        if (keys == null)
-            return;
-        for (K key : keys) {
-            unlock(key);
-        }
-    }
-
+    // 内部类，用于存储Semaphore和锁定计数
     private static class LockInfo {
-        private final Semaphore current;
-        private int lockCount;
+        private final Semaphore current; // 当前的Semaphore
+        private int lockCount; // 锁定计数
 
         private LockInfo(Semaphore current) {
             this.current = current;
