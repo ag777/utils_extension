@@ -13,6 +13,8 @@ import java.util.Stack;
  * 版本: 2024/1/4 10:58
  */
 public class NestedMapUtils {
+    private NestedMapUtils() {}
+
     /**
      * 根据以点号分隔的嵌套键在Map中放置一个值。如果在键的层次结构中某个中间键不存在，
      * 或者对应的值不是Map类型，则创建一个新的HashMap。
@@ -21,8 +23,9 @@ public class NestedMapUtils {
      * @param map   要操作的Map
      * @param key   以点号分隔的嵌套键
      * @param value 要放置的值
+     * @return 之前与给定键相关联的值，如果之前没有与该键相关联的值，则返回null
      */
-    public static void put(Map<String, Object> map, String key, Object value) {
+    public static Object put(Map<String, Object> map, String key, Object value) {
         String[] keys = key.split("\\.");
         Map<String, Object> currentMap = map;
 
@@ -42,7 +45,7 @@ public class NestedMapUtils {
         }
 
         // 在最深层的Map中放置值
-        currentMap.put(keys[keys.length - 1], value);
+        return currentMap.put(keys[keys.length - 1], value);
     }
 
     /**
