@@ -9,8 +9,8 @@ import java.util.Stack;
  * 它允许用户通过点分隔的字符串键（例如 "a.b.c"）来访问，修改和删除嵌套的Map中的元素。
  * 这个类的方法使得在复杂的嵌套Map结构中读取和写入数据变得简单和直观。
  * <p>
- * 作者: ag777 <837915770@vip.qq.com>
- * 版本: 2024/1/4 10:58
+ * @author ag777 <837915770@vip.qq.com>
+ * @version 2024/1/4 10:58
  */
 public class NestedMapUtils {
     private NestedMapUtils() {}
@@ -84,7 +84,7 @@ public class NestedMapUtils {
             if (!(current instanceof Map)) {
                 return null; // 如果当前对象不是Map，返回null
             }
-            current = ((Map) current).get(k);
+            current = ((Map<?, ?>) current).get(k);
             if (current == null) {
                 return null; // 如果键不存在，返回null
             }
