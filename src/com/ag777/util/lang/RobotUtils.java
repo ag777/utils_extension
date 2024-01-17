@@ -67,7 +67,7 @@ public class RobotUtils {
     }
 
     /**
-     * 模拟键盘按键点击
+     * 模拟键盘组合按键按键点击
      *
      * @param robot    Robot 实例
      * @param keyCodes 键盘按键的 KeyCode 数组
@@ -75,6 +75,8 @@ public class RobotUtils {
     public static void clickKeyboard(Robot robot, int[] keyCodes) {
         for (int keyCode : keyCodes) {
             robot.keyPress(keyCode);
+        }
+        for (int keyCode : keyCodes) {
             robot.keyRelease(keyCode);
         }
     }
