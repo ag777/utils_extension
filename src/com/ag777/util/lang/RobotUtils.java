@@ -76,8 +76,9 @@ public class RobotUtils {
         for (int keyCode : keyCodes) {
             robot.keyPress(keyCode);
         }
-        for (int keyCode : keyCodes) {
-            robot.keyRelease(keyCode);
+        // 倒着执行，比如ctrl+c，需要先放开c键
+        for (int i = keyCodes.length - 1; i >= 0; i--) {
+            robot.keyRelease(keyCodes[i]);
         }
     }
 
