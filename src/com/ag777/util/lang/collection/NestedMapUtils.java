@@ -10,7 +10,7 @@ import java.util.Stack;
  * 这个类的方法使得在复杂的嵌套Map结构中读取和写入数据变得简单和直观。
  * <p>
  * @author ag777 <837915770@vip.qq.com>
- * @version 2024/1/4 10:58
+ * @version 2024/02/01 11:03
  */
 public class NestedMapUtils {
     private NestedMapUtils() {}
@@ -94,12 +94,13 @@ public class NestedMapUtils {
     }
 
     /**
-     * 使用循环删除嵌套Map中的键，如果删除后父Map为空，则连父Map一起删除。
+     * 从嵌套的Map中移除指定的嵌套键，并返回被移除的对象。如果嵌套键不存在，返回null。
+     * 如果移除后父Map为空，则连父Map一起移除。
      * @param map 要操作的Map
      * @param nestedKey 以点号分隔的嵌套键
-     * @return 如果删除成功返回true，如果键不存在返回false
+     * @return 被移除的对象，如果嵌套键不存在则返回null
      */
-    public static boolean remove(Map<String, Object> map, String nestedKey) {
+    public static <V>V remove(Map<String, Object> map, String nestedKey) {
         String[] keys = nestedKey.split("\\.");
         Stack<Map<String, Object>> mapStack = new Stack<>();
         Map<String, Object> currentMap = map;
@@ -108,16 +109,18 @@ public class NestedMapUtils {
         for (int i = 0; i < keys.length - 1; i++) {
             Object value = currentMap.get(keys[i]);
             if (!(value instanceof Map)) {
-                return false; // 路径中断，未找到完整路径
+                // 路径中断，未找到完整路径
+                return null;
             }
             mapStack.push(currentMap);
             currentMap = (Map<String, Object>) value;
         }
 
-        // 删除最后一个键
+        // 删除最后一个键并返回被删除的对象
         Object removedValue = currentMap.remove(keys[keys.length - 1]);
         if (removedValue == null) {
-            return false; // 最后一个键不存在
+            // 最后一个键不存在
+            return null;
         }
 
         // 如果当前Map为空，回溯并尝试删除父Map中的键
@@ -126,6 +129,6 @@ public class NestedMapUtils {
             currentMap.remove(keys[mapStack.size()]);
         }
 
-        return true;
+        return (V) removedValue;
     }
 }
