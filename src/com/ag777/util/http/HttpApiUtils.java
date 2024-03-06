@@ -4,7 +4,10 @@ import com.ag777.util.file.FileUtils;
 import com.ag777.util.gson.GsonUtils;
 import com.ag777.util.http.model.MyCall;
 import com.ag777.util.lang.exception.model.JsonSyntaxException;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import okhttp3.Response;
+import org.apache.poi.ss.formula.functions.T;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,7 +27,49 @@ import java.util.function.Function;
 public class HttpApiUtils {
 
     /**
-     * 发送请求并保存响应对象
+     * 发送请求并将响应结果转化为JsonObject
+     * @param call 请求
+     * @param apiName 接口名
+     * @param clazz 类型
+     * @param toException 处理其它异常
+     * @param onHttpErr 处理Http异常
+     * @param <E> 抛出异常类型
+     * @return 返回JsonObject对象
+     * @throws E 异常
+     * @throws SocketTimeoutException http连接超时
+     */
+    public static <E extends Exception>JsonObject executeForJsonObject(MyCall call, String apiName, Class<T> clazz, BiFunction<String, Throwable, E> toException, Function<Response, E> onHttpErr) throws E, SocketTimeoutException {
+        String json = executeForStr(call, apiName, toException, onHttpErr);
+        try {
+            return GsonUtils.toJsonObjectWithException(json);
+        } catch (JsonSyntaxException e) {
+            throw toException.apply(apiName+"返回格式错误:"+json, e);
+        }
+    }
+
+    /**
+     * 发送请求并将响应结果转化为JsonArray
+     * @param call 请求
+     * @param apiName 接口名
+     * @param clazz 类型
+     * @param toException 处理其它异常
+     * @param onHttpErr 处理Http异常
+     * @param <E> 抛出异常类型
+     * @return 返回JsonArray对象
+     * @throws E 异常
+     * @throws SocketTimeoutException http连接超时
+     */
+    public static <E extends Exception>JsonArray executeForJsonArray(MyCall call, String apiName, Class<T> clazz, BiFunction<String, Throwable, E> toException, Function<Response, E> onHttpErr) throws E, SocketTimeoutException {
+        String json = executeForStr(call, apiName, toException, onHttpErr);
+        try {
+            return GsonUtils.toJsonArrayWithException(json);
+        } catch (JsonSyntaxException e) {
+            throw toException.apply(apiName+"返回格式错误:"+json, e);
+        }
+    }
+
+    /**
+     * 发送请求并将响应结果转化为任意对象
      * @param call 请求
      * @param apiName 接口名
      * @param clazz 类型
