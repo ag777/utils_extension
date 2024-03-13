@@ -1,17 +1,11 @@
 package com.ag777.util.file.excel;
 
-import java.io.IOException;
-
-import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-
 import com.ag777.util.file.FileUtils;
 import com.ag777.util.lang.IOUtils;
+import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.ss.usermodel.*;
+
+import java.io.IOException;
 
 /**
  * excel表格修改辅助类
@@ -29,17 +23,18 @@ import com.ag777.util.lang.IOUtils;
  * @version create on 2018年11月21日,last modify at 2018年11月21日
  */
 public interface ExcelModifyHelper {
-	
+
 	/**
-	 * 
-	 * @param filePath
-	 * @param helper
-	 * @throws EncryptedDocumentException
-	 * @throws IllegalArgumentException
-	 * @throws InvalidFormatException
-	 * @throws IOException
+	 * 修改指定路径的Excel文件。此方法通过传入的ExcelModifyHelper辅助对象，对Workbook进行遍历修改。
+	 * ExcelModifyHelper提供了几个重载的walk方法，允许在不同级别（Workbook、Sheet、Row、Cell）上自定义操作。
+	 *
+	 * @param filePath Excel文件的路径。
+	 * @param helper ExcelModifyHelper对象，定义了在遍历Excel时各级别的自定义操作。
+	 * @throws EncryptedDocumentException 如果尝试读取的Excel文档被加密。
+	 * @throws IllegalArgumentException 如果文件路径不正确或无法解析。
+	 * @throws IOException 如果发生I/O错误。
 	 */
-	public static void modify(String filePath,ExcelModifyHelper helper) throws EncryptedDocumentException, IllegalArgumentException, InvalidFormatException, IOException {
+	static void modify(String filePath,ExcelModifyHelper helper) throws EncryptedDocumentException, IllegalArgumentException, IOException {
 		Workbook wb = null;
 		try {
 			wb = ExcelReadUtils.getWorkBook(filePath);
@@ -61,7 +56,7 @@ public interface ExcelModifyHelper {
 					}
 					for(int k=row.getFirstCellNum(); k<=row.getLastCellNum();k++) {
 						Cell cell = row.getCell(k);
-						Object val = getValue(cell);
+						Object val = ExcelReadUtils.getObjectValue(cell);
 						helper.walk(val, cell, k, row, j, sheet, i);
 					}
 				}
@@ -69,31 +64,10 @@ public interface ExcelModifyHelper {
 			}
 			ExcelWriteHelper.write(FileUtils.getOutputStream(filePath), wb);
 		} finally {
-			IOUtils.close(wb);	//关闭流，防止文件被占用
+			// 关闭流，防止文件被占用
+			IOUtils.close(wb);
 		}
 		
-	}
-	
-	/**
-	 * 获取单元格中的数据,可能是字符串类型，也可能是数值型,甚至是boolean类型
-	 * @param cell
-	 * @return
-	 */
-	public static Object getValue(Cell cell) {
-		if(cell == null){
-			return null;
-		}	
-		if (cell.getCellTypeEnum() == CellType.BOOLEAN) {
-			return cell.getBooleanCellValue();
-		} else if (cell.getCellTypeEnum() == CellType.NUMERIC || cell.getCellTypeEnum() == CellType.FORMULA) {
-			double num = cell.getNumericCellValue();
-			if((long)num == num){
-				return (long)num;
-			}
-			return num;
-		} else {
-			return cell.getStringCellValue();
-		}
 	}
 	
 	default boolean walk(Workbook wb) {
