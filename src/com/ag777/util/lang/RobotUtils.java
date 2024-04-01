@@ -9,7 +9,7 @@ import java.awt.image.BufferedImage;
  * 用于模拟鼠标和键盘操作，以及捕获屏幕截图。
  *
  * @author ag777 <837915770@vip.qq.com>
- * @version 2024/3/31 12:59
+ * @version 2024/4/01 09:00
  */
 public class RobotUtils {
 
@@ -24,6 +24,41 @@ public class RobotUtils {
     }
 
     /**
+     * 将鼠标移动到指定的屏幕坐标。
+     *
+     * @param x 指定的横坐标。
+     * @param y 指定的纵坐标。
+     * @return 如果鼠标成功移动到指定位置，则返回true；否则返回false。
+     */
+    public static boolean mouseMove(int x, int y) {
+        return mouseMove(ROBOT, x, y); // 使用预定义的ROBOT对象，将鼠标移动到指定的(x, y)坐标。
+    }
+
+    /**
+     * 使用预定义的Robot对象将鼠标移动到指定的屏幕坐标。
+     *
+     * @param x 鼠标要移动到的X轴坐标。
+     * @param y 鼠标要移动到的Y轴坐标。
+     * @param retryTimes 如果首次移动失败，尝试移动的次数。
+     * @return boolean 如果鼠标成功移动到指定位置，则返回true；否则返回false。
+     */
+    public static boolean mouseMove(int x, int y, int retryTimes) {
+        return mouseMove(ROBOT, x, y, retryTimes);
+    }
+
+    /**
+     * 使用Robot类移动鼠标指针到指定的屏幕坐标。
+     *
+     * @param robot Robot对象，用于控制鼠标移动。
+     * @param x 鼠标要移动到的X轴坐标。
+     * @param y 鼠标要移动到的Y轴坐标。
+     * @return boolean 返回移动鼠标操作是否成功。
+     */
+    public static boolean mouseMove(Robot robot, int x, int y) {
+        return mouseMove(robot, x, y, 10);
+    }
+
+    /**
      * 点击鼠标左键。
      * 该方法模拟用户点击鼠标左键的行为，如果需要，还可以实现双击操作。
      *
@@ -32,6 +67,32 @@ public class RobotUtils {
     public static void clickLeftButton(boolean doubleClick) {
         clickLeftButton(ROBOT, doubleClick);
     }
+
+    /**
+     * 使用Robot类移动鼠标到指定位置，并尝试多次以确保准确移动。
+     *
+     * @param robot Robot对象，用于控制鼠标移动。
+     * @param x 目标位置的x坐标。
+     * @param y 目标位置的y坐标。
+     * @param retryTimes 尝试移动到目标位置的次数。
+     * @return 如果鼠标成功移动到目标位置，则返回true；否则返回false。
+     */
+    public static boolean mouseMove(Robot robot, int x, int y, int retryTimes) {
+        int n = 0;
+        // 尝试指定次数以确保鼠标移动到目标位置
+        while(n<retryTimes) {
+            robot.mouseMove(x, y); // 移动鼠标到目标位置
+            Point location = MouseInfo.getPointerInfo().getLocation(); // 获取鼠标当前位置
+            // 判断鼠标是否已经移动到目标位置
+            if (location.getX() == x && location.getY() == y) {
+                return true;
+            }
+            n++; // 尝试次数递增
+        }
+        return false; // 如果未能成功移动到目标位置，则返回false
+    }
+
+
 
     /**
      * 模拟鼠标左键点击
