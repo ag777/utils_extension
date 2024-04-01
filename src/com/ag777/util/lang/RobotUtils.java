@@ -9,7 +9,7 @@ import java.awt.image.BufferedImage;
  * 用于模拟鼠标和键盘操作，以及捕获屏幕截图。
  *
  * @author ag777 <837915770@vip.qq.com>
- * @version 2024/4/01 09:00
+ * @version 2024/4/01 09:12
  */
 public class RobotUtils {
 
@@ -59,16 +59,6 @@ public class RobotUtils {
     }
 
     /**
-     * 点击鼠标左键。
-     * 该方法模拟用户点击鼠标左键的行为，如果需要，还可以实现双击操作。
-     *
-     * @param doubleClick 指示是否执行双击操作的布尔值。如果为true，则执行双击动作；如果为false，则执行单击动作。
-     */
-    public static void clickLeftButton(boolean doubleClick) {
-        clickLeftButton(ROBOT, doubleClick);
-    }
-
-    /**
      * 使用Robot类移动鼠标到指定位置，并尝试多次以确保准确移动。
      *
      * @param robot Robot对象，用于控制鼠标移动。
@@ -89,10 +79,20 @@ public class RobotUtils {
             }
             n++; // 尝试次数递增
         }
-        return false; // 如果未能成功移动到目标位置，则返回false
+        // 如果未能成功移动到目标位置，则返回false
+        return false;
     }
 
 
+    /**
+     * 点击鼠标左键。
+     * 该方法模拟用户点击鼠标左键的行为，如果需要，还可以实现双击操作。
+     *
+     * @param doubleClick 指示是否执行双击操作的布尔值。如果为true，则执行双击动作；如果为false，则执行单击动作。
+     */
+    public static void clickLeftButton(boolean doubleClick) {
+        clickLeftButton(ROBOT, doubleClick);
+    }
 
     /**
      * 模拟鼠标左键点击
@@ -174,6 +174,15 @@ public class RobotUtils {
     private static void mouseClick(Robot robot, int buttonMask) {
         robot.mousePress(buttonMask);
         robot.mouseRelease(buttonMask);
+    }
+
+    /**
+     * 使用键盘模拟点击指定的按键。
+     * @param keyCodes 按键码数组，代表需要模拟点击的按键。每个按键码对应于Java AWT中的KeyEvent定义的常量。
+     */
+    public static void clickKeyboard(int[] keyCodes) {
+        // 通过预定义的ROBOT对象，模拟点击指定的按键序列
+        clickKeyboard(ROBOT, keyCodes);
     }
 
     /**
