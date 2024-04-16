@@ -4,9 +4,6 @@ import com.ag777.util.lang.collection.ListUtils;
 import com.ag777.util.lang.exception.Assert;
 import com.ag777.util.lang.exception.model.ImageNotSupportException;
 import com.ag777.util.lang.exception.model.ValidateException;
-import com.sun.image.codec.jpeg.ImageFormatException;
-import com.sun.image.codec.jpeg.JPEGCodec;
-import com.sun.image.codec.jpeg.JPEGImageEncoder;
 import com.sun.imageio.plugins.gif.GIFImageReader;
 import com.sun.imageio.plugins.gif.GIFImageReaderSpi;
 import com.sun.imageio.plugins.png.PNGImageWriter;
@@ -36,7 +33,7 @@ import java.util.Iterator;
  * </p>
  *
  * @author ag777
- * @version create on 2018年05月08日,last modify at 2024年03月31日
+ * @version create on 2018年05月08日,last modify at 2024年04月16日
  */
 public class ImageUtils {
 	
@@ -400,22 +397,44 @@ public class ImageUtils {
 		}
 
 	}
-	
+
 	/**
-     * BufferedImage转byte数组
-     * <p>
-     * <a href="https://zhoupuyue.iteye.com/blog/780315">参考文章</a>
-     * </p>
-     * @param img img
-     * @return 返回图像转换后的字节数组。
-     * @throws ImageFormatException ImageFormatException
-     * @throws IOException IOException
-     */
-	public static byte[] toBytes(BufferedImage img) throws ImageFormatException, IOException {
-		ByteArrayOutputStream os = new ByteArrayOutputStream();  
-        JPEGImageEncoder encoder = JPEGCodec.createJPEGEncoder(os);  
-        encoder.encode(img);  
-        return os.toByteArray();  
+	 * 将 BufferedImage 对象转换为 PNG 格式的字节数据。
+	 *
+	 * @param img 要转换的 BufferedImage 对象。
+	 * @return PNG 格式的图像字节数据。
+	 * @throws IOException 当转换过程中发生 I/O 错误时抛出。
+	 */
+	public static byte[] toPngBytes(BufferedImage img) throws IOException {
+		return toBytes(img, "png");
+	}
+
+	/**
+	 * 将 BufferedImage 对象转换为 JPEG 格式的字节数据。
+	 *
+	 * @param img 要转换的 BufferedImage 对象。
+	 * @return JPEG 格式的图像字节数据。
+	 * @throws IOException 当转换过程中发生 I/O 错误时抛出。
+	 */
+	public static byte[] toJpegBytes(BufferedImage img) throws IOException {
+		return toBytes(img, "jpeg");
+	}
+
+	/**
+	 * 将BufferedImage图像转换为指定格式的字节流。
+	 *
+	 * @param img 要转换的BufferedImage图像对象。
+	 * @param formatName 图像的输出格式名称（如"jpg", "png"等）。
+	 * @return 指定格式的图像的字节流。
+	 * @throws IOException 如果写入字节流过程中发生错误。
+	 */
+	public static byte[] toBytes(BufferedImage img, String formatName) throws IOException {
+		// 创建一个ByteArrayOutputStream对象，用于存储图像的字节流。
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		// 将图像写入os字节流并指定格式。
+		ImageIO.write(img, formatName, os);
+		// 将ByteArrayOutputStream转换为字节数组并返回。
+		return os.toByteArray();
 	}
 	
 	/**
