@@ -9,7 +9,7 @@ import java.awt.image.BufferedImage;
  * 用于模拟鼠标和键盘操作，以及捕获屏幕截图。
  *
  * @author ag777 <837915770@vip.qq.com>
- * @version 2024/4/01 09:12
+ * @version 2024/4/17 16:45
  */
 public class RobotUtils {
 
@@ -21,6 +21,10 @@ public class RobotUtils {
         } catch (AWTException e) {
             throw new RuntimeException("create robot err", e);
         }
+    }
+
+    public static Robot getRobot() {
+        return ROBOT;
     }
 
     /**
