@@ -5,7 +5,7 @@ import java.awt.geom.Point2D;
 
 /**
  * @author ag777 <837915770@vip.qq.com>
- * @version 2024/3/14 15:30
+ * @version 2024/4/18 10:16
  */
 public class ScreenUtils {
 
@@ -67,6 +67,21 @@ public class ScreenUtils {
             return new Dimension(screenWidth, screenHeight);
         }
         throw new IllegalArgumentException("没有找到显示屏");
+    }
+
+    /**
+     * 获取显示缩放比例。显示器/屏幕
+     *
+     * @return 返回屏幕的宽度与系统屏幕宽度的比例。
+     */
+    public static double getDisplayScale() {
+        // 获取系统屏幕的宽度
+        double screenWith = Toolkit.getDefaultToolkit().getScreenSize().getWidth();
+        // 获取当前显示器的宽度
+        int displayWidth = (int)ScreenUtils.getPhysicalScreenResolution().getWidth();
+
+        // 计算并返回显示器宽度与屏幕宽度的比例
+        return displayWidth / screenWith;
     }
 
     /**
