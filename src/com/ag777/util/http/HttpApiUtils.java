@@ -3,6 +3,7 @@ package com.ag777.util.http;
 import com.ag777.util.file.FileUtils;
 import com.ag777.util.gson.GsonUtils;
 import com.ag777.util.http.model.MyCall;
+import com.ag777.util.lang.IOUtils;
 import com.ag777.util.lang.exception.model.JsonSyntaxException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -22,7 +23,7 @@ import java.util.function.Function;
 /**
  * 第三方服务接口调用处理封装
  * @author ag777 <837915770@vip.qq.com>
- * @version  2024/04/17 16:40
+ * @version  2024/04/19 14:48
  */
 public class HttpApiUtils {
 
@@ -186,6 +187,8 @@ public class HttpApiUtils {
             return temp.get();
         } catch (IOException e) {
             throw toException.apply("解析"+apiName+"返回出现io异常", e);
+        } finally {
+            IOUtils.close(res);
         }
 
     }
