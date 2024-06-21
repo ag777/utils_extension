@@ -10,10 +10,20 @@ import java.util.List;
 /**
  * 剪贴板工具类
  * @author ag777 <837915770@vip.qq.com>
- * @version 2024/3/06 18:00
+ * @version 2024/6/21 15:34
  */
 public class ClipboardUtils implements ClipboardOwner {
     private static final Clipboard CLIPBOARD = Toolkit.getDefaultToolkit().getSystemClipboard();
+
+    /**
+     * 清空剪贴板中的文本内容。
+     * 该方法通过将一个空字符串设置为剪贴板的内容，来实现清空剪贴板的功能。
+     * 这样做的目的是为了在需要时确保剪贴板不包含任何敏感或冗余信息。
+     */
+    public static void clearText() {
+        // 创建一个空字符串的选择器，用于清空剪贴板内容
+        copyToClipboard(new StringSelection(""));
+    }
 
     /**
      * 将文本复制到剪贴板。
