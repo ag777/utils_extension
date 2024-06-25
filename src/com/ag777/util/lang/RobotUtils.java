@@ -3,13 +3,16 @@ package com.ag777.util.lang;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 自动化助手类
  * 用于模拟鼠标和键盘操作，以及捕获屏幕截图。
  *
  * @author ag777 <837915770@vip.qq.com>
- * @version 2024/4/17 16:45
+ * @version 2024/6/25 10:47
  */
 public class RobotUtils {
 
@@ -60,6 +63,58 @@ public class RobotUtils {
      */
     public static boolean mouseMove(Robot robot, int x, int y) {
         return mouseMove(robot, x, y, 10);
+    }
+
+    /**
+     * 平滑移动鼠标到指定坐标，尝试触发hover效果。
+     * 使用while循环每50毫秒移动一次，直到到达目标或超时。
+     * @param x 目标X坐标
+     * @param y 目标Y坐标
+     * @param moveFraction 每次移动剩余距离的比例，默认为0.1（即1/10）
+     * @param timeout 超时时间，单位：毫秒
+     */
+    public static void mouseMoveSmooth(int x, int y, float moveFraction, long timeout) throws InterruptedException {
+        mouseMoveSmooth(ROBOT, x, y, moveFraction, timeout);
+    }
+
+    /**
+     * 平滑移动鼠标到指定坐标，尝试触发hover效果。
+     * 使用while循环每50毫秒移动一次，直到到达目标或超时。
+     * @param robot Robot实例
+     * @param x 目标X坐标
+     * @param y 目标Y坐标
+     * @param moveFraction 每次移动剩余距离的比例，默认为0.1（即1/10）
+     * @param timeout 超时时间，单位：毫秒
+     */
+    public static void mouseMoveSmooth(Robot robot, int x, int y, float moveFraction, long timeout) throws InterruptedException {
+        if (robot == null) return;
+
+        Instant startTime = Instant.now();
+
+        while (Duration.between(startTime, Instant.now()).toMillis() < timeout) {
+            // 计算剩余移动距离并按比例分配
+            Point currentPos = MouseInfo.getPointerInfo().getLocation();
+            int remainingX = x - currentPos.x;
+            int remainingY = y - currentPos.y;
+            double remainingDistance = Math.sqrt(remainingX * remainingX + remainingY * remainingY);
+
+            // 如果剩余距离小于等于1（考虑到浮点运算误差），认为已到达目标
+            if (remainingDistance <= 1) {
+                mouseMove(x, y);
+                return;
+            }
+
+            // 向目标移动剩余距离的1/10
+            int moveX = (int) (currentPos.x + remainingX * moveFraction);
+            int moveY = (int) (currentPos.y + remainingY * moveFraction);
+            robot.mouseMove(moveX, moveY);
+
+            TimeUnit.MILLISECONDS.sleep(50); // 每次移动后等待50毫秒
+
+        }
+
+        // 时间耗尽，强制移动到目标
+        mouseMove(x, y);
     }
 
     /**
