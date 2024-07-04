@@ -6,6 +6,7 @@ import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.*;
 
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * excel表格修改辅助类
@@ -56,7 +57,7 @@ public interface ExcelModifyHelper {
 					}
 					for(int k=row.getFirstCellNum(); k<=row.getLastCellNum();k++) {
 						Cell cell = row.getCell(k);
-						Object val = ExcelReadUtils.getObjectValue(cell);
+						Optional<Object> val = ExcelReadUtils.readCellForObj(cell);
 						helper.walk(val, cell, k, row, j, sheet, i);
 					}
 				}
@@ -76,6 +77,6 @@ public interface ExcelModifyHelper {
 	
 	public boolean walk(Sheet sheet, int index);
 	public boolean walk(Row row, int rowNum, Sheet sheet, int sheetNum);
-	public void walk(Object val, Cell cell, int cellNum, Row row, int rowNum, Sheet sheet, int sheetNum);
+	public void walk(Optional<Object> val, Cell cell, int cellNum, Row row, int rowNum, Sheet sheet, int sheetNum);
 	
 }
