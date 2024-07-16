@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
  * 用于模拟鼠标和键盘操作，以及捕获屏幕截图。
  *
  * @author ag777 <837915770@vip.qq.com>
- * @version 2024/6/25 10:47
+ * @version 2024/7/16 11:26
  */
 public class RobotUtils {
 
@@ -98,8 +98,8 @@ public class RobotUtils {
             int remainingY = y - currentPos.y;
             double remainingDistance = Math.sqrt(remainingX * remainingX + remainingY * remainingY);
 
-            // 如果剩余距离小于等于1（考虑到浮点运算误差），认为已到达目标
-            if (remainingDistance <= 1) {
+            // 如果剩余距离小于等于10（考虑到浮点运算误差），认为已到达目标
+            if (remainingDistance <= 10) {
                 mouseMove(x, y);
                 return;
             }
