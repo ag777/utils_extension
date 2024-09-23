@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
- * 并发任务工具类
+ * 并发任务工具类(适合当个任务执行时间长，需要分批处理加速的任务)
  * @param <T> 单个任务的返回类型
  * @param <D> 单个任务绑定的数据类型
  * @param <R> 最终的结果返回类型
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  * @author ag777 <837915770@vip.qq.com>
  * @version 2023/8/16 08:57
  */
-public abstract class ParallelTask<T, D, R, V, E extends Exception> implements Callable<R> {
+public abstract class BatchTaskHelper<T, D, R, V, E extends Exception> implements Callable<R> {
 
     private final ExecutorService pool;
     private final CompletionServiceHelper<T, D> vsh;
@@ -40,7 +40,7 @@ public abstract class ParallelTask<T, D, R, V, E extends Exception> implements C
      * @param initResult 返回智初始值
      * @param batchSize 一次性处理的数据数量
      */
-    public ParallelTask(ExecutorService executeService, R initResult, int batchSize) {
+    public BatchTaskHelper(ExecutorService executeService, R initResult, int batchSize) {
         this(executeService, initResult, batchSize, 0);
     }
 
@@ -51,7 +51,7 @@ public abstract class ParallelTask<T, D, R, V, E extends Exception> implements C
      * @param batchSize 一次性处理的数据数量
      * @param batchTimeout 批处理超时,当有要处理的数据时，如果超过一定时间没有得到新的数据，则先执行该次批处理, 为0则不超时
      */
-    public ParallelTask(ExecutorService executeService, R initResult, int batchSize, long batchTimeout) {
+    public BatchTaskHelper(ExecutorService executeService, R initResult, int batchSize, long batchTimeout) {
         if (batchSize <= 0) {
             batchSize = 1;
         }
@@ -154,7 +154,7 @@ public abstract class ParallelTask<T, D, R, V, E extends Exception> implements C
      * @param bindData 要绑定的数据
      * @return self
      */
-    public ParallelTask<T, D, R, V, E> add(Callable<T> callable, D bindData) {
+    public BatchTaskHelper<T, D, R, V, E> add(Callable<T> callable, D bindData) {
         vsh.submit(callable, bindData);
         return this;
     }
@@ -163,7 +163,7 @@ public abstract class ParallelTask<T, D, R, V, E extends Exception> implements C
      * 添加完所有任务后务必调用该方法，避免call()先入无限等待状态
      * @return self
      */
-    public ParallelTask<T, D, R, V, E> finishAdd() {
+    public BatchTaskHelper<T, D, R, V, E> finishAdd() {
         taskAddFinished.set(true);
         return this;
     }
@@ -232,7 +232,7 @@ public abstract class ParallelTask<T, D, R, V, E extends Exception> implements C
     private void handleOnce(List<Pair<T, D>> pairs) throws InterruptedException, E {
         // 到达批量处理数量阈值，执行处理
         V newVal = handleItems(pairs);
-        synchronized (ParallelTask.class) {
+        synchronized (BatchTaskHelper.class) {
             this.result = merge(this.result, newVal);
         }
         pairs.clear();
@@ -299,7 +299,7 @@ public abstract class ParallelTask<T, D, R, V, E extends Exception> implements C
 
     @FunctionalInterface
     public interface DoAddTask<T, D, R, V, E extends Exception> {
-        void accept(ParallelTask<T, D, R, V, E> task) throws InterruptedException, E;
+        void accept(BatchTaskHelper<T, D, R, V, E> task) throws InterruptedException, E;
     }
 
     @FunctionalInterface
@@ -312,7 +312,7 @@ public abstract class ParallelTask<T, D, R, V, E extends Exception> implements C
         单线程: 随机(0,1000)，等待该随机数的时间(毫秒),
         有五个单线程,等待执行完毕。如果两次等待的线程小于100则一起输出，否则分开输出
         */
-        ParallelTask<String, Void, Void, Void, RuntimeException> task = new ParallelTask<String, Void, Void, Void, RuntimeException>(
+        BatchTaskHelper<String, Void, Void, Void, RuntimeException> task = new BatchTaskHelper<String, Void, Void, Void, RuntimeException>(
                 Executors.newFixedThreadPool(3),
                 null,
                 10,
