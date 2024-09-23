@@ -1,11 +1,9 @@
 package com.ag777.util;
 
+import com.ag777.util.file.PropertyUtils;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import com.ag777.util.Utils;
-import com.ag777.util.file.PropertyUtils;
-import com.ag777.util.jsoup.JsoupUtils;
 
 /**
  * 工具配置类
@@ -17,18 +15,6 @@ import com.ag777.util.jsoup.JsoupUtils;
  * @version last modify at 2017年08月28日
  */
 public class UtilsExtension{
-	
-	public static int jsoupTimeOut() {
-		return JsoupUtils.defaultTimeOut();
-	}
-	/**
-	* 定制jsoup连接默认的超时时间
-	* @param timeOut
-	* @return 
-	*/
-	public static void jsoupTimeOut(int timeOut) {
-		JsoupUtils.defaultTimeOut(timeOut);
-	}
 	
 	public static String info() {
 		Map<String, Object> infoMap = infoMap();
