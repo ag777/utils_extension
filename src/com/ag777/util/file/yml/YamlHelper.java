@@ -4,8 +4,9 @@ import com.ag777.util.lang.collection.MapUtils;
 import org.yaml.snakeyaml.DumperOptions;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.Writer;
+import java.nio.charset.Charset;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -38,14 +39,29 @@ public class YamlHelper {
 	}
 
 	/**
-	 * 读取 YAML 文件并返回对应的辅助类实例
+	 * 从指定文件中读取YAML内容，并将其转换为YamlHelper对象
+	 * 该方法使用系统默认字符集进行文件读取
 	 *
-	 * @param file 要读取的 YAML 文件
-	 * @return YamlHelper 实例，包含 YAML 文件的内容
-	 * @throws FileNotFoundException 如果文件未找到
+	 * @param file 要读取的YAML文件
+	 * @return 转换后的YamlHelper对象
+	 * @throws IOException 如果文件读取过程中发生错误
 	 */
-	public static YamlHelper read(File file) throws FileNotFoundException {
+	public static YamlHelper read(File file) throws IOException {
 	    Map<String, Object> map = YamlUtils.readMapByFile(file);
+	    return new YamlHelper(map);
+	}
+
+	/**
+	 * 从指定文件中读取YAML内容，并将其转换为YamlHelper对象
+	 * 该方法允许指定文件的字符集进行读取
+	 *
+	 * @param file 要读取的YAML文件
+	 * @param charset 文件的字符集
+	 * @return 转换后的YamlHelper对象
+	 * @throws IOException 如果文件读取过程中发生错误
+	 */
+	public static YamlHelper read(File file, Charset charset) throws IOException {
+	    Map<String, Object> map = YamlUtils.readMapByFile(file, charset);
 	    return new YamlHelper(map);
 	}
 
