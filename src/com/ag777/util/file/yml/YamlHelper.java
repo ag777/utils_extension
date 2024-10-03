@@ -1,12 +1,13 @@
 package com.ag777.util.file.yml;
 
+import com.ag777.util.lang.collection.MapUtils;
+import org.yaml.snakeyaml.DumperOptions;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.Writer;
-import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
-
-import com.ag777.util.lang.collection.MapUtils;
 
 /**
  * yml工具类(对snakeyaml的使用进行做简单的参考)
@@ -18,7 +19,7 @@ import com.ag777.util.lang.collection.MapUtils;
  * </p>
  * 
  * @author ag777
- * @version create on 2020年08月27日,last modify at 2020年08月27日
+ * @version create on 2020年08月27日,last modify at 2024年10月03日
  */
 public class YamlHelper {
 
@@ -36,44 +37,86 @@ public class YamlHelper {
 		
 	}
 
+	/**
+	 * 读取 YAML 文件并返回对应的辅助类实例
+	 *
+	 * @param file 要读取的 YAML 文件
+	 * @return YamlHelper 实例，包含 YAML 文件的内容
+	 * @throws FileNotFoundException 如果文件未找到
+	 */
 	public static YamlHelper read(File file) throws FileNotFoundException {
-		Map<String, Object> map = YamlUtils.readMapByFile(file);
-		return new YamlHelper(map);
+	    Map<String, Object> map = YamlUtils.readMapByFile(file);
+	    return new YamlHelper(map);
 	}
-	
+
+	/**
+	 * 初始化 YamlHelper 实例
+	 */
 	private void init() {
-		this.map = MapUtils.newHashMap();
+	    this.map = MapUtils.newHashMap();
 	}
-	
+
+	/**
+	 * 获取 YAML 数据的 Map 表示
+	 *
+	 * @return 包含 YAML 数据的 Map
+	 */
 	public Map<String, Object> getMap() {
-		return map;
+	    return map;
 	}
-	
+
+	/**
+	 * 获取 YAML 数据的扁平化 Map 表示
+	 *
+	 * @return 扁平化的 Map，其中嵌套的 Map 被展开，键为嵌套路径
+	 */
 	public Map<String, Object> getFlatMap() {
-		return flatMap(null, map, MapUtils.newHashMap());
+	    return flatMap(null, map, new LinkedHashMap<>(map.size()));
 	}
-	
+
+	/**
+	 * 保存 YAML 数据到指定的 Writer
+	 *
+	 * @param writer 用于写入 YAML 数据的 Writer
+	 */
 	public void save(Writer writer) {
-		YamlUtils.write(map, writer);
+	    YamlUtils.write(map, writer);
 	}
-	
+
+	/**
+	 * 保存 YAML 数据到指定的 Writer，使用给定的 DumperOptions
+	 *
+	 * @param writer 用于写入 YAML 数据的 Writer
+	 * @param options Yaml 序列化选项
+	 */
+	public void save(Writer writer, DumperOptions options) {
+	    YamlUtils.write(map, writer, options);
+	}
+
+	/**
+	 * 递归地将嵌套的 Map 扁平化为一个 Map
+	 *
+	 * @param curKey 当前键的前缀，用于构建嵌套键
+	 * @param map 需要扁平化的 Map
+	 * @param resultMap 扁平化后的 Map
+	 * @return 扁平化后的 Map
+	 */
 	@SuppressWarnings("unchecked")
 	private static Map<String, Object> flatMap(String curKey, Map<String, Object> map, Map<String, Object> resultMap) {
-		Iterator<String> itor = map.keySet().iterator();
-		while(itor.hasNext()) {
-			String key = itor.next();
-			Object value = map.get(key);
-			//获取完value之后，拼接key:a.b.c
-			if(curKey != null) {
-				key = curKey+"."+key;
-			}
-			if(value instanceof Map) {
-				flatMap(key, (Map<String, Object>) value, resultMap);
-			} else {
-				resultMap.put(key, value);
-			}
-		}
-		return resultMap;
+        for (String key : map.keySet()) {
+            Object value = map.get(key);
+            // 拼接当前键和前缀键，形成完整的嵌套键
+            if (curKey != null) {
+                key = curKey + "." + key;
+            }
+            // 如果值是 Map，则递归扁平化
+            if (value instanceof Map) {
+                flatMap(key, (Map<String, Object>) value, resultMap);
+            } else {
+                resultMap.put(key, value);
+            }
+        }
+	    return resultMap;
 	}
 	
 }
