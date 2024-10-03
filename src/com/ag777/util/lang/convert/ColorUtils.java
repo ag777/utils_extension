@@ -10,42 +10,42 @@ import java.awt.Color;
 public class ColorUtils {
 
 	private ColorUtils() {}
-	
+
 	/**
-	 * 根据一个16进制的数字获取一个颜色
-	 * @param hexStr 请先去除开头的0x(如果有的话)
-	 * @return
-	 * @throws NumberFormatException
+	 * 将十六进制字符串转换为Color对象
+	 * @param hexStr 十六进制颜色字符串，格式为"#RRGGBB"
+	 * @return 对应的Color对象
+	 * @throws NumberFormatException 如果字符串格式不正确
 	 */
 	public static Color toColor(String hexStr) throws NumberFormatException {
 		int rgb = toInt(hexStr);
 		return toColor(rgb);
 	}
-	
+
 	/**
-	 * int型色值转化为color
-	 * @param rgb int型色值
-	 * @return
+	 * 将整数颜色值转换为Color对象
+	 * @param rgb 整数颜色值，0xRRGGBB格式
+	 * @return 对应的Color对象
 	 */
 	public static Color toColor(int rgb) {
 		return new Color(rgb);
 	}
-	
+
 	/**
-	 * 将rgb转化为颜色
-	 * @param r red
-	 * @param g green
-	 * @param b blue
-	 * @return
+	 * 将三个整数分别作为红、绿、蓝分量来创建Color对象
+	 * @param r 红色分量，取值范围0-255
+	 * @param g 绿色分量，取值范围0-255
+	 * @param b 蓝色分量，取值范围0-255
+	 * @return 对应的Color对象
 	 */
 	public static Color toColor(int r, int g, int b) {
 		return new Color(r, g, b);
 	}
-	
+
 	/**
-	 * 从一个颜色中提取出16进制的色值(返回的字符串不包含开头的0x)
-	 * @param color
-	 * @return
+	 * 将Color对象转换为十六进制颜色字符串
+	 * @param color Color对象
+	 * @return 十六进制颜色字符串，格式为"#RRGGBB"
 	 */
 	public static String toHex(Color color) {
 		int r = color.getRed();
@@ -53,55 +53,55 @@ public class ColorUtils {
 		int b = color.getBlue();
 		return toHex(r, g, b);
 	}
-	
+
 	/**
-	 * 将rgb转化为16进制色值
-	 * @param r red
-	 * @param g green
-	 * @param b blue
-	 * @return
+	 * 将RGB分量转换为十六进制颜色字符串
+	 * @param r 红色分量，取值范围0-255
+	 * @param g 绿色分量，取值范围0-255
+	 * @param b 蓝色分量，取值范围0-255
+	 * @return 十六进制颜色字符串，格式为"RRGGBB"
 	 */
 	public static String toHex(int r, int g, int b) {
 		return toHexString(r)+toHexString(g)+toHexString(b);
 	}
-	
+
 	/**
-	 * 将int型色值转化为16进制色值(实际上就是10进制转16进制)
-	 * @param rgb int型色值
-	 * @return
+	 * 将整数颜色值转换为十六进制颜色字符串
+	 * @param rgb 整数颜色值，0xRRGGBB格式
+	 * @return 十六进制颜色字符串，格式为"RRGGBB"
 	 */
 	public static String toHex(int rgb) {
 		return Integer.toHexString(rgb);
 	}
-	
+
 	/**
-	 * 从一个颜色中取出10进制的int型色值
-	 * @param color
-	 * @return
-	 * @throws NumberFormatException
+	 * 将Color对象转换为整数颜色值
+	 * @param color Color对象
+	 * @return 整数颜色值，0xRRGGBB格式
+	 * @throws NumberFormatException 如果颜色值无法转换为整数
 	 */
 	public static int toInt(Color color) throws NumberFormatException {
 		String hexStr = toHex(color);
 		return toInt(hexStr);
 	}
-	
+
 	/**
-	 * 将16进制的色值转化为int色值
-	 * @param hexStr 16进制色值
-	 * @return
-	 * @throws NumberFormatException
+	 * 将十六进制颜色字符串转换为整数颜色值
+	 * @param hexStr 十六进制颜色字符串，格式为"#RRGGBB"
+	 * @return 整数颜色值，0xRRGGBB格式
+	 * @throws NumberFormatException 如果字符串格式不正确
 	 */
 	public static int toInt(String hexStr) throws NumberFormatException {
-		if(hexStr.startsWith("#")) {	//如果是#开头则删除第一个字符(#)，否则影响转化
+		if(hexStr.startsWith("#")) { // 如果是#开头则删除第一个字符(#)，否则影响转化
 			hexStr = hexStr.substring(1);
 		}
 		return Integer.parseInt(hexStr, 16);
 	}
-	
+
 	/**
-	 * 获取rgb
-	 * @param rgb int型色值
-	 * @return
+	 * 将整数颜色值分解为RGB分量
+	 * @param rgb 整数颜色值，0xRRGGBB格式
+	 * @return 包含红、绿、蓝分量的整数数组，每个分量取值范围0-255
 	 */
 	public static int[] toRGB(int rgb) {
 		int R = (rgb & 0xff0000) >> 16;
@@ -109,25 +109,25 @@ public class ColorUtils {
 		int B = (rgb & 0xff);
 		return new int[] {R, G, B};
 	}
-	
+
 	/**
-	 * 获取rgb
-	 * @param hexStr 16进制色值
-	 * @return
+	 * 将十六进制颜色字符串分解为RGB分量
+	 * @param hexStr 十六进制颜色字符串，格式为"RRGGBB"
+	 * @return 包含红、绿、蓝分量的整数数组，每个分量取值范围0-255
 	 */
 	public static int[] toRGB(String hexStr) {
 		int[] rgb = new int[3];
-		for(int i=0,j=0;i<6;i+=2,j++) {
+		for(int i=0,j=0;i<6;i+=2, j++) {
 			String temp = hexStr.substring(i, i+2);
 			rgb[j] = Integer.parseInt(temp, 16);
 		}
 		return rgb;
 	}
-	
+
 	/**
-	 * 转化rgb 到16进制(固定两位)
-	 * @param r r 或 g 或 b
-	 * @return 16进制字符串
+	 * 将整数分量转换为两位的十六进制字符串
+	 * @param r 整数分量，取值范围0-255
+	 * @return 两位的十六进制字符串，如果位数不足则补0
 	 */
 	private static String toHexString(int r) {
 		String hex = Integer.toHexString(r);
