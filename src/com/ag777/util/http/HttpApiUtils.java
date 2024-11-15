@@ -188,7 +188,7 @@ public class HttpApiUtils {
         } catch (IOException e) {
             throw toException.apply("解析"+apiName+"返回出现io异常", e);
         } finally {
-            IOUtils.close(res);
+            IOUtils.close(res.body(), res);
         }
 
     }
