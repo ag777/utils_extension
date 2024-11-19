@@ -40,7 +40,7 @@ public class DbErrCode {
 	}
 
 	// https://www.sqlite.org/rescode.html?spm=5176.28103460.0.0.40f75d27UJk1r6
-	public static class SQLTE {
+	public static class SQLITE {
 
 	}
 }
