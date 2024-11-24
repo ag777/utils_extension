@@ -16,8 +16,8 @@ import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageInputStream;
 
 import com.ag777.util.file.FileUtils;
+import com.ag777.util.lang.ImageUtils;
 import com.ag777.util.lang.collection.MapUtils;
-import com.ag777.util.lang.img.ImageUtils;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
 import com.google.zxing.MultiFormatWriter;
@@ -130,17 +130,21 @@ public class QRCodeBuilder {
 	private void writeToFile(BufferedImage image, String format, File file) throws IOException {  
         writeToStream(image, format, FileUtils.getOutputStream(file));
     }
-	
-	/**
-	 * 
-	 * @param matrix
-	 * @param format
-	 * @param stream
-	 * @throws IOException
-	 */
-	private void writeToStream(BufferedImage image, String format, OutputStream stream) throws IOException {  
-		
-        if (!ImageIO.write(image, format, stream)) {  
+
+    /**
+     * 将BufferedImage对象写入到指定的输出流中
+     * 此方法主要用于将给定格式的图像数据写入到指定的OutputStream对象中
+     * 它使用ImageIO.write方法来执行实际的写入操作如果写入失败，它会抛出一个IOException
+     *
+     * @param image 要写入的BufferedImage对象
+     * @param format 图像的格式，例如"jpg"、"png"等
+     * @param stream 要写入图像数据的OutputStream对象
+     * @throws IOException 如果写入图像失败
+     */
+    private void writeToStream(BufferedImage image, String format, OutputStream stream) throws IOException {
+        // 尝试将图像写入到指定的输出流中如果返回false，表示写入操作失败
+        if (!ImageIO.write(image, format, stream)) {
+            // 抛出IOException，指示写入图像失败并指定图像格式
             throw new IOException("Could not write an image of format " + format);  
         }  
     }

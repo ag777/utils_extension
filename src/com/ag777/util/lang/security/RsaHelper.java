@@ -1,7 +1,7 @@
 package com.ag777.util.lang.security;
 
+import com.ag777.util.lang.model.Pair;
 import com.ag777.util.security.Base64Utils;
-import javafx.util.Pair;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -90,8 +90,8 @@ public class RsaHelper {
         String text = "撒旦教爱丽丝到家撒旦教撒旦教爱丽丝到家撒旦教爱丽丝到家啦是可敬的撒旦教爱丽丝到家啦是可敬的撒旦教爱丽丝到家啦是可敬的啦是可敬的撒旦教爱丽丝到家撒旦教爱丽丝到家啦是可敬的撒旦教爱丽丝到家啦是可敬的撒旦教爱丽丝到家啦是可敬的啦是可敬的撒旦教爱丽丝到家撒旦教爱丽丝到家啦是可敬的撒旦教爱丽丝到家啦是可敬的撒旦教爱丽丝到家啦是可敬的啦是可敬的爱丽丝到家啦是可敬的撒旦教爱丽丝到家啦是可敬的撒旦教爱丽丝到家啦是可敬的啦是可敬的";
         int keySize = 512;
         Pair<String, String> pair = newKeyPair(keySize, charset);
-        RsaHelper hPublic = newInstance(pair.getKey(), keySize, true, charset);
-        RsaHelper hPrivate= newInstance(pair.getValue(), keySize, false, charset);
+        RsaHelper hPublic = newInstance(pair.first, keySize, true, charset);
+        RsaHelper hPrivate= newInstance(pair.second, keySize, false, charset);
         // 公钥加密 私钥解密
         String en = hPublic.encode2Str(text);
         String de = hPrivate.decode2Str(en);

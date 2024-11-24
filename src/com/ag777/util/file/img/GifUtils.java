@@ -12,8 +12,9 @@ import javax.imageio.spi.ImageWriterSpi;
 import javax.imageio.stream.FileImageOutputStream;
 
 import com.ag777.util.lang.IOUtils;
+import com.ag777.util.lang.ImageUtils;
 import com.ag777.util.lang.StringUtils;
-import com.ag777.util.lang.img.ImageUtils;
+
 import com.madgag.gif.fmsware.AnimatedGifEncoder;
 import com.madgag.gif.fmsware.GifDecoder;
 import com.sun.imageio.plugins.png.PNGImageWriter;
@@ -66,7 +67,7 @@ public class GifUtils {
 		for (int i = 0; i < frameCount; i++) {
 		    String targetPath = StringUtils.concat(targetDir, i, ".png");
 			try {
-				out = ImageUtils.getFileImageOutputStream(targetPath);
+				out = new FileImageOutputStream(new File(targetPath));
 				writer.setOutput(out);
 				// 读取读取帧的图片
 				writer.write(decoder.getFrame(i));
