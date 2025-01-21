@@ -1,9 +1,7 @@
 package com.ag777.util.file.excel;
 
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
 
 /**
  * @author ag777 <837915770@vip.qq.com>
@@ -105,5 +103,80 @@ public class ExcelUtils {
             int extraWidth = 512;
             sheet.setColumnWidth(columnIndex, currentWidth + extraWidth);
         }
+    }
+
+    /**
+     * 复制一个Excel工作表（Sheet）的所有内容到另一个工作表。
+     * 包括列宽、行高、单元格内容、单元格样式和合并单元格等属性。
+     *
+     * @param sourceSheet 源工作表，从中复制所有内容
+     * @param targetSheet 目标工作表，将源工作表的内容复制到这里
+     */
+    public static void copySheet(Sheet sourceSheet, Sheet targetSheet) {
+        // 复制列宽：遍历第一行的每个单元格，设置目标Sheet的列宽与源Sheet相同
+        for (int i = 0; i < sourceSheet.getRow(0).getLastCellNum(); i++) {
+            targetSheet.setColumnWidth(i, sourceSheet.getColumnWidth(i));
+        }
+
+        // 复制行高和内容：遍历源Sheet的所有行
+        for (int i = 0; i <= sourceSheet.getLastRowNum(); i++) {
+            Row sourceRow = sourceSheet.getRow(i);
+            Row targetRow = targetSheet.createRow(i);
+
+            if (sourceRow != null) {
+                // 复制行高：如果源行不为空，则设置目标行的高度与源行相同
+                targetRow.setHeight(sourceRow.getHeight());
+
+                // 遍历源行的每个单元格，复制内容到目标行
+                for (int j = 0; j < sourceRow.getLastCellNum(); j++) {
+                    Cell sourceCell = sourceRow.getCell(j);
+                    Cell targetCell = targetRow.createCell(j);
+
+                    if (sourceCell != null) {
+                        // 调用copyCell方法复制单元格内容和样式
+                        copyCell(sourceCell, targetCell);
+                    }
+                }
+            }
+        }
+
+        // 复制合并单元格：遍历源Sheet的所有合并区域，并在目标Sheet中添加相同的合并区域
+        for (int i = 0; i < sourceSheet.getNumMergedRegions(); i++) {
+            CellRangeAddress mergedRegion = sourceSheet.getMergedRegion(i);
+            targetSheet.addMergedRegion(mergedRegion);
+        }
+    }
+
+
+    /**
+     * 复制单个单元格的内容和样式。
+     *
+     * @param sourceCell 源单元格，从中复制内容和样式
+     * @param targetCell 目标单元格，将源单元格的内容和样式复制到这里
+     */
+    public static void copyCell(Cell sourceCell, Cell targetCell) {
+        // 复制单元格内容：根据单元格类型设置目标单元格的值
+        switch (sourceCell.getCellType()) {
+            case STRING:
+                targetCell.setCellValue(sourceCell.getStringCellValue());
+                break;
+            case NUMERIC:
+                targetCell.setCellValue(sourceCell.getNumericCellValue());
+                break;
+            case BOOLEAN:
+                targetCell.setCellValue(sourceCell.getBooleanCellValue());
+                break;
+            case FORMULA:
+                targetCell.setCellFormula(sourceCell.getCellFormula());
+                break;
+            default:
+                targetCell.setCellValue("");
+        }
+
+        // 复制单元格样式：创建新的CellStyle并从源单元格克隆样式，应用到目标单元格
+        CellStyle sourceStyle = sourceCell.getCellStyle();
+        CellStyle targetStyle = targetCell.getSheet().getWorkbook().createCellStyle();
+        targetStyle.cloneStyleFrom(sourceStyle);
+        targetCell.setCellStyle(targetStyle);
     }
 }
