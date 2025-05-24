@@ -33,7 +33,7 @@ import java.util.Objects;
  * @version create on 2025年05月24日,last modify at 2025年05月24日
  */
 public class XPathUtils {
-    
+
     /**
      * 自定义XPath评估异常类
      */
@@ -41,12 +41,12 @@ public class XPathUtils {
         public XPathEvaluationException(String message) {
             super(message);
         }
-        
+
         public XPathEvaluationException(String message, Throwable cause) {
             super(message, cause);
         }
     }
-    
+
     // 创建新的DocumentBuilder实例
     private static DocumentBuilder newDocumentBuilder() throws XPathEvaluationException {
         try {
@@ -58,8 +58,11 @@ public class XPathUtils {
             throw new XPathEvaluationException("创建DocumentBuilder失败", e);
         }
     }
-    
-    // 创建新的XPath实例
+
+    /**
+     * 创建新的XPath实例
+     * @return XPath实例
+     */
     private static XPath newXPath() {
         XPathFactory xPathFactory = XPathFactory.newInstance();
         return xPathFactory.newXPath();
@@ -67,7 +70,7 @@ public class XPathUtils {
 
     /**
      * 将XML/HTML字符串解析为Document对象
-     * 
+     *
      * @param content XML/HTML内容
      * @return 解析后的Document对象
      * @throws XPathEvaluationException 如果解析失败
@@ -76,7 +79,7 @@ public class XPathUtils {
         if (content == null || content.trim().isEmpty()) {
             throw new IllegalArgumentException("XML/HTML内容不能为空");
         }
-        
+
         try {
             DocumentBuilder builder = newDocumentBuilder();
             return builder.parse(new InputSource(new StringReader(content)));
@@ -86,10 +89,10 @@ public class XPathUtils {
             throw new XPathEvaluationException("读取内容时发生IO错误", e);
         }
     }
-    
+
     /**
      * 从文件解析XML/HTML为Document对象
-     * 
+     *
      * @param file XML/HTML文件
      * @return 解析后的Document对象
      * @throws XPathEvaluationException 如果文件不存在或解析失败
@@ -99,24 +102,24 @@ public class XPathUtils {
         if (!file.exists() || !file.isFile()) {
             throw new IllegalArgumentException("文件不存在或不是文件: " + file.getAbsolutePath());
         }
-        
+
         try (FileInputStream fis = new FileInputStream(file)) {
             return parseDocument(fis);
         } catch (IOException e) {
             throw new XPathEvaluationException("读取文件时发生IO错误: " + file.getAbsolutePath(), e);
         }
     }
-    
+
     /**
      * 从输入流解析XML/HTML为Document对象
-     * 
+     *
      * @param inputStream 输入流
      * @return 解析后的Document对象
      * @throws XPathEvaluationException 如果解析失败
      */
     public static Document parseDocument(InputStream inputStream) throws XPathEvaluationException {
         Objects.requireNonNull(inputStream, "输入流不能为null");
-        
+
         try {
             DocumentBuilder builder = newDocumentBuilder();
             return builder.parse(inputStream);
@@ -126,18 +129,18 @@ public class XPathUtils {
             throw new XPathEvaluationException("读取输入流时发生IO错误", e);
         }
     }
-    
 
-   /**
-    * 使用已解析的Document对象和XPath表达式评估结果
-    * 支持 boolean(xxx)、count(xxx)、string(xxx)、number(xxx) 等形式
-    *
-    * @param document 已解析的Document对象
-    * @param xpathExpression XPath表达式
-    * @return String
-    * @throws XPathEvaluationException 若XPath评估失败
-    */
-    public static String evaluateForStr(Document document, String xpathExpression) throws XPathEvaluationException {
+    /**
+     * 使用已解析的Document对象和XPath表达式评估结果
+     * 支持 boolean(xxx)、count(xxx)、string(xxx)、number(xxx) 等形式
+     *
+     * @param content     XML/HTML内容
+     * @param xpathExpression XPath表达式
+     * @return String
+     * @throws XPathEvaluationException 若XPath评估失败
+     */
+    public static String evaluateForStr(String content, String xpathExpression) throws XPathEvaluationException {
+        Document document = parseDocument(content);
         Object value = evaluate(document, xpathExpression);
         if(value instanceof String) {
             return (String) value;
@@ -163,6 +166,19 @@ public class XPathUtils {
     }
 
     /**
+     * 使用已解析的Document对象和XPath表达式获取xml节点
+     *
+     * @param content     XML/HTML内容
+     * @param xpathExpression XPath表达式
+     * @return 节点对应xml字符串列表
+     * @throws XPathEvaluationException 若XPath评估失败
+     */
+    public static List<String> evaluateForNodes(String content, String xpathExpression) throws XPathEvaluationException {
+        Document document = parseDocument(content);
+        return evaluateForNodes(document, xpathExpression, newXPath());
+    }
+
+    /**
      * 使用XML/HTML字符串和XPath表达式评估结果
      * 支持 boolean(xxx)、count(xxx)、string(xxx)、number(xxx) 等形式
      *
@@ -176,7 +192,7 @@ public class XPathUtils {
         Document document = parseDocument(content);
         return evaluate(document, xpathExpression);
     }
-        
+
     /**
      * 使用已解析的Document对象和XPath表达式评估结果
      * 支持 boolean(xxx)、count(xxx)、string(xxx)、number(xxx) 等形式
@@ -192,7 +208,7 @@ public class XPathUtils {
         if (xpathExpression == null || xpathExpression.trim().isEmpty()) {
             throw new IllegalArgumentException("XPath表达式不能为空");
         }
-        
+
         XPath xpath = newXPath();
 
         // 处理 boolean(xxx)
@@ -222,7 +238,7 @@ public class XPathUtils {
             }
         }
 
-        
+
         // 处理 contains(xxx)
         if (xpathExpression.startsWith("contains(")) {
             try {
@@ -241,6 +257,21 @@ public class XPathUtils {
             }
         }
 
+        // 其他类型：提取文本内容
+        return evaluateForNodes(document, xpathExpression, xpath);
+    }
+
+    /**
+     * 使用已解析的Document对象和XPath表达式获取xml节点
+     *
+     * @param document 已解析的Document对象
+     * @param xpathExpression XPath表达式
+     * @param xpath XPath实例
+     * @return 节点对应xml字符串列表
+     * @throws XPathEvaluationException 若XPath评估失败
+     * @throws IllegalArgumentException 若输入参数为null或空
+     */
+    private static List<String> evaluateForNodes(Document document, String xpathExpression, XPath xpath) throws XPathEvaluationException {
         // 其他类型：提取文本内容
         try {
             boolean text = false;
@@ -278,17 +309,17 @@ public class XPathUtils {
             throw new XPathEvaluationException("将节点转换成xml字符串异常", e);
         }
     }
-    
+
     /**
      * 获取节点的属性值
-     * 
+     *
      * @param content XML/HTML内容
      * @param xpathExpression 用于定位节点的XPath表达式
      * @param attributeName 属性名称
      * @return 属性值列表，如果节点不存在或没有该属性则返回空列表
      * @throws XPathEvaluationException 若解析或XPath评估失败
      */
-    public static List<String> getAttributeValues(String content, String xpathExpression, String attributeName) 
+    public static List<String> getAttributeValues(String content, String xpathExpression, String attributeName)
             throws XPathEvaluationException {
         Document document = parseDocument(content);
         Objects.requireNonNull(document, "Document对象不能为null");
@@ -298,11 +329,11 @@ public class XPathUtils {
         if (xpathExpression == null || xpathExpression.trim().isEmpty()) {
             throw new IllegalArgumentException("XPath表达式不能为空");
         }
-        
+
         try {
             XPath xpath = newXPath();
             NodeList nodes = (NodeList) xpath.evaluate(xpathExpression, document, XPathConstants.NODESET);
-            
+
             List<String> result = new ArrayList<>();
             for (int i = 0; i < nodes.getLength(); i++) {
                 Node node = nodes.item(i);
