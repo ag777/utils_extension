@@ -1,18 +1,5 @@
 package com.ag777.util.remote.ftp;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.SocketException;
-import java.nio.charset.Charset;
-import java.util.List;
-
-import javax.naming.AuthenticationException;
-import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPFile;
-import org.apache.commons.net.ftp.FTPReply;
 import com.ag777.util.file.FileUtils;
 import com.ag777.util.lang.Console;
 import com.ag777.util.lang.IOUtils;
@@ -22,6 +9,15 @@ import com.ag777.util.lang.exception.Assert;
 import com.ag777.util.lang.exception.model.ValidateException;
 import com.ag777.util.lang.interf.Disposable;
 import com.ag777.util.lang.model.Charsets;
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPFile;
+import org.apache.commons.net.ftp.FTPReply;
+
+import javax.naming.AuthenticationException;
+import java.io.*;
+import java.net.SocketException;
+import java.nio.charset.Charset;
+import java.util.List;
 
 /**
  * ftp操作辅助类
@@ -288,7 +284,7 @@ public class FtpHelper implements Disposable {
 		}
     	try {
 	       InputStream in = readFile(targetPath);	//需要注意编码转换
-	       return IOUtils.readText(in, lineSparator, charset);
+	       return IOUtils.readText(in, charset);
 		}   finally {
 			//详见https://www.jianshu.com/p/a90cc2aeefca
 			client.completePendingCommand();

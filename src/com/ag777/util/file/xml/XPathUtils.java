@@ -367,44 +367,44 @@ public class XPathUtils {
      * 测试用例
      */
     public static void main(String[] args) {
-        String xml = """
-            <html>
-              <body>
-                <div class="quality" id="div1"><div>Quality Content</div><div>111</div></div>
-                <div class="other" id="div2"><div>Other Content</div><div>222</div></div>
-                <div class="quality" id="div3"><div>Quality Content</div><div>333</div></div>
-                <div class="price">123.45</div>
-              </body>
-            </html>
-            """;
-
-        try {
-            // 测试 boolean(xxx)
-            Object boolResult = evaluate(xml, "boolean(.//div[contains(@class, 'quality')])");
-            System.out.println("Boolean Result: " + boolResult); // true
-
-            // 测试 count(xxx)
-            Object countResult = evaluate(xml, "count(.//div[contains(@class, 'quality')])");
-            System.out.println("Count Result: " + countResult); // 2
-
-            // 测试 string(xxx)
-            Object stringResult = evaluate(xml, "string(.//div[1]/text())");
-            System.out.println("String Result: " + stringResult); // Quality Content
-
-            // 测试普通XPath
-            Object textResult = evaluate(xml, ".//div[contains(@class, 'quality')]/text()");
-            System.out.println("Text Result: " + textResult); // [Quality Content, Another Quality]
-
-            // 测试空结果
-            Object emptyResult = evaluate(xml, "//div[@class='not-exist']");
-            System.out.println("Empty Result: " + emptyResult); // []
-//            System.out.println(evaluate(xml, ".//div[contains(@class, 'quality')]"));
-        } catch (XPathEvaluationException e) {
-            System.err.println("XPath评估异常: " + e.getMessage());
-            e.printStackTrace();
-        } catch (IllegalArgumentException e) {
-            System.err.println("参数错误: " + e.getMessage());
-            e.printStackTrace();
-        }
+//        String xml = """
+//            <html>
+//              <body>
+//                <div class="quality" id="div1"><div>Quality Content</div><div>111</div></div>
+//                <div class="other" id="div2"><div>Other Content</div><div>222</div></div>
+//                <div class="quality" id="div3"><div>Quality Content</div><div>333</div></div>
+//                <div class="price">123.45</div>
+//              </body>
+//            </html>
+//            """;
+//
+//        try {
+//            // 测试 boolean(xxx)
+//            Object boolResult = evaluate(xml, "boolean(.//div[contains(@class, 'quality')])");
+//            System.out.println("Boolean Result: " + boolResult); // true
+//
+//            // 测试 count(xxx)
+//            Object countResult = evaluate(xml, "count(.//div[contains(@class, 'quality')])");
+//            System.out.println("Count Result: " + countResult); // 2
+//
+//            // 测试 string(xxx)
+//            Object stringResult = evaluate(xml, "string(.//div[1]/text())");
+//            System.out.println("String Result: " + stringResult); // Quality Content
+//
+//            // 测试普通XPath
+//            Object textResult = evaluate(xml, ".//div[contains(@class, 'quality')]/text()");
+//            System.out.println("Text Result: " + textResult); // [Quality Content, Another Quality]
+//
+//            // 测试空结果
+//            Object emptyResult = evaluate(xml, "//div[@class='not-exist']");
+//            System.out.println("Empty Result: " + emptyResult); // []
+////            System.out.println(evaluate(xml, ".//div[contains(@class, 'quality')]"));
+//        } catch (XPathEvaluationException e) {
+//            System.err.println("XPath评估异常: " + e.getMessage());
+//            e.printStackTrace();
+//        } catch (IllegalArgumentException e) {
+//            System.err.println("参数错误: " + e.getMessage());
+//            e.printStackTrace();
+//        }
     }
 }

@@ -8,6 +8,7 @@ import com.ag777.util.lang.exception.model.ImageNotSupportException;
 import javax.imageio.*;
 import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
+import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
@@ -222,6 +223,102 @@ public class ImageUtils {
 		// 执行缩放操作
 		BufferedImage scaledImg = new BufferedImage(w, h, bufImg.getType());
 		return ato.filter(bufImg, scaledImg);
+	}
+
+	/**
+	 * 按角度旋转图像，自动适配画布大小以完整容纳旋转后的内容。
+	 *
+	 * @param image   源图像，不可为null
+	 * @param degrees 旋转角度，单位为度，顺时针为正，可为负值
+	 * @return 旋转后的新图像
+	 * @throws IllegalArgumentException 当 image 为 null 时抛出
+	 */
+	public static BufferedImage rotate(BufferedImage image, double degrees) throws IllegalArgumentException {
+		if (image == null) {
+			throw new IllegalArgumentException("Image cannot be null.");
+		}
+
+		// 归一化到 [0, 360)
+		double normalized = ((degrees % 360.0) + 360.0) % 360.0;
+
+		int srcW = image.getWidth();
+		int srcH = image.getHeight();
+		boolean hasAlpha = image.getColorModel() != null && image.getColorModel().hasAlpha();
+		int targetType = hasAlpha ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
+
+		// 如果是 90° 的倍数，使用像素映射的简洁方式，避免 Graphics2D
+		int quadrant = (int) Math.round(normalized / 90.0) % 4;
+		if (Math.abs(normalized - quadrant * 90.0) < 1e-8) {
+			int newW = (quadrant % 2 == 0) ? srcW : srcH;
+			int newH = (quadrant % 2 == 0) ? srcH : srcW;
+			BufferedImage rotated = new BufferedImage(newW, newH, targetType);
+
+			int[] src = image.getRGB(0, 0, srcW, srcH, null, 0, srcW);
+			int[] dst = new int[newW * newH];
+
+			switch (quadrant) {
+				case 0: // 0°
+					// 直接复制
+					System.arraycopy(src, 0, dst, 0, src.length);
+					break;
+				case 1: // 90° 顺时针
+					for (int y = 0; y < srcH; y++) {
+						for (int x = 0; x < srcW; x++) {
+							int x2 = y;
+							int y2 = newH - 1 - x;
+							dst[y2 * newW + x2] = src[y * srcW + x];
+						}
+					}
+					break;
+				case 2: // 180°
+					for (int y = 0; y < srcH; y++) {
+						for (int x = 0; x < srcW; x++) {
+							int x2 = newW - 1 - x;
+							int y2 = newH - 1 - y;
+							dst[y2 * newW + x2] = src[y * srcW + x];
+						}
+					}
+					break;
+				case 3: // 270° 顺时针（或 90° 逆时针）
+					for (int y = 0; y < srcH; y++) {
+						for (int x = 0; x < srcW; x++) {
+							int x2 = newW - 1 - y;
+							int y2 = x;
+							dst[y2 * newW + x2] = src[y * srcW + x];
+						}
+					}
+					break;
+				default:
+					// 不会到这里
+			}
+
+			rotated.setRGB(0, 0, newW, newH, dst, 0, newW);
+			return rotated;
+		}
+
+		// 其他任意角度，使用基于 Graphics2D 的高质量旋转
+		double radians = Math.toRadians(normalized);
+		double sin = Math.abs(Math.sin(radians));
+		double cos = Math.abs(Math.cos(radians));
+		int newW = (int) Math.floor(srcW * cos + srcH * sin);
+		int newH = (int) Math.floor(srcH * cos + srcW * sin);
+		BufferedImage rotated = new BufferedImage(newW, newH, targetType);
+
+		AffineTransform transform = new AffineTransform();
+		transform.translate((newW - srcW) / 2.0, (newH - srcH) / 2.0);
+		transform.rotate(radians, srcW / 2.0, srcH / 2.0);
+
+		Graphics2D g2d = rotated.createGraphics();
+		try {
+			g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+			g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g2d.drawImage(image, transform, null);
+		} finally {
+			g2d.dispose();
+		}
+
+		return rotated;
 	}
 
 	/**

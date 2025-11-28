@@ -1,20 +1,15 @@
 package com.ag777.util.lang.reflection;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
 import com.ag777.util.lang.IOUtils;
 import com.ag777.util.lang.StringUtils;
 import com.ag777.util.lang.exception.model.ClassInstantiationException;
 import com.ag777.util.lang.exception.model.ServiceNotFoundException;
 import com.ag777.util.lang.model.Charsets;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.*;
 
 /**
  * <p>
@@ -221,7 +216,7 @@ public class ClassLoaderUtils {
         String serviceClassName;
 
         try {
-            serviceClassName = StringUtils.emptyIfNull(IOUtils.readText(istream, null, Charsets.UTF_8)).trim();
+            serviceClassName = StringUtils.emptyIfNull(IOUtils.readText(istream, Charsets.UTF_8)).trim();
         } catch (IOException e) {
             throw new ServiceNotFoundException("Failed to load " + serviceId, e);
         }
