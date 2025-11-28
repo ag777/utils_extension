@@ -1,128 +1,223 @@
 package com.ag777.util.db;
 
-import com.ag777.util.gson.GsonUtils;
-import com.ag777.util.lang.Console;
 import com.ag777.util.lang.collection.ListUtils;
-import com.ag777.util.lang.collection.MapUtils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 /**
- * 适用业务: 任意数量的源数据,需要根据数据的id批量到数据库里进行查询相关信息,并将结果和源数据对应上的情况
+ * 批量查询并绑定详情工具类（生产终极版）
+ * <p>
+ *
  * @author ag777 <837915770@vip.qq.com>
- * @Description 批量查询并绑定数据工具类
- * @Date 2022/9/15 9:02
+ * @Date 2025/11/28
  */
-public class BatchQueryUtils {
+public final class BatchQueryUtils {
 
-    public static void main(String[] args) {
-        bind(ListUtils.of(1, 2, 3, 4, 5), i->i, 2, (ids->{
-            Console.prettyLog(ids);
-            return ListUtils.of(MapUtils.of(
-                    "id", 2,
-                    "v", "a"
-            ), MapUtils.of(
-                    "id", 3,
-                    "v", "a"
-            ), MapUtils.of(
-                    "id", 4,
-                    "v", "a"
-            ), MapUtils.of(
-                    "id", 4,
-                    "v", "a"
-            ));
-        }), map-> {
-            // 转义不能去，去了报错: 无法推断类型变量 K,V
-            return MapUtils.getInt((Map<String, Object>)map, "id");
-        }, (t1, t2, id)->{
-            System.out.println("匹配: ["+id+"]"+t1+", "+ GsonUtils.get().toJson(t2));
-        });
-    }
+    private BatchQueryUtils() {}
 
     /**
-     * 查询数据并对结果进行绑定
-     * @param list 源数据
-     * @param getId1 从源数据中获取id的方法
-     * @param batchSize 批量执行的个数
-     * @param queryList 根据id列表进行查询目标的方法
-     * @param getId2 从目标数据中获取前id的方法
-     * @param onMatch 目标数据id和源数据id相同时，触发该方法; 参数分别是<源数据,目标数据,id>
-     * @param <T1> 源数据的类型
-     * @param <T2> 目标数据的类型
-     * @param <K> id的类型
+     * 批量查询并绑定详情（收集模式）- 最常用模式
+     * <p>
+     * 将源列表中的每个对象批量查询其详情，并将详情收集为列表后统一绑定回源对象。
+     * 推荐在 90% 的场景下使用此方法。
+     *
+     * @param <T1> 源对象类型
+     * @param <T2> 详情对象类型
+     * @param <K> 键类型（通常是ID类型）
+     * @param sourceList 源对象列表，不能为空
+     * @param sourceIdExtractor 从源对象中提取ID的函数
+     * @param batchSize 批量查询的大小，必须大于0
+     * @param batchQuery 批量查询函数，输入ID集合，返回详情列表
+     * @param detailIdExtractor 从详情对象中提取ID的函数
+     * @param detailCollector 详情收集器，用于将详情列表绑定到源对象
      */
-    public static <T1, T2, K>void bind(List<T1> list, Function<T1, K> getId1, int batchSize, Function<Set<K>, List<T2>> queryList, Function<T2, K> getId2, TriConsumer<T1, T2, K> onMatch) {
-        if (ListUtils.isEmpty(list)) {
+    public static <T1, T2, K> void batchAttachAndCollect(
+            List<T1> sourceList,
+            Function<T1, K> sourceIdExtractor,
+            int batchSize,
+            Function<Set<K>, List<T2>> batchQuery,
+            Function<T2, K> detailIdExtractor,
+            BiConsumer<T1, List<T2>> detailCollector) {
+
+        if (ListUtils.isEmpty(sourceList) || batchSize <= 0) {
             return;
         }
-        int size = Math.min(list.size(), batchSize);
-        // 临时存储对应关系，在查询完数据库以后被清空
-        Map<K, T1> idMap = new HashMap<>(size);
-        for (T1 t1 : list) {
-            K id = getId1.apply(t1);
-            idMap.put(id, t1);
 
-            if (idMap.keySet().size() == batchSize) {
-                findAndMatch(idMap, queryList, getId2, onMatch);
-                idMap.clear();
-            }
-        }
+        // 用于收集每个源对象对应的详情列表，使用 IdentityHashMap 避免对象比较问题
+        Map<T1, List<T2>> resultMap = new IdentityHashMap<>(sourceList.size());
 
-        if (!idMap.isEmpty()) {
-            findAndMatch(idMap, queryList, getId2, onMatch);
-            idMap.clear();
-        }
+        // 批处理映射：ID -> 该ID对应的源对象列表（支持同一ID的多个对象）
+        Map<K, List<T1>> batchIdMap = new HashMap<>(Math.min(batchSize, 512));
 
-    }
-
-    /**
-     * 查询并绑定数
-     * @param idMap id和源数据对应map
-     * @param queryList 查询目标数据的方法
-     * @param getId2 从目标数据中获取前id的方法
-     * @param onMatch 目标数据id和源数据id相同时，触发该方法; 参数分别是<源数据,目标数据,id>
-     * @param <T1> 源数据的类型
-     * @param <T2> 目标数据的类型
-     * @param <K> id的类型
-     */
-    private static <T1, T2, K>void findAndMatch(Map<K, T1> idMap, Function<Set<K>, List<T2>> queryList, Function<T2, K> getId2, TriConsumer<T1, T2, K> onMatch) {
-        List<T2> detailList = queryList.apply(idMap.keySet());
-        find(idMap, detailList, getId2, onMatch);
-    }
-
-    /**
-     * 遍历绑定源数据和目标数据
-     * @param idMap id和源数据对应map
-     * @param list 目标数据
-     * @param getId2 从目标数据中获取前id的方法
-     * @param onMatch 目标数据id和源数据id相同时，触发该方法; 参数分别是<源数据,目标数据,id>
-     * @param <T1> 源数据的类型
-     * @param <T2> 目标数据的类型
-     * @param <K> id的类型
-     */
-    private static <T1, T2, K>void find(Map<K, T1> idMap, List<T2> list, Function<T2, K> getId2, TriConsumer<T1, T2, K> onMatch) {
-        // 遍历目标数据
-        for (T2 t2 : list) {
-            // 获取目标数据的id
-            K id2 = getId2.apply(t2);
-            if (id2 == null) {  // 跳过id为空的项
+        for (T1 source : sourceList) {
+            K id = sourceIdExtractor.apply(source);
+            if (id == null) {
+                // ID为空的源对象直接绑定空列表，避免后续出现NPE
+                detailCollector.accept(source, Collections.emptyList());
                 continue;
             }
-            // 查找源数据的id
-            T1 t1 = idMap.get(id2);
-            if (t1 != null) {
-                // 找到对应源数据，触发绑定操作
-                onMatch.apply(t1, t2, id2);
+
+            batchIdMap.computeIfAbsent(id, k -> new ArrayList<>()).add(source);
+
+            if (batchIdMap.size() >= batchSize) {
+                processBatch(batchIdMap, batchQuery, detailIdExtractor, resultMap);
+                batchIdMap.clear();
+            }
+        }
+
+        // 处理剩余的最后一小批数据
+        if (!batchIdMap.isEmpty()) {
+            processBatch(batchIdMap, batchQuery, detailIdExtractor, resultMap);
+        }
+
+        // 统一将结果绑定回源对象，没有查询到的绑定空列表
+        for (T1 source : sourceList) {
+            detailCollector.accept(source, resultMap.getOrDefault(source, Collections.emptyList()));
+        }
+    }
+
+    /**
+     * 批量查询并绑定详情（回调模式）- 适合复杂处理逻辑
+     * <p>
+     * 将源列表中的每个对象批量查询其详情，每匹配到一个详情就立即回调处理。
+     * 适用于需要在匹配时进行复杂处理逻辑的场景。
+     *
+     * @param <T1> 源对象类型
+     * @param <T2> 详情对象类型
+     * @param <K> 键类型（通常是ID类型）
+     * @param sourceList 源对象列表，不能为空
+     * @param sourceIdExtractor 从源对象中提取ID的函数
+     * @param batchSize 批量查询的大小，必须大于0
+     * @param batchQuery 批量查询函数，输入ID集合，返回详情列表
+     * @param detailIdExtractor 从详情对象中提取ID的函数
+     * @param onMatch 匹配时的回调函数，参数为（源对象、详情对象、匹配的ID）
+     */
+    public static <T1, T2, K> void batchAttach(
+            List<T1> sourceList,
+            Function<T1, K> sourceIdExtractor,
+            int batchSize,
+            Function<Set<K>, List<T2>> batchQuery,
+            Function<T2, K> detailIdExtractor,
+            TriConsumer<T1, T2, K> onMatch) {
+
+        if (ListUtils.isEmpty(sourceList) || batchSize <= 0) {
+            return;
+        }
+
+        Map<K, List<T1>> batchIdMap = new HashMap<>(Math.min(batchSize, 512));
+
+        for (T1 source : sourceList) {
+            K id = sourceIdExtractor.apply(source);
+            if (id == null) {
+                continue; // 跳过空 id
+            }
+
+            batchIdMap.computeIfAbsent(id, k -> new ArrayList<>()).add(source);
+
+            if (batchIdMap.size() >= batchSize) {
+                processBatch(batchIdMap, batchQuery, detailIdExtractor, onMatch);
+                batchIdMap.clear();
+            }
+        }
+
+        if (!batchIdMap.isEmpty()) {
+            processBatch(batchIdMap, batchQuery, detailIdExtractor, onMatch);
+        }
+    }
+
+    /** 处理收集模式批次数据的私有方法 */
+    private static <T1, T2, K> void processBatch(
+            Map<K, List<T1>> batchIdMap,
+            Function<Set<K>, List<T2>> batchQuery,
+            Function<T2, K> detailIdExtractor,
+            Map<T1, List<T2>> resultMap) {
+
+        List<T2> details;
+        try {
+            details = batchQuery.apply(batchIdMap.keySet());
+        } catch (Exception e) {
+            // 单个批次查询失败不影响其他批次，可根据需要替换为具体的日志框架
+            System.err.println("批量查询失败，涉及的ID: " + batchIdMap.keySet() + ", 错误信息: " + e);
+            return;
+        }
+
+        if (ListUtils.isEmpty(details)) {
+            return;
+        }
+
+        // 将查询到的详情按ID分组，支持同一ID对应多条详情记录
+        Map<K, List<T2>> detailGroup = new HashMap<>();
+        for (T2 detail : details) {
+            K id = detailIdExtractor.apply(detail);
+            if (id != null) {
+                detailGroup.computeIfAbsent(id, k -> new ArrayList<>()).add(detail);
+            }
+        }
+
+        // 将分组后的详情绑定到对应的源对象
+        for (Map.Entry<K, List<T1>> entry : batchIdMap.entrySet()) {
+            K id = entry.getKey();
+            List<T2> detailList = detailGroup.getOrDefault(id, Collections.emptyList());
+            for (T1 source : entry.getValue()) {
+                resultMap.computeIfAbsent(source, k -> new ArrayList<>()).addAll(detailList);
             }
         }
     }
 
+    /** 处理回调模式批次数据的私有方法 */
+    private static <T1, T2, K> void processBatch(
+            Map<K, List<T1>> batchIdMap,
+            Function<Set<K>, List<T2>> batchQuery,
+            Function<T2, K> detailIdExtractor,
+            TriConsumer<T1, T2, K> onMatch) {
+
+        List<T2> details;
+        try {
+            details = batchQuery.apply(batchIdMap.keySet());
+        } catch (Exception e) {
+            // 单个批次查询失败不影响其他批次，可根据需要替换为具体的日志框架
+            System.err.println("批量查询失败，涉及的ID: " + batchIdMap.keySet() + ", 错误信息: " + e);
+            return;
+        }
+
+        if (ListUtils.isEmpty(details)) {
+            return;
+        }
+
+        for (T2 detail : details) {
+            K id = detailIdExtractor.apply(detail);
+            if (id == null) continue;
+
+            List<T1> sources = batchIdMap.get(id);
+            if (sources != null) {
+                for (T1 source : sources) {
+                    onMatch.accept(source, detail, id);
+                }
+            }
+        }
+    }
+
+    /**
+     * 三参数消费型函数式接口
+     * <p>
+     * 类似于 {@link java.util.function.BiConsumer}，但接受三个参数。
+     * 用于在批量查询匹配时进行回调处理。
+     *
+     * @param <T1> 第一个参数类型
+     * @param <T2> 第二个参数类型
+     * @param <T3> 第三个参数类型
+     */
     @FunctionalInterface
-    public interface TriConsumer<S, T, U> {
-        void apply(S var1, T var2, U var3);
+    public interface TriConsumer<T1, T2, T3> {
+        /**
+         * 执行接受操作
+         *
+         * @param t1 第一个参数
+         * @param t2 第二个参数
+         * @param t3 第三个参数
+         */
+        void accept(T1 t1, T2 t2, T3 t3);
     }
 }
