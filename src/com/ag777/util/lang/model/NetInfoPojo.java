@@ -9,7 +9,7 @@ import java.util.List;
  * </p>
  * 
  * @author ag777
- * @version create on 2018年06月13日,last modify at 2018年07月05日
+ * @version create on 2018年06月13日,last modify at 2026年04月15日
  */
 public class NetInfoPojo {
 

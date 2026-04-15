@@ -25,7 +25,7 @@ import com.ag777.util.lang.model.NetInfoPojo.NetAddressPojo;
  * </p>
  *
  * @author ag777
- * @version create on 2018年06月13日,last modify at 2018年07月06日
+ * @version create on 2018年06月13日,last modify at 2026年04月15日
  */
 public class NetworkInterfaceUtils {
 
